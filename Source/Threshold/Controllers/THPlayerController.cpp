@@ -43,6 +43,8 @@ void ATHPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveForward", this, &ATHPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ATHPlayerController::MoveRight);
 
+	InputComponent->BindAction("Dodge", EInputEvent::IE_Pressed, this, &ATHPlayerController::Dodge);
+
 	InputComponent->BindAxis("LookUp", this, &ATHPlayerController::LookUp);
     InputComponent->BindAxis("Turn", this, &ATHPlayerController::Turn);
 
@@ -223,6 +225,17 @@ void ATHPlayerController::MoveRight(float Scale)
 	FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
 	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
+
+void ATHPlayerController::Dodge()
+{
+	if (PossessedCharacter == nullptr)
+	{
+		return;
+	}
+
+	PossessedCharacter->Dodge();
+}
+
 
 
 
