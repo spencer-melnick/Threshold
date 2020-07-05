@@ -16,18 +16,28 @@ class THRESHOLD_API ATHPlayerController : public APlayerController
 
 public:
 	ATHPlayerController();
+
+
 	
 	// Engine overrides
+	
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
 
+
+	
 	// Movement
+	
 	void MoveForward(float Scale);
 	void MoveRight(float Scale);
+	void Dodge();
 
+
+	
 	// Camera controls
+	
 	void LookUp(float Scale);
 	void Turn(float Scale);
 	void ToggleTarget();
@@ -73,20 +83,28 @@ public:
 
 protected:
 	// Helper functions
+	
 	TArray<FTarget> GetLockonTargets();
 	TArray<FTarget> GetSortedLockonTargets();
 	TArray<FTarget> GetSortedLockonTargets(int32& CurrentTargetIndex);
 	void RotateTowardsTarget(float DeltaTime);
 
+
+	
 	// Virtual functions
+	
 	virtual bool GetCameraIsDirectlyControlled();
 
 private:
 	// Cached actors/components
+	
 	class ATHCharacter* PossessedCharacter = nullptr;
 	AActor* TargetIndicatorActor = nullptr;
 
+
+
 	// Camera control properties
+	
 	AActor* LockonTarget = nullptr;
 	
 };
