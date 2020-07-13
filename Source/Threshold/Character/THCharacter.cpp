@@ -140,17 +140,8 @@ FVector2D ATHCharacter::GetDodgeDirection(float Threshold) const
 
 bool ATHCharacter::GetCanWalk() const
 {
-	UTHCharacterAnim* CharacterAnim = GetCharacterAnim();
-
-	if (CharacterAnim == nullptr)
-	{
-		return false;
-	}
-
-	bool bIsAnimDodging;
-	CharacterAnim->CheckIsDodging(bIsAnimDodging);
-
-	if (bIsAnimDodging)
+	if (CustomCharacterMovement->MovementMode == MOVE_Custom && 
+		CustomCharacterMovement->CustomMovementMode == CUSTOMMOVE_Dodge)
 	{
 		return false;
 	}
