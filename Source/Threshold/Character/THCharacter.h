@@ -53,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Movement")
 	FVector2D GetDodgeDirection(float Threshold = 0.001f) const;
 
+	UFUNCTION(BlueprintCallable, Category="Movement")
+	bool GetIsDodging() const;
+
 	bool GetCanWalk() const;
 
 	class UTHCharacterAnim* GetCharacterAnim() const;

@@ -137,11 +137,22 @@ FVector2D ATHCharacter::GetDodgeDirection(float Threshold) const
 	return DodgeVector2D;
 }
 
+bool ATHCharacter::GetIsDodging() const
+{
+	if (CustomCharacterMovement == nullptr)
+	{
+		return false;
+	}
+	
+	return (CustomCharacterMovement->MovementMode == MOVE_Custom && 
+		CustomCharacterMovement->CustomMovementMode == CUSTOMMOVE_Dodge);
+}
+
+
 
 bool ATHCharacter::GetCanWalk() const
 {
-	if (CustomCharacterMovement->MovementMode == MOVE_Custom && 
-		CustomCharacterMovement->CustomMovementMode == CUSTOMMOVE_Dodge)
+	if (GetIsDodging())
 	{
 		return false;
 	}
