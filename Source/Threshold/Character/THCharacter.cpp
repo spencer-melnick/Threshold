@@ -87,7 +87,7 @@ void ATHCharacter::Dodge()
 	// Rotate to face control before dodging
 	FRotator ControlRotation = GetControlRotation();
 	FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
-	SetActorRotation(NewRotation);
+	// SetActorRotation(NewRotation);
 
 	// Set the movement mode
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Custom, ETHCustomMovementTypes::CUSTOMMOVE_Dodge);
