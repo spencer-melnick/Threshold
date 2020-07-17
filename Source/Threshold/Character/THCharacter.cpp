@@ -115,9 +115,11 @@ FVector ATHCharacter::GetHeadPosition() const
 FVector2D ATHCharacter::GetMovementVelocity() const
 {
 	FVector ScaledVelocity = GetVelocity() / GetCharacterMovement()->GetMaxSpeed();
+
+	FRotator MovementRotation = FRotator(0.f, GetControlRotation().Yaw, 0.f);
 	FVector2D MovementVelocity;
-	MovementVelocity.X = FVector::DotProduct(ScaledVelocity, GetActorRightVector());
-	MovementVelocity.Y = FVector::DotProduct(ScaledVelocity, GetActorForwardVector());
+	MovementVelocity.X = FVector::DotProduct(ScaledVelocity, MovementRotation.RotateVector(FVector::RightVector));
+	MovementVelocity.Y = FVector::DotProduct(ScaledVelocity, MovementRotation.RotateVector(FVector::ForwardVector));
 
 	return MovementVelocity;
 }
