@@ -1,4 +1,4 @@
-// Copyright © 2020 Spencer Melnick
+// Copyright ï¿½ 2020 Spencer Melnick
 
 
 #include "THCharacter.h"
@@ -71,7 +71,7 @@ void ATHCharacter::PostInitializeComponents()
 void ATHCharacter::Dodge()
 {
 	// Only dodge if you can actually move
-	if (!GetCanWalk())
+	if (!GetCanDodge())
 	{
 		return;
 	}
@@ -161,6 +161,12 @@ bool ATHCharacter::GetCanWalk() const
 
 	return true;
 }
+
+bool ATHCharacter::GetCanDodge() const
+{
+	return (!GetIsDodging() && !CustomCharacterMovement->IsFalling());
+}
+
 
 UTHCharacterAnim* ATHCharacter::GetCharacterAnim() const
 {

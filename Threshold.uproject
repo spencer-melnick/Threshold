@@ -17,6 +17,10 @@
 		{
 			"Name": "PythonScriptPlugin",
 			"Enabled": true
+		},
+		{
+			"Name": "RiderLink",
+			"Enabled": true
 		}
 	]
 }
