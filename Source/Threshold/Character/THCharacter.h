@@ -1,4 +1,4 @@
-// Copyright © 2020 Spencer Melnick
+// Copyright ï¿½ 2020 Spencer Melnick
 
 #pragma once
 
@@ -55,6 +55,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Movement")
 	bool GetIsDodging() const;
+
+	UFUNCTION(BlueprintCallable, Category="Movement")
+	bool GetCanDodge() const;
 
 	bool GetCanWalk() const;
 
