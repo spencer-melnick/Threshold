@@ -8446,6 +8446,8 @@
             <e p="NiagaraCommon.cpp" t="Include" />
             <e p="NiagaraComponent.cpp" t="Include" />
             <e p="NiagaraComponentPool.cpp" t="Include" />
+            <e p="NiagaraComponentRemoveFromPool.cpp" t="Include" />
+            <e p="NiagaraComponentRemoveFromPool.h" t="Include" />
             <e p="NiagaraConstants.cpp" t="Include" />
             <e p="NiagaraCrashReporterHandler.cpp" t="Include" />
             <e p="NiagaraDataInterface.cpp" t="Include" />
@@ -8810,6 +8812,8 @@
               <e p="NiagaraParameterViewModel.cpp" t="Include" />
               <e p="NiagaraParameterViewModel.h" t="Include" />
               <e p="NiagaraScratchPadScriptViewModel.cpp" t="Include" />
+              <e p="NiagaraScratchPadUtilities.cpp" t="Include" />
+              <e p="NiagaraScratchPadUtilities.h" t="Include" />
               <e p="NiagaraScratchPadViewModel.cpp" t="Include" />
               <e p="NiagaraScriptGraphViewModel.cpp" t="Include" />
               <e p="NiagaraScriptGraphViewModel.h" t="Include" />
@@ -43425,6 +43429,8 @@
         <e p="NVIDIA" t="Include">
           <e p="NVaftermath" t="Include">
             <e p="Aftermath.tps" t="Include" />
+            <e p="Defines.h" t="Include" />
+            <e p="GFSDK_Aftermath.h" t="Include" />
             <e p="NVaftermath.Build.cs" t="Include" />
           </e>
           <e p="nvapi" t="Include">
@@ -43684,6 +43690,10 @@
             <e p="THCharacter.h" t="Include" />
             <e p="THCharacterMovement.cpp" t="Include" />
             <e p="THCharacterMovement.h" t="Include" />
+          </e>
+          <e p="Combat" t="Include">
+            <e p="WeaponMoveset.cpp" t="Include" />
+            <e p="WeaponMoveset.h" t="Include" />
           </e>
           <e p="Controllers" t="Include">
             <e p="THPlayerController.cpp" t="Include" />

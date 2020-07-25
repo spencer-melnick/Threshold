@@ -1,4 +1,4 @@
-// Copyright © 2020 Spencer Melnick
+// Copyright ï¿½ 2020 Spencer Melnick
 
 #pragma once
 
@@ -33,6 +33,12 @@ public:
 	void MoveForward(float Scale);
 	void MoveRight(float Scale);
 	void Dodge();
+
+
+
+	// Actions
+
+	void PrimaryAttack();
 
 
 	

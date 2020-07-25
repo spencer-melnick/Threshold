@@ -1,4 +1,4 @@
-// Copyright © 2020 Spencer Melnick
+// Copyright ï¿½ 2020 Spencer Melnick
 
 
 #include "THPlayerController.h"
@@ -42,6 +42,8 @@ void ATHPlayerController::SetupInputComponent()
 
 	InputComponent->BindAxis("MoveForward", this, &ATHPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ATHPlayerController::MoveRight);
+
+	InputComponent->BindAction("PrimaryAttack", EInputEvent::IE_Released, this, &ATHPlayerController::PrimaryAttack);
 
 	InputComponent->BindAction("Dodge", EInputEvent::IE_Pressed, this, &ATHPlayerController::Dodge);
 
@@ -235,6 +237,22 @@ void ATHPlayerController::Dodge()
 
 	PossessedCharacter->Dodge();
 }
+
+
+
+
+// Actions
+
+void ATHPlayerController::PrimaryAttack()
+{
+	if (PossessedCharacter == nullptr)
+	{
+		return;
+	}
+
+	PossessedCharacter->PrimaryAttack();
+}
+
 
 
 
