@@ -6,6 +6,11 @@
 #include "GameFramework/Character.h"
 #include "THCharacter.generated.h"
 
+// Forward declare the enum for Weapon Moves
+// Probably not necessary as the header is pretty small, but
+// better safe than sorry
+enum class EWeaponMoveType : int8;
+
 UCLASS()
 class THRESHOLD_API ATHCharacter : public ACharacter
 {
@@ -28,8 +33,35 @@ public:
 
 	void Dodge();
 
-	// Triggered by animation blueprint to stop motion
-	void EndDodge();
+
+
+	// Actions
+
+	void PrimaryAttack();
+
+	
+
+
+	// Animation Responses
+
+	// Should be called by the attack animation blueprint when
+	// the attack becomes damaging (e.g. on the start of a
+	// sword swing)
+	UFUNCTION(BlueprintCallable, Category="AnimationResponse")
+	void OnAttackDamageStart();
+
+	// Should be called by the attack animation blueprint when
+	// the attack becomes non-damaging and the next combo can
+	// chained (e.g. on the end of the swing, but during the
+	// "follow-through" of the animation)
+	UFUNCTION(BlueprintCallable, Category="AnimationResponse")
+	void OnAttackDamageEnd();
+
+	// Called at the very end of an active attack animation
+	// to let the character know that they are ready to
+	// move again
+	UFUNCTION(BlueprintCallable, Category="AnimationResponse")
+	void OnAttackEnd();
 	
 
 
@@ -61,6 +93,8 @@ public:
 
 	bool GetCanWalk() const;
 
+	bool GetCanAttack() const;
+
 	class UTHCharacterAnim* GetCharacterAnim() const;
 
 
@@ -76,6 +110,9 @@ public:
 	// relative to movement velocity
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Movement")
 	float MovementThreshold = 0.01f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	class UWeaponMoveset* ActiveWeaponMoveset = nullptr;
 	
 
 	
@@ -94,13 +131,45 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	// Helper functions
+
+	void PerformNextAttack(EWeaponMoveType MoveType);
+
+	// Clears attack data after an attack (e.g. a single
+	// sword swing) is completed
+	void ResetAttack();
+
+
+	
 	// Cached components
 
 	class UTHCharacterMovement* CustomCharacterMovement = nullptr;
+	class UTHCharacterAnim* CharacterAnim = nullptr;
 	
 
 	
 	// Private members
-	
+
+	bool bIsAttacking = false;
 	FVector2D DodgeDirection;
+
+
+	// Attack information
+
+	// Actors who were damaged by the active attack.
+	// Used to prevent damaging continuously while the
+	// attack is active. Should be reset upon new
+	// attack.
+	TArray<AActor*> CurrentlyDamagedActors;
+
+	// Whether the weapon should be attempting to deal
+	// damage to actors
+	bool bIsAttackDamaging = false;
+
+	// If our attack just finished recently enough to
+	// trigger a combo on the next attack press
+	bool bCanComboAttack = false;
+
+	// The index of the last move 
+	struct FWeaponMove* ActiveWeaponMove = nullptr;
 };

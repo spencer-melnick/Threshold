@@ -5,10 +5,14 @@
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Threshold/Character/THCharacterMovement.h"
 #include "Threshold/Animation/THCharacterAnim.h"
+#include "Threshold/Combat/WeaponMoveset.h"
+
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
@@ -39,6 +43,23 @@ void ATHCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Early exit if there is no movement component
+	if (CustomCharacterMovement == nullptr)
+	{
+		return;
+	}
+
+	// Disable movement if current mode is walking and we're not supposed to be
+	// able to walk
+	if (!GetCanWalk() && CustomCharacterMovement->MovementMode == MOVE_Walking)
+	{
+		CustomCharacterMovement->SetMovementMode(MOVE_None);
+	}
+	else if (GetCanWalk() && CustomCharacterMovement->MovementMode == MOVE_None)
+	{
+		CustomCharacterMovement->SetMovementMode(MOVE_Walking);
+	}
+
 	// Check if character is moving and update rotation
 	FVector Velocity = GetVelocity();
 
@@ -50,6 +71,11 @@ void ATHCharacter::Tick(float DeltaTime)
 		FRotator NewRotation = FMath::RInterpConstantTo(GetActorRotation(), DesiredRotation, DeltaTime, CharacterRotationSpeed);
 		SetActorRotation(NewRotation);
 	}
+
+	if (bCanComboAttack)
+	{
+		DrawDebugSphere(GetWorld(), GetHeadPosition(), 10.f, 32, FColor::Cyan);
+	}
 }
 
 void ATHCharacter::PostInitializeComponents()
@@ -58,6 +84,12 @@ void ATHCharacter::PostInitializeComponents()
 	
 	// Cache components
 	CustomCharacterMovement = Cast<UTHCharacterMovement>(GetCharacterMovement());
+
+	USkeletalMeshComponent* SkeletalMesh = GetMesh();
+	if (SkeletalMesh != nullptr)
+	{
+		CharacterAnim = Cast<UTHCharacterAnim>(SkeletalMesh->GetAnimInstance());
+	}
 }
 
 
@@ -75,14 +107,6 @@ void ATHCharacter::Dodge()
 	{
 		return;
 	}
-	
-	UTHCharacterAnim* CharacterAnim = GetCharacterAnim();
-
-	// Trigger the dodge animation
-	if (CharacterAnim != nullptr)
-	{
-		CharacterAnim->Dodge();
-	}
 
 	// Rotate to face control before dodging
 	FRotator ControlRotation = GetControlRotation();
@@ -93,9 +117,54 @@ void ATHCharacter::Dodge()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Custom, ETHCustomMovementTypes::CUSTOMMOVE_Dodge);
 }
 
-void ATHCharacter::EndDodge()
+
+
+
+
+
+// Actions
+
+void ATHCharacter::PrimaryAttack()
 {
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	if (!GetCanAttack())
+	{
+		return;
+	}
+
+	PerformNextAttack(EWeaponMoveType::Primary);
+}
+
+
+
+
+
+
+
+
+// Animation responses
+
+void ATHCharacter::OnAttackDamageStart()
+{
+	// Start doing some damage!
+	bIsAttackDamaging = true;
+}
+
+void ATHCharacter::OnAttackDamageEnd()
+{
+	// Stop doing damage!
+	bIsAttackDamaging = false;
+
+	// Trigger the combo window
+	bCanComboAttack = true;
+}
+
+void ATHCharacter::OnAttackEnd()
+{
+	bIsAttacking = false;
+	bCanComboAttack = false;
+
+	// Reset active move
+	ActiveWeaponMove = nullptr;
 }
 
 
@@ -114,7 +183,19 @@ FVector ATHCharacter::GetHeadPosition() const
 
 FVector2D ATHCharacter::GetMovementVelocity() const
 {
-	FVector ScaledVelocity = GetVelocity() / GetCharacterMovement()->GetMaxSpeed();
+	if (CustomCharacterMovement == nullptr)
+	{
+		return FVector2D::ZeroVector;
+	}
+	
+	// Return zero to prevent NaN
+	float MaxSpeed = CustomCharacterMovement->GetMaxSpeed();
+	if (FMath::IsNearlyZero(MaxSpeed))
+	{
+		return FVector2D::ZeroVector;
+	}
+	
+	FVector ScaledVelocity = GetVelocity() / MaxSpeed;
 
 	FRotator MovementRotation = FRotator(0.f, GetControlRotation().Yaw, 0.f);
 	FVector2D MovementVelocity;
@@ -159,24 +240,29 @@ bool ATHCharacter::GetCanWalk() const
 		return false;
 	}
 
+	if (bIsAttacking)
+	{
+		return false;
+	}
+
 	return true;
 }
 
 bool ATHCharacter::GetCanDodge() const
 {
-	return (!GetIsDodging() && !CustomCharacterMovement->IsFalling());
+	return (GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
 }
+
+bool ATHCharacter::GetCanAttack() const
+{
+	return GetCanWalk() || bCanComboAttack;
+}
+
 
 
 UTHCharacterAnim* ATHCharacter::GetCharacterAnim() const
 {
-	USkeletalMeshComponent* SkeletalMesh = GetMesh();
-	if (SkeletalMesh == nullptr)
-	{
-		return nullptr;
-	}
-
-	return Cast<UTHCharacterAnim>(SkeletalMesh->GetAnimInstance());
+	return CharacterAnim;
 }
 
 
@@ -196,4 +282,82 @@ void ATHCharacter::BeginPlay()
 }
 
 
+
+
+
+// Private helpers
+
+void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
+{
+	if (ActiveWeaponMoveset == nullptr || CharacterAnim == nullptr)
+	{
+		return;
+	}
+	
+	uint16_t NextMoveIndex = 0;
+	
+	// If no move is active, we need to find the appropriate starting move
+	if (ActiveWeaponMove == nullptr)
+	{
+		switch (MoveType)
+		{
+		case EWeaponMoveType::Primary:
+			NextMoveIndex = ActiveWeaponMoveset->StartingPrimaryMoveIndex;
+			break;
+
+		case EWeaponMoveType::Secondary:
+			NextMoveIndex = ActiveWeaponMoveset->StartingSecondaryMoveIndex;
+			break;
+		}
+    }
+	// Otherwise just grab the appropriate chained move from our active move (if any)
+	else
+	{
+		switch (MoveType)
+		{
+		case EWeaponMoveType::Primary:
+			if (!ActiveWeaponMove->bHasPrimaryFollowup)
+			{
+				return;
+			}
+			NextMoveIndex = ActiveWeaponMove->PrimaryFollowupIndex;
+			break;
+
+		case EWeaponMoveType::Secondary:
+			if (!ActiveWeaponMove->bHasSecondaryFollowup)
+			{
+				return;
+			}
+			NextMoveIndex = ActiveWeaponMove->SecondaryFollowupIndex;
+			break;
+		}
+	}
+
+	if (NextMoveIndex >= ActiveWeaponMoveset->WeaponMoves.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Attempting to access out of range move %d in %s"),
+			NextMoveIndex, *GetNameSafe(ActiveWeaponMoveset));
+		return;
+	}
+	
+	ActiveWeaponMove = &(ActiveWeaponMoveset->WeaponMoves[NextMoveIndex]);
+
+	// Dispatch our next animation to the anim blueprint to let it decide
+	// exactly how to play it
+	CharacterAnim->Attack(ActiveWeaponMove->Animation);
+
+	// Reset attack states
+	ResetAttack();
+	bIsAttacking = true;
+	bCanComboAttack = false;
+
+	UE_LOG(LogTemp, Display, TEXT("Performing move %d on %s"),
+		NextMoveIndex, *GetNameSafe(ActiveWeaponMoveset));
+}
+
+
+void ATHCharacter::ResetAttack()
+{
+	CurrentlyDamagedActors.Empty();
+}
 
