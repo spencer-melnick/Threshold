@@ -1,28 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="70aac17b-1c0c-4317-8d83-e7e25d92872f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/contentModel.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Character_Anim.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Character_Anim.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/LowerBody/JogBwd.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/LowerBody/JogBwd.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/UpperBody/ArmsJog2h.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/UpperBody/ArmsJog2h.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/UpperBody/BlendSpaces/ArmsJog2h_BlendSpace.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/UpperBody/BlendSpaces/ArmsJog2h_BlendSpace.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Animations_MMT.blend" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Animations_MMT.blend" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Animations_MMT.blend1" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Animations_MMT.blend1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blueprints/Character/BP_THCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/Character/BP_THCharacter.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Maps/Placeholder/Control_Test_01.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Placeholder/Control_Test_01.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Meshes/Placeholder/Character/Character_Skeleton.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Meshes/Placeholder/Character/Character_Skeleton.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Threshold.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/Threshold.uproject" afterDir="false" />
-    </list>
+    <list default="true" id="70aac17b-1c0c-4317-8d83-e7e25d92872f" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -290,7 +269,7 @@
       <option name="presentableId" value="Default" />
       <updated>1595005283454</updated>
       <workItem from="1595005404648" duration="1858000" />
-      <workItem from="1595624277660" duration="13182000" />
+      <workItem from="1595624277660" duration="13672000" />
     </task>
     <servers />
   </component>
