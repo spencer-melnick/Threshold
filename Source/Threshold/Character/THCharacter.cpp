@@ -53,7 +53,7 @@ void ATHCharacter::Tick(float DeltaTime)
 	// able to walk
 	if (!GetCanWalk() && CustomCharacterMovement->MovementMode == MOVE_Walking)
 	{
-		CustomCharacterMovement->SetMovementMode(MOVE_None);
+		// CustomCharacterMovement->SetMovementMode(MOVE_None);
 	}
 	else if (GetCanWalk() && CustomCharacterMovement->MovementMode == MOVE_None)
 	{

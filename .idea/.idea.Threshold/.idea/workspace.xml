@@ -1,7 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="70aac17b-1c0c-4317-8d83-e7e25d92872f" name="Default Changelist" comment="" />
+    <list default="true" id="70aac17b-1c0c-4317-8d83-e7e25d92872f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/2hAttack_01.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/2hAttack_01_Montage.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/2hAttack_02_Montage.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Armature_2hAttack_02.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01_Montage.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01_Montage.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/EndPoses/2hAttack_01_Endd.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/EndPoses/2hAttack_02_Start.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/EndPoses/2h_Attack_01_Start.uasset" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Character_Anim.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Character_Anim.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend1" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Data/Movesets/PlaceholderWeaponMoveset.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Movesets/PlaceholderWeaponMoveset.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -45,6 +64,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunManager" selected="C++ Project.Threshold">
     <configuration name="Threshold" type="CppProject" factoryName="C++ Project">
@@ -270,6 +290,7 @@
       <updated>1595005283454</updated>
       <workItem from="1595005404648" duration="1858000" />
       <workItem from="1595624277660" duration="13672000" />
+      <workItem from="1595884399332" duration="3897000" />
     </task>
     <servers />
   </component>
@@ -282,6 +303,10 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="461" y="164" key="SettingsEditor" timestamp="1595950467815">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="461" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1595950467815" />
     <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1595645468691">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
