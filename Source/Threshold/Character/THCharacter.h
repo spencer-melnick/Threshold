@@ -20,6 +20,7 @@ public:
 	// Sets default values for this character's properties
 	ATHCharacter(const class FObjectInitializer& ObjectInitializer);
 
+
 	
 	//Engine overrides
 	
@@ -39,8 +40,14 @@ public:
 
 	void PrimaryAttack();
 
-	
 
+
+	// Combat
+
+	UFUNCTION(BlueprintCallable, Category="Combat")
+	void ChangeActiveWeapon(class UPrimitiveComponent* NewWeapon);
+
+	
 
 	// Animation Responses
 
@@ -65,7 +72,6 @@ public:
 	
 
 
-	
 	// Accessors
 
 	// Returns the position of the character's head
@@ -97,6 +103,7 @@ public:
 
 	class UTHCharacterAnim* GetCharacterAnim() const;
 
+	class UPrimitiveComponent* GetActiveWeapon() const;
 
 	
 	// Actor properties
@@ -113,6 +120,17 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	class UWeaponMoveset* ActiveWeaponMoveset = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	FName DamageableActorTag;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	class UCurveFloat* HitSlowdownCurve = nullptr;
+
+	// The maximum amount of time (in seconds) after a hit that the
+	// hit slowdown curve will be evaluated at
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	float MaxHitSlowdownTime = 1.f;
 	
 
 	
@@ -126,10 +144,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	class UCameraComponent* ThirdPersonCamera;
 
+	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// Called whenever a new actor overlaps the weapon
+	virtual void OnAttackingActor(AActor* OtherActor);
+	
 private:
 	// Helper functions
 
@@ -138,6 +161,20 @@ private:
 	// Clears attack data after an attack (e.g. a single
 	// sword swing) is completed
 	void ResetAttack();
+
+	void ApplyHitSlowdown(float DeltaTime);
+
+
+
+	// Delegates
+
+	UFUNCTION()
+	void OnWeaponOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnWeaponEndOverlap(UPrimitiveComponent* OverlappedComp,  AActor* OtherActor,
+		class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 
 	
@@ -160,7 +197,12 @@ private:
 	// Used to prevent damaging continuously while the
 	// attack is active. Should be reset upon new
 	// attack.
+	UPROPERTY()
 	TArray<AActor*> CurrentlyDamagedActors;
+
+	// Actors who are currently overlapping the weapon
+	UPROPERTY()
+	TArray<AActor*> CurrentlyWeaponOverlappingActors;
 
 	// Whether the weapon should be attempting to deal
 	// damage to actors
@@ -172,4 +214,10 @@ private:
 
 	// The index of the last move 
 	struct FWeaponMove* ActiveWeaponMove = nullptr;
+	
+	// The currently active weapon component
+	UPROPERTY()
+	class UPrimitiveComponent* ActiveWeapon;
+
+	float TimeSinceLastHit = 0.f;
 };

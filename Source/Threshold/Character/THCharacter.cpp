@@ -37,6 +37,8 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 }
 
 
+
+
 // Engine overrides
 
 void ATHCharacter::Tick(float DeltaTime)
@@ -76,6 +78,9 @@ void ATHCharacter::Tick(float DeltaTime)
 	{
 		DrawDebugSphere(GetWorld(), GetHeadPosition(), 10.f, 32, FColor::Cyan);
 	}
+
+	// Run hit slowdown code
+	ApplyHitSlowdown(DeltaTime);
 }
 
 void ATHCharacter::PostInitializeComponents()
@@ -91,9 +96,6 @@ void ATHCharacter::PostInitializeComponents()
 		CharacterAnim = Cast<UTHCharacterAnim>(SkeletalMesh->GetAnimInstance());
 	}
 }
-
-
-
 
 
 
@@ -120,8 +122,6 @@ void ATHCharacter::Dodge()
 
 
 
-
-
 // Actions
 
 void ATHCharacter::PrimaryAttack()
@@ -137,6 +137,21 @@ void ATHCharacter::PrimaryAttack()
 
 
 
+// Combat
+
+void ATHCharacter::ChangeActiveWeapon(UPrimitiveComponent* NewWeapon)
+{
+	// Get rid of old weapon overlap events
+	if (ActiveWeapon != nullptr)
+	{
+		ActiveWeapon->OnComponentBeginOverlap.RemoveDynamic(this, &ATHCharacter::OnWeaponOverlap);
+		ActiveWeapon->OnComponentEndOverlap.RemoveDynamic(this, &ATHCharacter::OnWeaponEndOverlap);
+	}
+	
+	ActiveWeapon = NewWeapon;
+	ActiveWeapon->OnComponentBeginOverlap.AddUniqueDynamic(this, &ATHCharacter::OnWeaponOverlap);
+	ActiveWeapon->OnComponentEndOverlap.AddUniqueDynamic(this, &ATHCharacter::OnWeaponEndOverlap);
+}
 
 
 
@@ -166,10 +181,6 @@ void ATHCharacter::OnAttackEnd()
 	// Reset active move
 	ActiveWeaponMove = nullptr;
 }
-
-
-
-
 
 
 
@@ -231,8 +242,6 @@ bool ATHCharacter::GetIsDodging() const
 		CustomCharacterMovement->CustomMovementMode == CUSTOMMOVE_Dodge);
 }
 
-
-
 bool ATHCharacter::GetCanWalk() const
 {
 	if (GetIsDodging())
@@ -258,18 +267,15 @@ bool ATHCharacter::GetCanAttack() const
 	return GetCanWalk() || bCanComboAttack;
 }
 
-
-
 UTHCharacterAnim* ATHCharacter::GetCharacterAnim() const
 {
 	return CharacterAnim;
 }
 
-
-
-
-
-
+UPrimitiveComponent* ATHCharacter::GetActiveWeapon() const
+{
+	return ActiveWeapon;
+}
 
 
 
@@ -279,6 +285,11 @@ void ATHCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ATHCharacter::OnAttackingActor(AActor* OtherActor)
+{
+	TimeSinceLastHit = 0.f;
 }
 
 
@@ -359,5 +370,71 @@ void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
 void ATHCharacter::ResetAttack()
 {
 	CurrentlyDamagedActors.Empty();
+	CurrentlyWeaponOverlappingActors.Empty();
+
+	TimeSinceLastHit = 0.f;
+}
+
+void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
+{
+	// Reset time dilation
+	if (!bIsAttacking || HitSlowdownCurve == nullptr || CurrentlyWeaponOverlappingActors.Num() == 0)
+	{
+		CustomTimeDilation = 1.f;
+		return;
+	}
+
+	// Apply undilated delta time here to avoid exponential effects
+	// on the slowdown curve
+	TimeSinceLastHit += DeltaTime / CustomTimeDilation;
+
+	// Stop evaluating curve at max time for performance
+	if (TimeSinceLastHit >= MaxHitSlowdownTime)
+	{
+		TimeSinceLastHit = MaxHitSlowdownTime;
+	}
+
+	CustomTimeDilation = HitSlowdownCurve->GetFloatValue(TimeSinceLastHit);
+}
+
+
+
+
+
+// Delegates
+
+void ATHCharacter::OnWeaponOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// Only damage actors with the correct tag while attack is damaging
+	if (!OtherActor->ActorHasTag(DamageableActorTag) || !bIsAttackDamaging)
+	{
+		return;
+	}
+
+	// Keep a list of the overlapping actors
+	CurrentlyWeaponOverlappingActors.AddUnique(OtherActor);
+
+	// Skip actors we're already damaging
+	if (CurrentlyDamagedActors.Contains(OtherActor))
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Display, TEXT("%s hit %s with a weapon"), *GetNameSafe(this), *GetNameSafe(OtherActor));
+	CurrentlyDamagedActors.Add(OtherActor);
+	OnAttackingActor(OtherActor);
+}
+
+void ATHCharacter::OnWeaponEndOverlap(UPrimitiveComponent* OverlappedComp,  AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	// Only track actors with the correct tag
+	if (!OtherActor->ActorHasTag(DamageableActorTag))
+	{
+		return;
+	}
+
+	CurrentlyWeaponOverlappingActors.Remove(OtherActor);
 }
 
