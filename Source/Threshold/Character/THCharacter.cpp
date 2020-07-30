@@ -81,6 +81,11 @@ void ATHCharacter::Tick(float DeltaTime)
 
 	// Run hit slowdown code
 	ApplyHitSlowdown(DeltaTime);
+
+	if (bIsAttackDamaging)
+	{
+		SweepWeaponCollision(DeltaTime);
+	}
 }
 
 void ATHCharacter::PostInitializeComponents()
@@ -287,9 +292,11 @@ void ATHCharacter::BeginPlay()
 	
 }
 
-void ATHCharacter::OnAttackingActor(AActor* OtherActor)
+void ATHCharacter::OnAttackingActor(AActor* OtherActor, FVector HitLocation, FVector HitNormal, FVector HitVelocity)
 {
 	TimeSinceLastHit = 0.f;
+
+	OnAttackingActorBP(OtherActor, HitLocation, HitNormal, HitVelocity);
 }
 
 
@@ -371,6 +378,7 @@ void ATHCharacter::ResetAttack()
 {
 	CurrentlyDamagedActors.Empty();
 	CurrentlyWeaponOverlappingActors.Empty();
+	LastWeaponSweepPositions.Empty();
 
 	TimeSinceLastHit = 0.f;
 }
@@ -397,6 +405,69 @@ void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 	CustomTimeDilation = HitSlowdownCurve->GetFloatValue(TimeSinceLastHit);
 }
 
+void ATHCharacter::SweepWeaponCollision(float DeltaTime)
+{
+	// Don't do anything if we don't have any sockets to check
+	if (WeaponSweepSockets.Num() == 0)
+	{
+		return;
+	}
+
+	// Calculate the current positions of all weapon sockets
+	TArray<FVector> NewWeaponSweepPositions;
+	NewWeaponSweepPositions.SetNumUninitialized(WeaponSweepSockets.Num());
+
+	for (int32 i = 0; i < WeaponSweepSockets.Num(); i++)
+	{
+		NewWeaponSweepPositions[i] = ActiveWeapon->GetSocketLocation(WeaponSweepSockets[i]);
+	}
+	
+	// Only perform a sweep if we know the last position of
+	// our weapon sockets and double check for a mismatch
+	// between the number of positions and sockets
+	if (LastWeaponSweepPositions.Num() > 0 && LastWeaponSweepPositions.Num() == WeaponSweepSockets.Num())
+	{
+		FCollisionShape SweepShape = FCollisionShape::MakeSphere(WeaponSweepRadius);
+			
+		for (int32 i = 0; i < LastWeaponSweepPositions.Num(); i++)
+		{
+			FVector TraceStart = LastWeaponSweepPositions[i];
+			FVector TraceEnd = NewWeaponSweepPositions[i];
+
+			TArray<FHitResult> HitResults;
+
+			if (GetWorld()->SweepMultiByChannel(HitResults, TraceStart, TraceEnd, FQuat::Identity,
+				WeaponSweepChannel, SweepShape))
+			{
+				for (FHitResult& HitResult : HitResults)
+				{
+					AActor* HitActor = HitResult.GetActor();
+
+					// Only damage actors with the correct tag who we haven't hit yet
+					if (HitActor->ActorHasTag(DamageableActorTag) && !CurrentlyDamagedActors.Contains(HitActor))
+					{
+						// Track hit actor to prevent duplicate hits
+						CurrentlyDamagedActors.Add(HitActor);
+						
+						// Estimate hit velocity based on socket location
+						FVector HitVelocity = (TraceEnd - TraceStart) / DeltaTime;
+						
+						// Exit loop since we've found an actor to damage
+						OnAttackingActor(HitResult.GetActor(), HitResult.ImpactPoint,
+							HitResult.ImpactNormal, HitVelocity);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// Update our weapon positions using move to avoid copying
+	LastWeaponSweepPositions = MoveTemp(NewWeaponSweepPositions);
+	
+}
+
+
 
 
 
@@ -406,7 +477,7 @@ void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 void ATHCharacter::OnWeaponOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// Only damage actors with the correct tag while attack is damaging
+	// Only track actors with the correct tag while attack is damaging
 	if (!OtherActor->ActorHasTag(DamageableActorTag) || !bIsAttackDamaging)
 	{
 		return;
@@ -414,16 +485,6 @@ void ATHCharacter::OnWeaponOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 
 	// Keep a list of the overlapping actors
 	CurrentlyWeaponOverlappingActors.AddUnique(OtherActor);
-
-	// Skip actors we're already damaging
-	if (CurrentlyDamagedActors.Contains(OtherActor))
-	{
-		return;
-	}
-
-	UE_LOG(LogTemp, Display, TEXT("%s hit %s with a weapon"), *GetNameSafe(this), *GetNameSafe(OtherActor));
-	CurrentlyDamagedActors.Add(OtherActor);
-	OnAttackingActor(OtherActor);
 }
 
 void ATHCharacter::OnWeaponEndOverlap(UPrimitiveComponent* OverlappedComp,  AActor* OtherActor,

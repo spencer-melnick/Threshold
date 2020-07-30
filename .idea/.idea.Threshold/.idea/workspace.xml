@@ -3,17 +3,41 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="70aac17b-1c0c-4317-8d83-e7e25d92872f" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitBurst_Emitter.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_Material.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_System.uasset" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/NewParticleSystem.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend1" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blender/Placeholder/Placeholder_Attacks_MMT.blend1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01_Montage.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01_Montage.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Blueprints/Character/BP_THCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/Character/BP_THCharacter.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Curves/Billboard_Constant_Size_Curve.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Curves/Default_DodgeCurve.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Maps/Placeholder/Control_Test_01.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Maps/Placeholder/Control_Test_01.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Meshes/Placeholder/Character/Character_Skeleton.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Meshes/Placeholder/Character/Character_Skeleton.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Data/Curves/HitSlowdown_Curve.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Curves/HitSlowdown_Curve.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Effects/Placeholder/Trail_Emitter.uasset" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Meshes/Placeholder/Sword/Placeholder_Sword.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Meshes/Placeholder/Sword/Placeholder_Sword.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Dust_Particle.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Dust_Particle.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Spark.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Spark.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_smoke_subUV.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_smoke_subUV.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" afterDir="false" />
     </list>
@@ -26,26 +50,30 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Combat/WeaponMoveset.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Combat/WeaponMoveset.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacterMovement.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_4.25/Engine/Source/Runtime/Core/Public/Logging/LogMacros.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacterMovement.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_4.25/Engine/Source/Runtime/Core/Public/Logging/LogMacros.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" />
         <option value="$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" />
         <option value="$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" />
         <option value="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.h" />
         <option value="$PROJECT_DIR$/Source/Threshold/Combat/WeaponMoveset.h" />
+        <option value="$PROJECT_DIR$/Source/Threshold/Combat/WeaponBase.h" />
+        <option value="$PROJECT_DIR$/Source/Threshold/Combat/WeaponInterface.h" />
+        <option value="$PROJECT_DIR$/Source/Threshold/Combat/WeaponCollider.cpp" />
+        <option value="$PROJECT_DIR$/Source/Threshold/Combat/WeaponCollider.h" />
+        <option value="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" />
         <option value="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" />
         <option value="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" />
       </list>
@@ -286,7 +314,8 @@
       <updated>1595005283454</updated>
       <workItem from="1595005404648" duration="1858000" />
       <workItem from="1595624277660" duration="13672000" />
-      <workItem from="1595884399332" duration="10662000" />
+      <workItem from="1595884399332" duration="13640000" />
+      <workItem from="1596036682070" duration="14447000" />
     </task>
     <servers />
   </component>
@@ -295,44 +324,44 @@
   </component>
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="UnityUnitTestConfiguration" currentTestLauncher="NUnit" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1595970209649">
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1595990244181">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1595970209649" />
-    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1595970209649">
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1595990244181" />
+    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1595990244180">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1595970209649" />
-    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1595970209648">
+    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1595990244180" />
+    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1595990244177">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1595970209648" />
-    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1595970209649">
+    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1595990244177" />
+    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1595990244180">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1595970209649" />
+    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1595990244180" />
     <state x="461" y="164" key="SettingsEditor" timestamp="1595950467815">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="164" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1595950467815" />
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1595645468691">
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1596042388173">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1595645468691" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp</url>
-          <line>65</line>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1596042388173" />
   </component>
 </project>
