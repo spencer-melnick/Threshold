@@ -385,8 +385,9 @@ void ATHCharacter::ResetAttack()
 
 void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 {
-	// Reset time dilation
-	if (!bIsAttacking || HitSlowdownCurve == nullptr || CurrentlyWeaponOverlappingActors.Num() == 0)
+	// Reset time dilation if we aren't currently attacking or damaging anyone
+	// (or data is missing!)
+	if (!bIsAttacking || HitSlowdownCurve == nullptr || CurrentlyDamagedActors.Num() == 0)
 	{
 		CustomTimeDilation = 1.f;
 		return;
@@ -395,6 +396,14 @@ void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 	// Apply undilated delta time here to avoid exponential effects
 	// on the slowdown curve
 	TimeSinceLastHit += DeltaTime / CustomTimeDilation;
+
+	// If we're no longer overlapping a damageable actor and the minimum
+	// hit time has elapsed, we should stop the hit slowdown
+	if (CurrentlyWeaponOverlappingActors.Num() == 0 && TimeSinceLastHit >= MinHitSlowdownTime)
+	{
+		CustomTimeDilation = 1.f;
+		return;
+	}
 
 	// Stop evaluating curve at max time for performance
 	if (TimeSinceLastHit >= MaxHitSlowdownTime)

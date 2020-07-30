@@ -132,6 +132,12 @@ public:
 	// hit slowdown curve will be evaluated at
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	float MaxHitSlowdownTime = 1.f;
+	
+	// The minimum amount of time that a hit slowdown will occur
+	// for after hitting an enemy. This ensures that even glancing
+	// attacks will apply a hit slowdown for a certain amount of time
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	float MinHitSlowdownTime = 0.5f;
 
 	// Names of the slots from where the weapon collision sweep checks
 	// will originate

@@ -23,21 +23,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="70aac17b-1c0c-4317-8d83-e7e25d92872f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitBurst_Emitter.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_Material.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_System.uasset" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/NewParticleSystem.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Threshold/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01_Montage.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Animations/Placeholder/Attacks/Attack01_Montage.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blueprints/Character/BP_THCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/Character/BP_THCharacter.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Data/Curves/HitSlowdown_Curve.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Data/Curves/HitSlowdown_Curve.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Effects/Placeholder/Trail_Emitter.uasset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Meshes/Placeholder/Sword/Placeholder_Sword.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Meshes/Placeholder/Sword/Placeholder_Sword.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Dust_Particle.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Dust_Particle.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Spark.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_Spark.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_smoke_subUV.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Starter/StarterContent/Particles/Materials/M_smoke_subUV.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_Material.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_Material.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_System.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Effects/Placeholder/HitEffect_System.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" afterDir="false" />
     </list>
@@ -50,17 +38,17 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Combat/WeaponMoveset.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Animation/THCharacterAnim.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Combat/WeaponMoveset.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacterMovement.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacter.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_4.25/Engine/Source/Runtime/Core/Public/Logging/LogMacros.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacterMovement.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/Threshold/Character/THCharacter.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.h" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Source/Threshold/Controllers/THPlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_4.25/Engine/Source/Runtime/Core/Public/Logging/LogMacros.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -315,7 +303,8 @@
       <workItem from="1595005404648" duration="1858000" />
       <workItem from="1595624277660" duration="13672000" />
       <workItem from="1595884399332" duration="13640000" />
-      <workItem from="1596036682070" duration="14447000" />
+      <workItem from="1596036682070" duration="15047000" />
+      <workItem from="1596123979557" duration="388000" />
     </task>
     <servers />
   </component>
@@ -334,6 +323,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
