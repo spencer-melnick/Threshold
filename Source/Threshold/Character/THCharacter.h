@@ -57,12 +57,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category="AnimationResponse")
 	void OnAttackDamageStart();
 
+	// Called when the current attack becomes damaging
+	// (e.g. on the start of a sword swing)
+	UFUNCTION(BlueprintImplementableEvent, Category="AnimationResponse")
+	void OnAttackDamageStartBP();
+
 	// Should be called by the attack animation blueprint when
 	// the attack becomes non-damaging and the next combo can
 	// chained (e.g. on the end of the swing, but during the
 	// "follow-through" of the animation)
 	UFUNCTION(BlueprintCallable, Category="AnimationResponse")
 	void OnAttackDamageEnd();
+
+	// Called when the current attack becomes non-damaging
+	// (e.g. at the end of a sword swing)
+	UFUNCTION(BlueprintImplementableEvent, Category="AnimationResponse")
+	void OnAttackDamageEndBP();
 
 	// Called at the very end of an active attack animation
 	// to let the character know that they are ready to
