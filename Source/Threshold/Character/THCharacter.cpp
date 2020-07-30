@@ -74,11 +74,6 @@ void ATHCharacter::Tick(float DeltaTime)
 		SetActorRotation(NewRotation);
 	}
 
-	if (bCanComboAttack)
-	{
-		DrawDebugSphere(GetWorld(), GetHeadPosition(), 10.f, 32, FColor::Cyan);
-	}
-
 	// Run hit slowdown code
 	ApplyHitSlowdown(DeltaTime);
 
