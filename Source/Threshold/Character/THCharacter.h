@@ -105,6 +105,7 @@ public:
 
 	class UPrimitiveComponent* GetActiveWeapon() const;
 
+
 	
 	// Actor properties
 
@@ -131,7 +132,18 @@ public:
 	// hit slowdown curve will be evaluated at
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	float MaxHitSlowdownTime = 1.f;
-	
+
+	// Names of the slots from where the weapon collision sweep checks
+	// will originate
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	TArray<FName> WeaponSweepSockets;
+
+	// Radius of the sphere used in weapon sweep
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	float WeaponSweepRadius = 10.f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	TEnumAsByte<ECollisionChannel> WeaponSweepChannel;
 
 	
 	// Default components
@@ -151,7 +163,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Called whenever a new actor overlaps the weapon
-	virtual void OnAttackingActor(AActor* OtherActor);
+	UFUNCTION()
+	virtual void OnAttackingActor(AActor* OtherActor, FVector HitLocation, FVector HitNormal, FVector HitVelocity);
+
+	// Blueprint implementable call when a new actor
+	// overlaps the weapon
+	UFUNCTION(BlueprintImplementableEvent, Category="Combat")
+	void OnAttackingActorBP(AActor* OtherActor, FVector HitLocation, FVector HitNormal, FVector HitVelocity);
 	
 private:
 	// Helper functions
@@ -163,6 +181,11 @@ private:
 	void ResetAttack();
 
 	void ApplyHitSlowdown(float DeltaTime);
+
+	// Check to see if the weapon sweep sockets
+	// overlap any damageable actors and trigger the
+	// appropriate responses
+	void SweepWeaponCollision(float DeltaTime);
 
 
 
@@ -203,6 +226,11 @@ private:
 	// Actors who are currently overlapping the weapon
 	UPROPERTY()
 	TArray<AActor*> CurrentlyWeaponOverlappingActors;
+
+	// Last world positions of the sockets in the weapon
+	// for weapon sweep. Cleared at the start of each
+	// new attack
+	TArray<FVector> LastWeaponSweepPositions;
 
 	// Whether the weapon should be attempting to deal
 	// damage to actors
