@@ -76,3 +76,6 @@ DerivedDataCache/*
 # Ignore starter content
 Content/Starter
 Content/StarterContent
+
+# Ignore Rider project files
+.idea/*
