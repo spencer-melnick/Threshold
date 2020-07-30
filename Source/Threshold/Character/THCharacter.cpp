@@ -162,6 +162,9 @@ void ATHCharacter::OnAttackDamageStart()
 {
 	// Start doing some damage!
 	bIsAttackDamaging = true;
+
+	// Trigger the blueprint event
+	OnAttackDamageStartBP();
 }
 
 void ATHCharacter::OnAttackDamageEnd()
@@ -171,6 +174,9 @@ void ATHCharacter::OnAttackDamageEnd()
 
 	// Trigger the combo window
 	bCanComboAttack = true;
+
+	// Trigger the blueprint event
+	OnAttackDamageEndBP();
 }
 
 void ATHCharacter::OnAttackEnd()
