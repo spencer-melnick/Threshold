@@ -8,10 +8,18 @@
 
 
 ATHPlayerController::ATHPlayerController()
+	: InputBuffer(InputBufferSize + 1)
 {
 	// Tick every update
 	PrimaryActorTick.bCanEverTick = true;
 }
+
+ATHPlayerController::ATHPlayerController(FVTableHelper& Helper)
+	: ATHPlayerController()
+{
+	
+}
+
 
 
 // Engine overrides
@@ -63,6 +71,29 @@ void ATHPlayerController::Tick(float DeltaTime)
 	}
 
 	RotateTowardsTarget(DeltaTime);
+
+	// Check the most recently buffered input
+	while (!InputBuffer.IsEmpty())
+	{
+		const FBufferedInput* MostRecentInput = InputBuffer.Peek();
+
+		// Check if the most recent input has expired
+		if (GetWorld()->GetRealTimeSeconds() - MostRecentInput->BufferedTime > ActionBufferTime)
+		{
+			// Remove the most recent input and check the next one
+			InputBuffer.Dequeue();
+			continue;
+		}
+
+		// Try to consume the input
+		if (TryConsumePlayerInput(MostRecentInput))
+		{
+			InputBuffer.Dequeue();
+			continue;
+		}
+
+		break;
+	}
 }
 
 
@@ -235,7 +266,19 @@ void ATHPlayerController::Dodge()
 		return;
 	}
 
-	PossessedCharacter->Dodge();
+	if (PossessedCharacter->GetCanDodge())
+	{
+		PossessedCharacter->Dodge();
+	}
+	else
+	{
+		// Record our input in the input buffer
+		FBufferedInput NewInput;
+		NewInput.ActionType = FBufferedInput::EInputAction::Dodge;
+		NewInput.RecordedInputVector = PossessedCharacter->GetPendingMovementInputVector();
+
+		QueuePlayerInput(NewInput);
+	}
 }
 
 
@@ -250,7 +293,17 @@ void ATHPlayerController::PrimaryAttack()
 		return;
 	}
 
-	PossessedCharacter->PrimaryAttack();
+	if (PossessedCharacter->GetCanAttack())
+	{
+		PossessedCharacter->PrimaryAttack();
+	}
+	else
+	{
+		FBufferedInput NewInput;
+		NewInput.ActionType = FBufferedInput::EInputAction::PrimaryAttack;
+		
+		QueuePlayerInput(NewInput);
+	}
 }
 
 
@@ -352,6 +405,50 @@ void ATHPlayerController::SetTarget(AActor* NewTarget)
 
 
 
+// Helper functions
+
+void ATHPlayerController::QueuePlayerInput(FBufferedInput NewInput)
+{
+	NewInput.BufferedTime = GetWorld()->GetRealTimeSeconds();
+
+	if (InputBuffer.IsFull())
+	{
+		InputBuffer.Dequeue();
+	}
+
+	InputBuffer.Enqueue(NewInput);
+}
+
+bool ATHPlayerController::TryConsumePlayerInput(const FBufferedInput* ConsumedInput)
+{
+	switch (ConsumedInput->ActionType)
+	{
+	case FBufferedInput::EInputAction::Dodge:
+		if (PossessedCharacter->GetCanDodge())
+		{
+			PossessedCharacter->Dodge();
+			return true;
+		}
+		return false;
+	
+	case FBufferedInput::EInputAction::PrimaryAttack:
+		if (PossessedCharacter->GetCanAttack())
+		{
+			PossessedCharacter->PrimaryAttack();
+			return true;
+		}
+		return false;
+
+	default:
+		return false;
+	}
+}
+
+
+
+
+
+// Struct operators
 
 bool ATHPlayerController::FTarget::operator==(const FTarget& OtherTarget) const
 {
