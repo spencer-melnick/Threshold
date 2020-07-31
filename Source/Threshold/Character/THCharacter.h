@@ -32,7 +32,7 @@ public:
 
 	// Movement
 
-	void Dodge();
+	void Dodge(FVector DodgeVector);
 
 
 
