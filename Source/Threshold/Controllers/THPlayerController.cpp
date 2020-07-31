@@ -15,9 +15,10 @@ ATHPlayerController::ATHPlayerController()
 }
 
 ATHPlayerController::ATHPlayerController(FVTableHelper& Helper)
-	: ATHPlayerController()
+	: Super(Helper), InputBuffer(InputBufferSize + 1)
 {
-	
+	// Tick every update
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 

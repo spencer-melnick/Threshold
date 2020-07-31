@@ -161,6 +161,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	TEnumAsByte<ECollisionChannel> WeaponSweepChannel;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	TSubclassOf<class UCameraShake> HitShakeClass;
+
+	
 	
 	// Default components
 
@@ -197,6 +201,8 @@ private:
 	void ResetAttack();
 
 	void ApplyHitSlowdown(float DeltaTime);
+
+	void PlayScreenShake();
 
 	// Check to see if the weapon sweep sockets
 	// overlap any damageable actors and trigger the

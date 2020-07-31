@@ -10,6 +10,8 @@
 
 #include "Threshold/Character/THCharacterMovement.h"
 #include "Threshold/Animation/THCharacterAnim.h"
+#include "Threshold/Global/THGameInstance.h"
+#include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 
 #include "DrawDebugHelpers.h"
@@ -298,6 +300,24 @@ void ATHCharacter::OnAttackingActor(AActor* OtherActor, FVector HitLocation, FVe
 {
 	TimeSinceLastHit = 0.f;
 
+	// Play the hitshake if we're player controlled
+	if (IsPlayerControlled() && HitShakeClass != nullptr)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
+
+		// Use a default screen scale if the config is somehow missing
+		float HitShakeScale = 1.f;
+
+		if (GameInstance != nullptr)
+		{
+			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
+		}
+		
+		// TODO: possibly switch this to safer method?
+		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
+	}
+
 	OnAttackingActorBP(OtherActor, HitLocation, HitNormal, HitVelocity);
 }
 
@@ -415,6 +435,28 @@ void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 
 	CustomTimeDilation = HitSlowdownCurve->GetFloatValue(TimeSinceLastHit);
 }
+
+void ATHCharacter::PlayScreenShake()
+{
+	// Play the hitshake if we're player controlled
+	if (IsPlayerControlled() && HitShakeClass != nullptr)
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
+
+		// Use a default screen scale if the config is somehow missing
+		float HitShakeScale = 1.f;
+
+		if (GameInstance != nullptr)
+		{
+			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
+		}
+		
+		// TODO: possibly switch this to safer method?
+		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
+	}
+}
+
 
 void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 {
