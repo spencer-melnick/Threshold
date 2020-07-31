@@ -266,16 +266,32 @@ void ATHPlayerController::Dodge()
 		return;
 	}
 
+	// Calculate dodge vector
+	FVector DodgeVector = PossessedCharacter->GetLastMovementInputVector();
+
+	// If velocity is small or zero, use backwards direction
+	if (DodgeVector.SizeSquared() < (SMALL_NUMBER * SMALL_NUMBER))
+	{
+		// Rotate the backward vector by the controller look
+		FRotator NewRotation = FRotator(0.f, ControlRotation.Yaw, 0.f);		
+		DodgeVector = NewRotation.RotateVector(FVector::BackwardVector);
+	}
+	else
+	{
+		// Normalize non-backwards dodge vector
+		DodgeVector.Normalize();
+	}
+
 	if (PossessedCharacter->GetCanDodge())
 	{
-		PossessedCharacter->Dodge();
+		PossessedCharacter->Dodge(DodgeVector);
 	}
 	else
 	{
 		// Record our input in the input buffer
 		FBufferedInput NewInput;
 		NewInput.ActionType = FBufferedInput::EInputAction::Dodge;
-		NewInput.RecordedInputVector = PossessedCharacter->GetPendingMovementInputVector();
+		NewInput.RecordedInputVector = DodgeVector;
 
 		QueuePlayerInput(NewInput);
 	}
@@ -426,7 +442,7 @@ bool ATHPlayerController::TryConsumePlayerInput(const FBufferedInput* ConsumedIn
 	case FBufferedInput::EInputAction::Dodge:
 		if (PossessedCharacter->GetCanDodge())
 		{
-			PossessedCharacter->Dodge();
+			PossessedCharacter->Dodge(ConsumedInput->RecordedInputVector);
 			return true;
 		}
 		return false;

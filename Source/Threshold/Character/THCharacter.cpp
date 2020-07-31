@@ -102,10 +102,10 @@ void ATHCharacter::PostInitializeComponents()
 
 // Movement
 
-void ATHCharacter::Dodge()
+void ATHCharacter::Dodge(FVector DodgeVector)
 {
 	// Only dodge if you can actually move
-	if (!GetCanDodge())
+	if (!GetCanDodge() || CustomCharacterMovement == nullptr)
 	{
 		return;
 	}
@@ -115,8 +115,9 @@ void ATHCharacter::Dodge()
 	FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
 	// SetActorRotation(NewRotation);
 
-	// Set the movement mode
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Custom, ETHCustomMovementTypes::CUSTOMMOVE_Dodge);
+	// Set the movement mode and dodge vector
+	CustomCharacterMovement->SetDodgeVector(DodgeVector);
+	CustomCharacterMovement->SetMovementMode(EMovementMode::MOVE_Custom, ETHCustomMovementTypes::CUSTOMMOVE_Dodge);
 }
 
 
