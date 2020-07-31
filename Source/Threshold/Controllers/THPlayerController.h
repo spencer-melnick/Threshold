@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Containers/CircularQueue.h"
 #include "THPlayerController.generated.h"
 
 /**
  * 
  */
+
+
+
 UCLASS()
 class THRESHOLD_API ATHPlayerController : public APlayerController
 {
@@ -16,6 +20,7 @@ class THRESHOLD_API ATHPlayerController : public APlayerController
 
 public:
 	ATHPlayerController();
+	ATHPlayerController(FVTableHelper& Helper);
 
 
 	
@@ -74,6 +79,13 @@ public:
 	// The actor class for the target indicator
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Targeting")
 	TSubclassOf<AActor> TargetIndicatorClass;
+
+	// How long an action will stay in the input buffer before being
+	// flushed
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	float ActionBufferTime = 0.5f;
+
+	const int32 InputBufferSize = 2;
 	
 
 	
@@ -85,6 +97,22 @@ public:
 		float Distance;
 
 		bool operator==(const FTarget& OtherTarget) const;
+	};
+
+
+
+	// Holds buffered inputs
+	struct FBufferedInput
+	{
+		enum class EInputAction
+		{
+			Dodge,
+			PrimaryAttack
+		};
+
+		EInputAction ActionType;
+		FVector RecordedInputVector = FVector::ZeroVector;
+		float BufferedTime = 0.f;
 	};
 
 protected:
@@ -102,15 +130,31 @@ protected:
 	virtual bool GetCameraIsDirectlyControlled();
 
 private:
+	// Helper functions
+
+	void QueuePlayerInput(FBufferedInput NewInput);
+	bool TryConsumePlayerInput(const FBufferedInput* ConsumedInput);
+
+
+	
 	// Cached actors/components
 	
 	class ATHCharacter* PossessedCharacter = nullptr;
+
+	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;
 
 
 
 	// Camera control properties
-	
+
+	UPROPERTY()
 	AActor* LockonTarget = nullptr;
+
+
+
+	// Input buffering data
+
+	TCircularQueue<FBufferedInput> InputBuffer;
 	
 };
