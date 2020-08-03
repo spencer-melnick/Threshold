@@ -106,7 +106,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	TArray<FTarget> Targets;
 
 	// Check for possessed character
-	if (PossessedCharacter == nullptr)
+	if (PossessedCharacter == nullptr || PossessedCharacter->Team == nullptr)
 	{
 		return Targets;
 	}
@@ -118,8 +118,10 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	// Iterate through all actors
 	for (TActorIterator<AActor> TargetIterator(GetWorld()); TargetIterator; ++TargetIterator)
 	{
-		// Only check actors with the appropriate tags
-		if (!TargetIterator->ActorHasTag(LockonTargetTag))
+		ITeamMember* TargetTeamMember = Cast<ITeamMember>(*TargetIterator);
+
+		// Only check actors belonging to the appropriate teams
+		if (TargetTeamMember == nullptr || !TargetTeamMember->GetCanBeTargetedBy(PossessedCharacter->Team))
 		{
 			continue;
 		}

@@ -68,10 +68,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Targeting")
 	float LockonRotationSpeed = 500.f;
 
-	// The tag of any actor that can be locked on to
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Targeting")
-	FName LockonTargetTag = TEXT("lockon");
-
 	// The maximum distance for a valid lockon target
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Targeting")
 	float MaxTargetDistance = 500.f;
