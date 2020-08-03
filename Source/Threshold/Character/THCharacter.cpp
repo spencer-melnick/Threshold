@@ -303,6 +303,12 @@ UPrimitiveComponent* ATHCharacter::GetActiveWeapon() const
 	return ActiveWeapon;
 }
 
+TSubclassOf<UTeam> ATHCharacter::GetTeam() const
+{
+	return Team;
+}
+
+
 
 
 
@@ -495,7 +501,8 @@ void ATHCharacter::PlayScreenShake()
 void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 {
 	// Don't do anything if we don't have any sockets to check
-	if (WeaponSweepSockets.Num() == 0)
+	// or no team to determine if we can damage any actors
+	if (WeaponSweepSockets.Num() == 0 || Team == nullptr)
 	{
 		return;
 	}
@@ -529,9 +536,11 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 				for (FHitResult& HitResult : HitResults)
 				{
 					AActor* HitActor = HitResult.GetActor();
+					ITeamMember* HitTeamMember = Cast<ITeamMember>(HitActor);
 
-					// Only damage actors with the correct tag who we haven't hit yet
-					if (HitActor->ActorHasTag(DamageableActorTag) && !CurrentlyDamagedActors.Contains(HitActor))
+					// Only damage actors with the correct team who we haven't hit yet
+					if (HitTeamMember != nullptr && HitTeamMember->GetCanBeDamagedBy(Team) &&
+						!CurrentlyDamagedActors.Contains(HitActor))
 					{
 						// Track hit actor to prevent duplicate hits
 						CurrentlyDamagedActors.Add(HitActor);
