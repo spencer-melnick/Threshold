@@ -28,6 +28,9 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+		AController* EventInstigator, AActor* DamageCauser) override;
+
 
 
 	// Movement
@@ -164,6 +167,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	TSubclassOf<class UCameraShake> HitShakeClass;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	float MaxHealth = 100.f;
+
+	// The amount of health that will be given to the character when
+	// they are spawned into the world
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
+	float StartingHealth = 100.f;
+
 	
 	
 	// Default components
@@ -184,12 +195,16 @@ protected:
 
 	// Called whenever a new actor overlaps the weapon
 	UFUNCTION()
-	virtual void OnAttackingActor(AActor* OtherActor, FVector HitLocation, FVector HitNormal, FVector HitVelocity);
+	virtual void OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity);
 
 	// Blueprint implementable call when a new actor
 	// overlaps the weapon
 	UFUNCTION(BlueprintImplementableEvent, Category="Combat")
-	void OnAttackingActorBP(AActor* OtherActor, FVector HitLocation, FVector HitNormal, FVector HitVelocity);
+	void OnAttackingActorBP(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity);
+
+	virtual void OnDeath();
+
+	virtual float CalculateBaseDamage();
 	
 private:
 	// Helper functions
@@ -234,6 +249,7 @@ private:
 
 	bool bIsAttacking = false;
 	FVector2D DodgeDirection;
+	float CurrentHealth = 0.f;
 
 
 	// Attack information

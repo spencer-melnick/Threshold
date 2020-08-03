@@ -13,8 +13,8 @@
 #include "Threshold/Global/THGameInstance.h"
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
+#include "Threshold/Combat/DamageTypes.h"
 
-#include "DrawDebugHelpers.h"
 
 // Sets default values
 ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
@@ -98,6 +98,23 @@ void ATHCharacter::PostInitializeComponents()
 		CharacterAnim = Cast<UTHCharacterAnim>(SkeletalMesh->GetAnimInstance());
 	}
 }
+
+float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+	AController* EventInstigator, AActor* DamageCauser)
+{
+	CurrentHealth -= DamageAmount;
+	
+	UE_LOG(LogTemp, Display, TEXT("%s took %.2f damage from %s"), *GetNameSafe(this),
+		DamageAmount, *GetNameSafe(DamageCauser))
+	
+	if (CurrentHealth <= 0.f)
+	{
+		OnDeath();
+	}
+	
+	return DamageAmount;
+}
+
 
 
 
@@ -293,10 +310,11 @@ UPrimitiveComponent* ATHCharacter::GetActiveWeapon() const
 void ATHCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	CurrentHealth = FMath::Max(StartingHealth, MaxHealth);
 }
 
-void ATHCharacter::OnAttackingActor(AActor* OtherActor, FVector HitLocation, FVector HitNormal, FVector HitVelocity)
+void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity)
 {
 	TimeSinceLastHit = 0.f;
 
@@ -318,8 +336,27 @@ void ATHCharacter::OnAttackingActor(AActor* OtherActor, FVector HitLocation, FVe
 		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
 	}
 
-	OnAttackingActorBP(OtherActor, HitLocation, HitNormal, HitVelocity);
+	// Apply damage
+	float Damage = CalculateBaseDamage() * ActiveWeaponMove->DamageScale;
+	FPointDamageEvent DamageEvent(Damage, HitResult, HitVelocity.GetSafeNormal(),
+		USwordDamage::StaticClass());
+	OtherActor->TakeDamage(Damage, DamageEvent, GetController(), this);
+	
+
+	OnAttackingActorBP(OtherActor, HitResult, HitVelocity);
 }
+
+void ATHCharacter::OnDeath()
+{
+	UE_LOG(LogTemp, Display, TEXT("%s died"), *GetNameSafe(this));
+}
+
+float ATHCharacter::CalculateBaseDamage()
+{
+	return 10.f;
+}
+
+
 
 
 
@@ -390,9 +427,6 @@ void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
 	ResetAttack();
 	bIsAttacking = true;
 	bCanComboAttack = false;
-
-	UE_LOG(LogTemp, Display, TEXT("Performing move %d on %s"),
-		NextMoveIndex, *GetNameSafe(ActiveWeaponMoveset));
 }
 
 
@@ -506,8 +540,7 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 						FVector HitVelocity = (TraceEnd - TraceStart) / DeltaTime;
 						
 						// Exit loop since we've found an actor to damage
-						OnAttackingActor(HitResult.GetActor(), HitResult.ImpactPoint,
-							HitResult.ImpactNormal, HitVelocity);
+						OnAttackingActor(HitResult.GetActor(), HitResult, HitVelocity);
 						break;
 					}
 				}
