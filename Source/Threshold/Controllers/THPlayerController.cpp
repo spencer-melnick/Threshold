@@ -4,6 +4,8 @@
 #include "THPlayerController.h"
 
 #include "Threshold/Character/THCharacter.h"
+#include "Threshold/Camera/THPlayerCameraManager.h"
+#include "Threshold/Camera/HitShake_CameraModifier.h"
 #include "EngineUtils.h"
 
 
@@ -12,6 +14,9 @@ ATHPlayerController::ATHPlayerController()
 {
 	// Tick every update
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Change default camera manager
+	PlayerCameraManagerClass = ATHPlayerCameraManager::StaticClass();
 }
 
 ATHPlayerController::ATHPlayerController(FVTableHelper& Helper)
@@ -19,6 +24,9 @@ ATHPlayerController::ATHPlayerController(FVTableHelper& Helper)
 {
 	// Tick every update
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Change default camera manager
+	PlayerCameraManagerClass = ATHPlayerCameraManager::StaticClass();
 }
 
 
@@ -33,7 +41,11 @@ void ATHPlayerController::BeginPlay()
 		TargetIndicatorActor = GetWorld()->SpawnActor(TargetIndicatorClass);
 		TargetIndicatorActor->SetActorHiddenInGame(true);
 	}
+
+	// Try to cast the camera manager
+	ThresholdCameraManager = Cast<ATHPlayerCameraManager>(PlayerCameraManager);
 }
+
 
 
 void ATHPlayerController::OnPossess(APawn* InPawn)
@@ -421,6 +433,23 @@ void ATHPlayerController::SetTarget(AActor* NewTarget)
 	TargetIndicatorActor->AttachToActor(LockonTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	TargetIndicatorActor->SetActorHiddenInGame(false);
 }
+
+
+
+
+// Camera effects
+
+void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
+{
+	if (ThresholdCameraManager == nullptr || ThresholdCameraManager->GetHitShakeModifier() == nullptr)
+	{
+		return;
+	}
+
+	ThresholdCameraManager->ApplyHitShake(Direction, Amplitude, HitShakeDuration, HitShakeCurve);
+}
+
+
 
 
 

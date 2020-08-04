@@ -9,8 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Threshold/Character/THCharacterMovement.h"
+#include "Threshold/Controllers/THPlayerController.h"
 #include "Threshold/Animation/THCharacterAnim.h"
-#include "Threshold/Global/THGameInstance.h"
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
@@ -131,7 +131,7 @@ void ATHCharacter::Dodge(FVector DodgeVector)
 
 	// Rotate to face control before dodging
 	FRotator ControlRotation = GetControlRotation();
-	FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
+	// FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
 	// SetActorRotation(NewRotation);
 
 	// Set the movement mode and dodge vector
@@ -324,23 +324,8 @@ void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FV
 {
 	TimeSinceLastHit = 0.f;
 
-	// Play the hitshake if we're player controlled
-	if (IsPlayerControlled() && HitShakeClass != nullptr)
-	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
-
-		// Use a default screen scale if the config is somehow missing
-		float HitShakeScale = 1.f;
-
-		if (GameInstance != nullptr)
-		{
-			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
-		}
-		
-		// TODO: possibly switch this to safer method?
-		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
-	}
+	// Try to play the hitshake
+	PlayScreenShake(HitVelocity.GetSafeNormal());
 
 	// Apply damage
 	float Damage = CalculateBaseDamage() * ActiveWeaponMove->DamageScale;
@@ -476,24 +461,13 @@ void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 	CustomTimeDilation = HitSlowdownCurve->GetFloatValue(TimeSinceLastHit);
 }
 
-void ATHCharacter::PlayScreenShake()
+void ATHCharacter::PlayScreenShake(FVector ShakeDirection)
 {
 	// Play the hitshake if we're player controlled
-	if (IsPlayerControlled() && HitShakeClass != nullptr)
+	if (IsPlayerControlled() && HasAuthority())
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
-
-		// Use a default screen scale if the config is somehow missing
-		float HitShakeScale = 1.f;
-
-		if (GameInstance != nullptr)
-		{
-			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
-		}
-		
-		// TODO: possibly switch this to safer method?
-		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
+		ATHPlayerController* PlayerController = Cast<ATHPlayerController>(GetController());
+		PlayerController->ApplyHitShake(ShakeDirection, HitShakeAmplitude);
 	}
 }
 
