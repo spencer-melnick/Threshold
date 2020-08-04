@@ -2,7 +2,7 @@
 
 #include "THPlayerCameraManager.h"
 
-#include "Threshold/Combat/HitCameraShake.h"
+#include "Threshold/Camera/HitCameraShake.h"
 
 
 ATHPlayerCameraManager::ATHPlayerCameraManager()

@@ -14,7 +14,6 @@
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
-#include "Threshold/Combat/HitCameraShake.h"
 
 
 // Sets default values
@@ -37,9 +36,6 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Disable controller rotation for capsule so it can be set manually as needed
 	bUseControllerRotationPitch = false;
-
-	// Create an object to hold our hitshake object
-	HitCameraShake = CreateDefaultSubobject<UHitCameraShake>(TEXT("Hit Camera Shake"));
 }
 
 
@@ -135,7 +131,7 @@ void ATHCharacter::Dodge(FVector DodgeVector)
 
 	// Rotate to face control before dodging
 	FRotator ControlRotation = GetControlRotation();
-	FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
+	// FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
 	// SetActorRotation(NewRotation);
 
 	// Set the movement mode and dodge vector
