@@ -249,9 +249,7 @@ private:
 
 	class UTHCharacterMovement* CustomCharacterMovement = nullptr;
 	class UTHCharacterAnim* CharacterAnim = nullptr;
-	
-	UPROPERTY()
-	class UHitCameraShake* HitCameraShake = nullptr;
+
 	
 
 	

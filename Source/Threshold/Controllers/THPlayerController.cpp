@@ -4,8 +4,8 @@
 #include "THPlayerController.h"
 
 #include "Threshold/Character/THCharacter.h"
-#include "Threshold/Controllers/THPlayerCameraManager.h"
-#include "Threshold/Combat/HitCameraShake.h"
+#include "Threshold/Camera/THPlayerCameraManager.h"
+#include "Threshold/Camera/HitCameraShake.h"
 #include "EngineUtils.h"
 
 
