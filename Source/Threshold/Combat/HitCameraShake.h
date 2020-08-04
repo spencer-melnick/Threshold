@@ -4,29 +4,35 @@
 
 
 #include "CoreMinimal.h"
-#include "Camera/CameraShake.h"
+#include "Camera/CameraModifier.h"
 #include "HitCameraShake.generated.h"
 
 
-// TODO: Replace HitCameraShake with a CameraModifier
-// (Camera modifiers can be applied to the player camera manager)
 
 UCLASS()
-class UHitCameraShake : public UCameraShake
+class UHitCameraShake : public UCameraModifier
 {
     GENERATED_BODY()
 
 public:
     UHitCameraShake();
 
-    virtual void PlayShake(APlayerCameraManager* Camera, float Scale, ECameraAnimPlaySpace::Type InPlaySpace,
-        FRotator UserPlaySpaceRot) override;
-
-    virtual void UpdateAndApplyCameraShake(float DeltaTime, float Alpha, FMinimalViewInfo& InOutPOV) override;
-
+    void ApplyHitShake(FVector InDirection, float InAmplitude);
     
-    FVector ShakeDirection;
+    virtual void ModifyCamera(float DeltaTime, FVector ViewLocation, FRotator ViewRotation,
+        float FOV, FVector& NewViewLocation, FRotator& NewViewRotation, float& NewFOV) override;
+
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    float ShakeDuration = 0.2f;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    class UCurveFloat* ShakeCurve = nullptr;
+
+
+private:
+    FVector ShakeDirection;
     float ShakeAmplitude;
+    bool bIsPlayingShake = false;
+    float CurrentShakeTime = 0.f;
 };

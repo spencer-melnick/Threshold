@@ -9,8 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Threshold/Character/THCharacterMovement.h"
+#include "Threshold/Controllers/THPlayerController.h"
 #include "Threshold/Animation/THCharacterAnim.h"
-#include "Threshold/Global/THGameInstance.h"
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
@@ -470,27 +470,8 @@ void ATHCharacter::PlayScreenShake(FVector ShakeDirection)
 	// Play the hitshake if we're player controlled
 	if (IsPlayerControlled() && HasAuthority())
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
-
-		// Use a default screen scale if the config is somehow missing
-		float HitShakeScale = 1.f;
-
-		if (GameInstance != nullptr)
-		{
-			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
-		}
-
-		// Apply current actor settings to hitshake object
-		HitCameraShake->ShakeDirection = ShakeDirection;
-		HitCameraShake->ShakeAmplitude = HitShakeAmplitude;
-		HitCameraShake->OscillationBlendInTime = HitShakeBlendInTime;
-		HitCameraShake->OscillationBlendOutTime = HitShakeBlendOutTime;
-		HitCameraShake->OscillationDuration = HitShakeDuration;
-		
-		// TODO: possibly switch this to safer method?
-		HitCameraShake->PlayShake(PlayerController->PlayerCameraManager, HitShakeScale, ECameraAnimPlaySpace::World,
-			FRotator());
+		ATHPlayerController* PlayerController = Cast<ATHPlayerController>(GetController());
+		PlayerController->ApplyHitShake(ShakeDirection, HitShakeAmplitude);
 	}
 }
 
