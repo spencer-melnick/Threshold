@@ -5,19 +5,19 @@
 
 #include "CoreMinimal.h"
 #include "Camera/CameraModifier.h"
-#include "HitCameraShake.generated.h"
+#include "HitShake_CameraModifier.generated.h"
 
 
 
 UCLASS()
-class UHitCameraShake : public UCameraModifier
+class UHitShake_CameraModifier : public UCameraModifier
 {
     GENERATED_BODY()
 
 public:
-    UHitCameraShake();
+    UHitShake_CameraModifier();
 
-    void ApplyHitShake(FVector InDirection, float InAmplitude);
+    void ApplyHitShake(FVector InDirection, float InAmplitude, float InDuration, UCurveFloat* InShakeCurve);
     
     virtual void ModifyCamera(float DeltaTime, FVector ViewLocation, FRotator ViewRotation,
         float FOV, FVector& NewViewLocation, FRotator& NewViewRotation, float& NewFOV) override;

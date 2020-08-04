@@ -5,7 +5,7 @@
 
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Camera/THPlayerCameraManager.h"
-#include "Threshold/Camera/HitCameraShake.h"
+#include "Threshold/Camera/HitShake_CameraModifier.h"
 #include "EngineUtils.h"
 
 
@@ -43,7 +43,7 @@ void ATHPlayerController::BeginPlay()
 	}
 
 	// Try to cast the camera manager
-	CustomCameraManager = Cast<ATHPlayerCameraManager>(PlayerCameraManager);
+	ThresholdCameraManager = Cast<ATHPlayerCameraManager>(PlayerCameraManager);
 }
 
 
@@ -441,18 +441,12 @@ void ATHPlayerController::SetTarget(AActor* NewTarget)
 
 void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
 {
-	if (CustomCameraManager == nullptr || CustomCameraManager->GetHitCameraShake() == nullptr)
+	if (ThresholdCameraManager == nullptr || ThresholdCameraManager->GetHitShakeModifier() == nullptr)
 	{
 		return;
 	}
 
-	// Apply our hit shake curve to the actual hit shake object
-	if (CustomCameraManager->GetHitCameraShake()->ShakeCurve != HitShakeCurve)
-	{
-		CustomCameraManager->GetHitCameraShake()->ShakeCurve = HitShakeCurve;
-	}
-
-	CustomCameraManager->ApplyHitShake(Direction, Amplitude);
+	ThresholdCameraManager->ApplyHitShake(Direction, Amplitude, HitShakeDuration, HitShakeCurve);
 }
 
 

@@ -1,17 +1,17 @@
 ﻿// Copyright � 2020 Spencer Melnick
 
-#include "HitCameraShake.h"
+#include "HitShake_CameraModifier.h"
 
 #include "Threshold/Global/THGameInstance.h"
 #include "Threshold/Global/THConfig.h"
 
-UHitCameraShake::UHitCameraShake()
+UHitShake_CameraModifier::UHitShake_CameraModifier()
     : Super()
 {
     
 }
 
-void UHitCameraShake::ApplyHitShake(FVector InDirection, float InAmplitude)
+void UHitShake_CameraModifier::ApplyHitShake(FVector InDirection, float InAmplitude, float InDuration, UCurveFloat* InShakeCurve)
 {
     ShakeDirection = InDirection.GetSafeNormal();
     ShakeAmplitude = InAmplitude;
@@ -19,9 +19,13 @@ void UHitCameraShake::ApplyHitShake(FVector InDirection, float InAmplitude)
     // Reset shake time and start playing a new shake
     bIsPlayingShake = true;
     CurrentShakeTime = 0.f;
+
+    // Apply settings
+    ShakeDuration = InDuration;
+    ShakeCurve = InShakeCurve;
 }
 
-void UHitCameraShake::ModifyCamera(float DeltaTime, FVector ViewLocation, FRotator ViewRotation,
+void UHitShake_CameraModifier::ModifyCamera(float DeltaTime, FVector ViewLocation, FRotator ViewRotation,
     float FOV, FVector& NewViewLocation, FRotator& NewViewRotation, float& NewFOV)
 {
     // Skip if we're not playing, or we're missing a valid curve

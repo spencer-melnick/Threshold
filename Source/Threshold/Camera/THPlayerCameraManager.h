@@ -19,10 +19,10 @@ public:
     
     virtual void PostInitializeComponents() override;
     
-    void ApplyHitShake(FVector Direction, float Amplitude);
+    void ApplyHitShake(FVector Direction, float Amplitude, float ShakeDuration, class UCurveFloat* ShakeCurve);
     
-    class UHitCameraShake* GetHitCameraShake() const;
+    class UHitShake_CameraModifier* GetHitShakeModifier() const;
 
 private:
-    class UHitCameraShake* HitCameraShake = nullptr;
+    class UHitShake_CameraModifier* HitShakeModifier = nullptr;
 };
