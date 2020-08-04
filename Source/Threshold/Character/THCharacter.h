@@ -180,15 +180,6 @@ public:
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
-	float HitShakeBlendInTime = 0.05f;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
-	float HitShakeBlendOutTime = 0.05f;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
-	float HitShakeDuration = 0.1f;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
 	float HitShakeAmplitude = 10.f;
 
 	
