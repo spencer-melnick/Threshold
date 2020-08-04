@@ -2,14 +2,14 @@
 
 #include "THPlayerCameraManager.h"
 
-#include "Threshold/Camera/HitCameraShake.h"
+#include "Threshold/Camera/HitShake_CameraModifier.h"
 
 
 ATHPlayerCameraManager::ATHPlayerCameraManager()
     : Super()
 {
     // Add our HitCameraShake class to the default modifiers
-    DefaultModifiers.Add(UHitCameraShake::StaticClass());
+    DefaultModifiers.Add(UHitShake_CameraModifier::StaticClass());
 }
 
 
@@ -20,24 +20,25 @@ void ATHPlayerCameraManager::PostInitializeComponents()
     Super::PostInitializeComponents();
 
     // Try to find and cache the HitCameraShake modifier
-    HitCameraShake = Cast<UHitCameraShake>(*ModifierList.FindByPredicate([](UCameraModifier* Modifier){
-        return Modifier->GetClass() == UHitCameraShake::StaticClass(); }));
+    HitShakeModifier = Cast<UHitShake_CameraModifier>(*ModifierList.FindByPredicate([](UCameraModifier* Modifier){
+        return Modifier->GetClass() == UHitShake_CameraModifier::StaticClass(); }));
 }
 
-void ATHPlayerCameraManager::ApplyHitShake(FVector Direction, float Amplitude)
+void ATHPlayerCameraManager::ApplyHitShake(FVector Direction, float Amplitude,
+    float ShakeDuration, UCurveFloat* ShakeCurve)
 {
-    if (HitCameraShake == nullptr)
+    if (HitShakeModifier == nullptr)
     {
         return;
     }
 
-    HitCameraShake->ApplyHitShake(Direction, Amplitude);
+    HitShakeModifier->ApplyHitShake(Direction, Amplitude, ShakeDuration, ShakeCurve);
 }
 
 
-UHitCameraShake* ATHPlayerCameraManager::GetHitCameraShake() const
+UHitShake_CameraModifier* ATHPlayerCameraManager::GetHitShakeModifier() const
 {
-    return HitCameraShake;
+    return HitShakeModifier;
 }
 
 

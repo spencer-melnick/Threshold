@@ -91,6 +91,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	class UCurveFloat* HitShakeCurve = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	float HitShakeDuration = 0.2f;
 	
 
 	
@@ -149,7 +152,7 @@ private:
 	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;
 
-	class ATHPlayerCameraManager* CustomCameraManager = nullptr;
+	class ATHPlayerCameraManager* ThresholdCameraManager = nullptr;
 
 
 
