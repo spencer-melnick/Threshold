@@ -14,6 +14,7 @@
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
+#include "Threshold/Combat/HitCameraShake.h"
 
 
 // Sets default values
@@ -36,6 +37,9 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Disable controller rotation for capsule so it can be set manually as needed
 	bUseControllerRotationPitch = false;
+
+	// Create an object to hold our hitshake object
+	HitCameraShake = CreateDefaultSubobject<UHitCameraShake>(TEXT("Hit Camera Shake"));
 }
 
 
@@ -324,23 +328,8 @@ void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FV
 {
 	TimeSinceLastHit = 0.f;
 
-	// Play the hitshake if we're player controlled
-	if (IsPlayerControlled() && HitShakeClass != nullptr)
-	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetController());
-		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
-
-		// Use a default screen scale if the config is somehow missing
-		float HitShakeScale = 1.f;
-
-		if (GameInstance != nullptr)
-		{
-			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
-		}
-		
-		// TODO: possibly switch this to safer method?
-		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
-	}
+	// Try to play the hitshake
+	PlayScreenShake(HitVelocity.GetSafeNormal());
 
 	// Apply damage
 	float Damage = CalculateBaseDamage() * ActiveWeaponMove->DamageScale;
@@ -476,10 +465,10 @@ void ATHCharacter::ApplyHitSlowdown(float DeltaTime)
 	CustomTimeDilation = HitSlowdownCurve->GetFloatValue(TimeSinceLastHit);
 }
 
-void ATHCharacter::PlayScreenShake()
+void ATHCharacter::PlayScreenShake(FVector ShakeDirection)
 {
 	// Play the hitshake if we're player controlled
-	if (IsPlayerControlled() && HitShakeClass != nullptr)
+	if (IsPlayerControlled() && HasAuthority())
 	{
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
 		UTHGameInstance* GameInstance = GetGameInstance<UTHGameInstance>();
@@ -491,9 +480,17 @@ void ATHCharacter::PlayScreenShake()
 		{
 			HitShakeScale = GameInstance->GetTHConfig()->ScreenShakeScale;
 		}
+
+		// Apply current actor settings to hitshake object
+		HitCameraShake->ShakeDirection = ShakeDirection;
+		HitCameraShake->ShakeAmplitude = HitShakeAmplitude;
+		HitCameraShake->OscillationBlendInTime = HitShakeBlendInTime;
+		HitCameraShake->OscillationBlendOutTime = HitShakeBlendOutTime;
+		HitCameraShake->OscillationDuration = HitShakeDuration;
 		
 		// TODO: possibly switch this to safer method?
-		PlayerController->ClientPlayCameraShake(HitShakeClass, HitShakeScale);
+		HitCameraShake->PlayShake(PlayerController->PlayerCameraManager, HitShakeScale, ECameraAnimPlaySpace::World,
+			FRotator());
 	}
 }
 

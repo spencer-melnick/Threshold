@@ -168,9 +168,6 @@ public:
 	TEnumAsByte<ECollisionChannel> WeaponSweepChannel;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
-	TSubclassOf<class UCameraShake> HitShakeClass;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	float MaxHealth = 100.f;
 
 	// The amount of health that will be given to the character when
@@ -180,6 +177,19 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	TSubclassOf<UTeam> Team;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
+	float HitShakeBlendInTime = 0.05f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
+	float HitShakeBlendOutTime = 0.05f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
+	float HitShakeDuration = 0.1f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
+	float HitShakeAmplitude = 10.f;
 
 	
 	
@@ -223,7 +233,7 @@ private:
 
 	void ApplyHitSlowdown(float DeltaTime);
 
-	void PlayScreenShake();
+	void PlayScreenShake(FVector ShakeDirection);
 
 	// Check to see if the weapon sweep sockets
 	// overlap any damageable actors and trigger the
@@ -248,6 +258,9 @@ private:
 
 	class UTHCharacterMovement* CustomCharacterMovement = nullptr;
 	class UTHCharacterAnim* CharacterAnim = nullptr;
+	
+	UPROPERTY()
+	class UHitCameraShake* HitCameraShake = nullptr;
 	
 
 	
