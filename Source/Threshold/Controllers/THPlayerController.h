@@ -56,6 +56,12 @@ public:
 	void NextTarget();
 	void PreviousTarget();
 
+
+
+	// Camera effects
+
+	void ApplyHitShake(FVector Direction, float Amplitude);
+
 	
 	// Public properties
 
@@ -82,6 +88,12 @@ public:
 	float ActionBufferTime = 0.5f;
 
 	const int32 InputBufferSize = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	class UCurveFloat* HitShakeCurve = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	float HitShakeDuration = 0.2f;
 	
 
 	
@@ -139,6 +151,8 @@ private:
 
 	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;
+
+	class ATHPlayerCameraManager* ThresholdCameraManager = nullptr;
 
 
 
