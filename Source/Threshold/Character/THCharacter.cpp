@@ -1,4 +1,4 @@
-// Copyright � 2020 Spencer Melnick
+// Copyright © 2020 Spencer Melnick
 
 
 #include "THCharacter.h"
@@ -106,6 +106,16 @@ float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	
 	UE_LOG(LogTemp, Display, TEXT("%s took %.2f damage from %s"), *GetNameSafe(this),
 		DamageAmount, *GetNameSafe(DamageCauser))
+
+	if (DamageEvent.IsOfType(FPointDamageEvent::ClassID) && CharacterAnim != nullptr)
+	{
+		const FPointDamageEvent& PointDamageEvent = static_cast<const FPointDamageEvent&>(DamageEvent);
+		FVector HitDirection2D = PointDamageEvent.ShotDirection.GetSafeNormal2D();
+		FVector2D HitVector(HitDirection2D.X, HitDirection2D.Y);
+
+		// Play the hit reaction animation via the anim blueprint
+		CharacterAnim->ReactToHit(HitVector);
+	}
 	
 	if (CurrentHealth <= 0.f)
 	{
@@ -130,7 +140,7 @@ void ATHCharacter::Dodge(FVector DodgeVector)
 	}
 
 	// Rotate to face control before dodging
-	FRotator ControlRotation = GetControlRotation();
+	// FRotator ControlRotation = GetControlRotation();
 	// FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
 	// SetActorRotation(NewRotation);
 
