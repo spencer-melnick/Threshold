@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Threshold/Combat/Teams.h"
+#include "Threshold/Combat/Targetable.h"
 #include "THCharacter.generated.h"
 
 // Forward declare the enum for Weapon Moves
@@ -13,7 +14,7 @@
 enum class EWeaponMoveType : int8;
 
 UCLASS()
-class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember
+class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember, public ITargetable
 {
 	GENERATED_BODY()
 
@@ -119,7 +120,15 @@ public:
 
 	class UPrimitiveComponent* GetActiveWeapon() const;
 
-	TSubclassOf<UTeam> GetTeam() const override;
+
+
+	// Interface overrides
+	
+	virtual TSubclassOf<UTeam> GetTeam() const override;
+
+	virtual FVector GetTargetWorldLocation() const override;
+
+	virtual FVector GetTargetLocalLocation() const override;
 
 
 	
@@ -177,6 +186,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	TSubclassOf<UTeam> Team;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat", meta=(MakeEditWidget))
+	FVector TargetLocation;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")

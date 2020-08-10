@@ -5,7 +5,7 @@
 
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Camera/THPlayerCameraManager.h"
-#include "Threshold/Camera/HitShake_CameraModifier.h"
+#include "Threshold/Combat/Targetable.h"
 #include "EngineUtils.h"
 
 
@@ -131,18 +131,22 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	for (TActorIterator<AActor> TargetIterator(GetWorld()); TargetIterator; ++TargetIterator)
 	{
 		ITeamMember* TargetTeamMember = Cast<ITeamMember>(*TargetIterator);
-
+		ITargetable* TargetInterface = Cast<ITargetable>(*TargetIterator);
+		
 		// Only check actors belonging to the appropriate teams
-		if (TargetTeamMember == nullptr || !TargetTeamMember->GetCanBeTargetedBy(PossessedCharacter->Team))
+		if (TargetTeamMember == nullptr || TargetInterface == nullptr ||
+			!TargetTeamMember->GetCanBeTargetedBy(PossessedCharacter->Team))
 		{
 			continue;
 		}
 
 		FTarget Target;
 		Target.TargetActor = *TargetIterator;
+		Target.TargetInterface = TargetInterface;
 
 		// Limit targets by distance to possessed character
-		Target.Distance = Target.TargetActor->GetDistanceTo(PossessedCharacter);
+		Target.Distance = FVector::Distance(TargetInterface->GetTargetWorldLocation(),
+			PossessedCharacter->GetTargetWorldLocation());
 
 		if (Target.Distance > MaxTargetDistance)
 		{
@@ -150,7 +154,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 		}
 
 		// Only check actors that are visible on screen
-		if (!ProjectWorldLocationToScreen(TargetIterator->GetActorLocation(), Target.ScreenPosition) ||
+		if (!ProjectWorldLocationToScreen(TargetInterface->GetTargetWorldLocation(), Target.ScreenPosition) ||
 			Target.ScreenPosition < FVector2D::ZeroVector || Target.ScreenPosition > ViewportSize)
 		{
 			continue;
@@ -188,12 +192,24 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 
 	if (FoundTarget == nullptr)
 	{
-		// Add current target to full list
-		CurrentTarget.TargetActor = LockonTarget;
-		CurrentTarget.Distance = PossessedCharacter->GetDistanceTo(LockonTarget);
-		CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
+		ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
 
-		PotentialTargets.Add(CurrentTarget);
+		// Double check to make sure our target is targetable
+		if (TargetInterface != nullptr)
+		{
+			// Add current target to full list
+			CurrentTarget.TargetActor = LockonTarget;
+			CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
+			CurrentTarget.Distance = FVector::Distance(TargetInterface->GetTargetWorldLocation(),
+				PossessedCharacter->GetTargetWorldLocation());
+
+			PotentialTargets.Add(CurrentTarget);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s is the current lockon target of %s, but does not implement ITargetable"),
+				*GetNameSafe(LockonTarget), *GetNameSafe(this));
+		}
 	}
 	else
 	{
@@ -217,7 +233,19 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 	if (LockonTarget != nullptr)
 	{
 		// Calculate pitch and yaw based on distance to target
-		FVector LookVector = (LockonTarget->GetActorLocation() - PossessedCharacter->GetHeadPosition());
+		FVector LookVector;
+		ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+
+		// If target isn't implementing ITargetable, use actor location
+		if (TargetInterface == nullptr)
+		{
+			LookVector = (LockonTarget->GetActorLocation() - PossessedCharacter->GetHeadPosition());
+		}
+		// Otherwise use the correct target locations
+		else
+		{
+			LookVector = (TargetInterface->GetTargetWorldLocation() - PossessedCharacter->GetTargetWorldLocation());
+		}
 
 		// Rotate towards lockon target
 		FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
@@ -432,6 +460,13 @@ void ATHPlayerController::SetTarget(AActor* NewTarget)
 
 	TargetIndicatorActor->AttachToActor(LockonTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	TargetIndicatorActor->SetActorHiddenInGame(false);
+
+	// Try to move the target indicator to the correct local position
+	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+	if (TargetInterface != nullptr)
+	{
+		TargetIndicatorActor->SetActorRelativeLocation(TargetInterface->GetTargetLocalLocation());
+	}
 }
 
 
