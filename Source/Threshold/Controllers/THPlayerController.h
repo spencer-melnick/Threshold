@@ -101,6 +101,7 @@ public:
 	struct FTarget
 	{
 		AActor* TargetActor;
+		class ITargetable* TargetInterface;
 		FVector2D ScreenPosition;
 		float Distance;
 

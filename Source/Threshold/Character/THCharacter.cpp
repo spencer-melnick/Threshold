@@ -313,10 +313,27 @@ UPrimitiveComponent* ATHCharacter::GetActiveWeapon() const
 	return ActiveWeapon;
 }
 
+
+
+
+// Interface overrides
+
 TSubclassOf<UTeam> ATHCharacter::GetTeam() const
 {
 	return Team;
 }
+
+FVector ATHCharacter::GetTargetWorldLocation() const
+{
+	return GetActorTransform().TransformPosition(TargetLocation);
+}
+
+FVector ATHCharacter::GetTargetLocalLocation() const
+{
+	return TargetLocation;
+}
+
+
 
 
 
