@@ -223,6 +223,9 @@ protected:
 
 	virtual void OnDeath();
 
+	UFUNCTION(BlueprintImplementableEvent, Category="Combat")
+    void OnDeathBP();
+
 	virtual float CalculateBaseDamage();
 	
 private:
