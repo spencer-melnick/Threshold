@@ -344,7 +344,7 @@ void ATHCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CurrentHealth = FMath::Max(StartingHealth, MaxHealth);
+	CurrentHealth = FMath::Min(StartingHealth, MaxHealth);
 }
 
 void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity)
@@ -367,6 +367,9 @@ void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FV
 void ATHCharacter::OnDeath()
 {
 	UE_LOG(LogTemp, Display, TEXT("%s died"), *GetNameSafe(this));
+
+	// Call the blueprint event
+	OnDeathBP();
 }
 
 float ATHCharacter::CalculateBaseDamage()
