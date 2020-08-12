@@ -70,7 +70,7 @@ void UMaterialDissolveComponent::StartDissolve()
 
     for (int32 i = 0; i < DissolveMaterials.Num(); i++)
     {
-        UMaterialInterface* MaterialInterface = DissolveMaterials[i];
+        UMaterialInterface* MaterialInterface = DissolveMaterials[i].LoadSynchronous();
         UMaterialInstanceDynamic* MaterialInstanceDynamic = UMaterialInstanceDynamic::Create(MaterialInterface, this);
 
         // Quick check to ensure that the material is actually created successfully
