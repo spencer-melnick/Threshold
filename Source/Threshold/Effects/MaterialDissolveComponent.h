@@ -35,7 +35,7 @@ public:
     // Public properties
     
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effect")
-    TArray<class UMaterialInterface*> DissolveMaterials;
+    TArray<TSoftObjectPtr<UMaterialInterface>> DissolveMaterials;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effect")
     FName MaterialParameter;
