@@ -280,27 +280,17 @@ bool ATHCharacter::GetIsDodging() const
 
 bool ATHCharacter::GetCanWalk() const
 {
-	if (GetIsDodging())
-	{
-		return false;
-	}
-
-	if (bIsAttacking)
-	{
-		return false;
-	}
-
-	return true;
+	return (GetCharacterIsAlive() && !bIsAttacking && !GetIsDodging());
 }
 
 bool ATHCharacter::GetCanDodge() const
 {
-	return (GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
+	return (GetCharacterIsAlive() && GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
 }
 
 bool ATHCharacter::GetCanAttack() const
 {
-	return GetCanWalk() || bCanComboAttack;
+	return GetCharacterIsAlive() && (GetCanWalk() || bCanComboAttack);
 }
 
 UTHCharacterAnim* ATHCharacter::GetCharacterAnim() const
@@ -312,6 +302,12 @@ UPrimitiveComponent* ATHCharacter::GetActiveWeapon() const
 {
 	return ActiveWeapon;
 }
+
+bool ATHCharacter::GetCharacterIsAlive() const
+{
+	return LifeState == ECharacterLifeState::Alive;
+}
+
 
 
 
@@ -332,6 +328,18 @@ FVector ATHCharacter::GetTargetLocalLocation() const
 {
 	return TargetLocation;
 }
+
+bool ATHCharacter::GetCanBeTargeted() const
+{
+	return GetCharacterIsAlive();
+}
+
+bool ATHCharacter::GetCanBeDamaged() const
+{
+	return GetCharacterIsAlive();
+}
+
+
 
 
 
@@ -367,6 +375,10 @@ void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FV
 void ATHCharacter::OnDeath()
 {
 	UE_LOG(LogTemp, Display, TEXT("%s died"), *GetNameSafe(this));
+
+	// Change our state and disable collisions
+	LifeState = ECharacterLifeState::Dead;
+	SetActorEnableCollision(false);
 
 	// Call the blueprint event
 	OnDeathBP();
@@ -541,9 +553,11 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 				{
 					AActor* HitActor = HitResult.GetActor();
 					ITeamMember* HitTeamMember = Cast<ITeamMember>(HitActor);
+					IDamageable* HitDamageable = Cast<IDamageable>(HitActor);
 
 					// Only damage actors with the correct team who we haven't hit yet
 					if (HitTeamMember != nullptr && HitTeamMember->GetCanBeDamagedBy(Team) &&
+						HitDamageable != nullptr && HitDamageable->GetCanBeDamaged() &&
 						!CurrentlyDamagedActors.Contains(HitActor))
 					{
 						// Track hit actor to prevent duplicate hits
