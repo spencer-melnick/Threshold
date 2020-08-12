@@ -14,4 +14,9 @@ FVector ITargetable::GetTargetLocalLocation() const
     return FVector::ZeroVector;
 }
 
+bool ITargetable::GetCanBeTargeted() const
+{
+    return true;
+}
+
 

@@ -107,6 +107,13 @@ void ATHPlayerController::Tick(float DeltaTime)
 
 		break;
 	}
+
+	// Try to unfollow our target if it's no longer targetable
+	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+	if (TargetInterface == nullptr || !TargetInterface->GetCanBeTargeted())
+	{
+		SetTarget(nullptr);
+	}
 }
 
 
@@ -135,7 +142,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 		
 		// Only check actors belonging to the appropriate teams
 		if (TargetTeamMember == nullptr || TargetInterface == nullptr ||
-			!TargetTeamMember->GetCanBeTargetedBy(PossessedCharacter->Team))
+			!TargetTeamMember->GetCanBeTargetedBy(PossessedCharacter->Team) || !TargetInterface->GetCanBeTargeted())
 		{
 			continue;
 		}

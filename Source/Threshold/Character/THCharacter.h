@@ -6,15 +6,30 @@
 #include "GameFramework/Character.h"
 #include "Threshold/Combat/Teams.h"
 #include "Threshold/Combat/Targetable.h"
+#include "Threshold/Combat/Damageable.h"
 #include "THCharacter.generated.h"
+
+
 
 // Forward declare the enum for Weapon Moves
 // Probably not necessary as the header is pretty small, but
 // better safe than sorry
 enum class EWeaponMoveType : int8;
 
+
+
+UENUM()
+enum class ECharacterLifeState : int8
+{
+	Alive,
+	Dead,
+	Despawning
+};
+
+
+
 UCLASS()
-class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember, public ITargetable
+class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember, public ITargetable, public IDamageable
 {
 	GENERATED_BODY()
 
@@ -120,6 +135,8 @@ public:
 
 	class UPrimitiveComponent* GetActiveWeapon() const;
 
+	bool GetCharacterIsAlive() const;
+
 
 
 	// Interface overrides
@@ -129,6 +146,10 @@ public:
 	virtual FVector GetTargetWorldLocation() const override;
 
 	virtual FVector GetTargetLocalLocation() const override;
+
+	virtual bool GetCanBeTargeted() const override;
+
+	virtual bool GetCanBeDamaged() const override;
 
 
 	
@@ -273,6 +294,7 @@ private:
 	bool bIsAttacking = false;
 	FVector2D DodgeDirection;
 	float CurrentHealth = 0.f;
+	ECharacterLifeState LifeState = ECharacterLifeState::Alive;
 
 
 	// Attack information
