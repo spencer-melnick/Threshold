@@ -8,6 +8,8 @@
 #include "Threshold/Combat/Targetable.h"
 #include "EngineUtils.h"
 
+#include "DrawDebugHelpers.h"
+
 
 ATHPlayerController::ATHPlayerController()
 	: InputBuffer(InputBufferSize + 1)
@@ -110,6 +112,12 @@ void ATHPlayerController::Tick(float DeltaTime)
 
 	// Try to unfollow our target if it's no longer targetable
 	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+
+	if (TargetInterface != nullptr)
+	{
+		DrawDebugSphere(GetWorld(), TargetInterface->GetTargetWorldLocation(), 10.f, 10, FColor::Red);
+	}
+	
 	if (TargetInterface == nullptr || !TargetInterface->GetCanBeTargeted())
 	{
 		SetTarget(nullptr);
@@ -251,7 +259,7 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 		// Otherwise use the correct target locations
 		else
 		{
-			LookVector = (TargetInterface->GetTargetWorldLocation() - PossessedCharacter->GetTargetWorldLocation());
+			LookVector = (TargetInterface->GetTargetWorldLocation() - PossessedCharacter->GetHeadPosition());
 		}
 
 		// Rotate towards lockon target
@@ -456,6 +464,13 @@ void ATHPlayerController::PreviousTarget()
 void ATHPlayerController::SetTarget(AActor* NewTarget)
 {
 	LockonTarget = NewTarget;
+	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+
+	// If for some reason the target is not targetable, clear it
+	if (TargetInterface == nullptr)
+	{
+		LockonTarget = nullptr;
+	}
 	
 	if (LockonTarget == nullptr)
 	{
@@ -465,15 +480,14 @@ void ATHPlayerController::SetTarget(AActor* NewTarget)
 		return;
 	}
 
-	TargetIndicatorActor->AttachToActor(LockonTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	TargetIndicatorActor->SetActorHiddenInGame(false);
-
-	// Try to move the target indicator to the correct local position
-	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
-	if (TargetInterface != nullptr)
+	// Try to use the targetable interface to attach the indicator to the target
+	if (!TargetInterface->AttachToTarget(TargetIndicatorActor))
 	{
-		TargetIndicatorActor->SetActorRelativeLocation(TargetInterface->GetTargetLocalLocation());
+		// if that fails, just attach the indicator directly to the actor's root component
+		TargetIndicatorActor->AttachToActor(LockonTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	}
+	
+	TargetIndicatorActor->SetActorHiddenInGame(false);
 }
 
 

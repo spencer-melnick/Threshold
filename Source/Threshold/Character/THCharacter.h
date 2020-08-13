@@ -149,6 +149,8 @@ public:
 
 	virtual bool GetCanBeTargeted() const override;
 
+	virtual bool AttachToTarget(AActor* ActorToBeAttached) override;
+
 	virtual bool GetCanBeDamaged() const override;
 
 
@@ -209,7 +211,7 @@ public:
 	TSubclassOf<UTeam> Team;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat", meta=(MakeEditWidget))
-	FVector TargetLocation;
+	FName TargetSocketName;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
