@@ -321,18 +321,39 @@ TSubclassOf<UTeam> ATHCharacter::GetTeam() const
 
 FVector ATHCharacter::GetTargetWorldLocation() const
 {
-	return GetActorTransform().TransformPosition(TargetLocation);
+	USkeletalMeshComponent* SkeletalMesh = GetMesh();
+	if (SkeletalMesh == nullptr)
+	{
+		return FVector::ZeroVector;
+	}
+	
+	return SkeletalMesh->GetSocketLocation(TargetSocketName);
 }
 
 FVector ATHCharacter::GetTargetLocalLocation() const
 {
-	return TargetLocation;
+	return GetActorTransform().InverseTransformPosition(GetTargetWorldLocation());
 }
 
 bool ATHCharacter::GetCanBeTargeted() const
 {
 	return GetCharacterIsAlive();
 }
+
+bool ATHCharacter::AttachToTarget(AActor* ActorToBeAttached)
+{
+	USkeletalMeshComponent* SkeletalMesh = GetMesh();
+
+	if (SkeletalMesh == nullptr)
+	{
+		return false;
+	}
+
+	ActorToBeAttached->AttachToComponent(SkeletalMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		TargetSocketName);
+	return true;
+}
+
 
 bool ATHCharacter::GetCanBeDamaged() const
 {

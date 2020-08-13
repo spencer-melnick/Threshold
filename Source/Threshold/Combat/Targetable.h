@@ -30,4 +30,12 @@ public:
     // Returns whether or not the character can be targeted. Should
     // not include team logic - works as a master on/off
     virtual bool GetCanBeTargeted() const;
+
+    // Attach the desired actor to the target location or socket. If
+    // this returns false, the attachment was unsuccessful, and
+    // the caller should try to handle attachment itself
+    // TODO: possibly remove the default function definition
+    // to force implementors to define this function theirselves
+    // and simplify the external implementations
+    virtual bool AttachToTarget(AActor* ActorToBeAttached);
 };
