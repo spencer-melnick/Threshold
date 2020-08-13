@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Threshold/Combat/Teams.h"
-#include "Threshold/Combat/Targetable.h"
-#include "Threshold/Combat/Damageable.h"
 #include "THCharacter.generated.h"
 
 
@@ -29,7 +27,7 @@ enum class ECharacterLifeState : int8
 
 
 UCLASS()
-class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember, public ITargetable, public IDamageable
+class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember
 {
 	GENERATED_BODY()
 
@@ -143,15 +141,13 @@ public:
 	
 	virtual TSubclassOf<UTeam> GetTeam() const override;
 
-	virtual FVector GetTargetWorldLocation() const override;
-
-	virtual FVector GetTargetLocalLocation() const override;
-
 	virtual bool GetCanBeTargeted() const override;
 
-	virtual bool AttachToTarget(AActor* ActorToBeAttached) override;
-
 	virtual bool GetCanBeDamaged() const override;
+
+	virtual FVector GetTargetLocation() const override;
+
+	virtual void AttachTargetIndicator(AActor* ActorToBeAttached) override;
 
 
 	

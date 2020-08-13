@@ -319,7 +319,17 @@ TSubclassOf<UTeam> ATHCharacter::GetTeam() const
 	return Team;
 }
 
-FVector ATHCharacter::GetTargetWorldLocation() const
+bool ATHCharacter::GetCanBeTargeted() const
+{
+	return GetCharacterIsAlive();
+}
+
+bool ATHCharacter::GetCanBeDamaged() const
+{
+	return GetCharacterIsAlive();
+}
+
+FVector ATHCharacter::GetTargetLocation() const
 {
 	USkeletalMeshComponent* SkeletalMesh = GetMesh();
 	if (SkeletalMesh == nullptr)
@@ -330,40 +340,19 @@ FVector ATHCharacter::GetTargetWorldLocation() const
 	return SkeletalMesh->GetSocketLocation(TargetSocketName);
 }
 
-FVector ATHCharacter::GetTargetLocalLocation() const
-{
-	return GetActorTransform().InverseTransformPosition(GetTargetWorldLocation());
-}
-
-bool ATHCharacter::GetCanBeTargeted() const
-{
-	return GetCharacterIsAlive();
-}
-
-bool ATHCharacter::AttachToTarget(AActor* ActorToBeAttached)
+void ATHCharacter::AttachTargetIndicator(AActor* ActorToBeAttached)
 {
 	USkeletalMeshComponent* SkeletalMesh = GetMesh();
 
 	if (SkeletalMesh == nullptr)
 	{
-		return false;
+		ActorToBeAttached->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		return;
 	}
 
 	ActorToBeAttached->AttachToComponent(SkeletalMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		TargetSocketName);
-	return true;
 }
-
-
-bool ATHCharacter::GetCanBeDamaged() const
-{
-	return GetCharacterIsAlive();
-}
-
-
-
-
-
 
 
 
@@ -574,11 +563,9 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 				{
 					AActor* HitActor = HitResult.GetActor();
 					ITeamMember* HitTeamMember = Cast<ITeamMember>(HitActor);
-					IDamageable* HitDamageable = Cast<IDamageable>(HitActor);
 
 					// Only damage actors with the correct team who we haven't hit yet
 					if (HitTeamMember != nullptr && HitTeamMember->GetCanBeDamagedBy(Team) &&
-						HitDamageable != nullptr && HitDamageable->GetCanBeDamaged() &&
 						!CurrentlyDamagedActors.Contains(HitActor))
 					{
 						// Track hit actor to prevent duplicate hits
@@ -598,7 +585,6 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 
 	// Update our weapon positions using move to avoid copying
 	LastWeaponSweepPositions = MoveTemp(NewWeaponSweepPositions);
-	
 }
 
 

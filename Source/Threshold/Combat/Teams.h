@@ -40,6 +40,23 @@ class ITeamMember
 
 public:
     virtual TSubclassOf<UTeam> GetTeam() const = 0;
+
+    // Returns whether or not this team member can be targeted at all - 
+    // Functions as a master override
+    virtual bool GetCanBeTargeted() const;
+
+    // Returns whether or not this team member can be damaged at all - 
+    // Functions as a master override
+    virtual bool GetCanBeDamaged() const;
+    
     virtual bool GetCanBeTargetedBy(TSubclassOf<UTeam> OtherTeam) const;
     virtual bool GetCanBeDamagedBy(TSubclassOf<UTeam> OtherTeam) const;
+
+    // Returns the location to be targeted. This should be the same
+    // as a potential target indicator attachment point and can
+    // be used to track this team member
+    virtual FVector GetTargetLocation() const = 0;
+
+    // Attaches a target indicator actor to this team member
+    virtual void AttachTargetIndicator(AActor* TargetIndicator) = 0;
 };

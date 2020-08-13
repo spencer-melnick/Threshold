@@ -24,11 +24,23 @@ bool UTeam::GetCanDamageTeam(TSubclassOf<UTeam> OtherTeam) const
 
 
 
+// Team member default behavior
+
+bool ITeamMember::GetCanBeTargeted() const
+{
+    return true;
+}
+
+bool ITeamMember::GetCanBeDamaged() const
+{
+    return true;
+}
 
 bool ITeamMember::GetCanBeDamagedBy(TSubclassOf<UTeam> OtherTeam) const
 {
-    // Safety check in case this actor's team is invalid
-    if (GetTeam() == nullptr)
+    // Safety check in case this actor's team is invalid or master override
+    // is set
+    if (!GetCanBeDamaged() || GetTeam() == nullptr)
     {
         return false;
     }
@@ -38,8 +50,9 @@ bool ITeamMember::GetCanBeDamagedBy(TSubclassOf<UTeam> OtherTeam) const
 
 bool ITeamMember::GetCanBeTargetedBy(TSubclassOf<UTeam> OtherTeam) const
 {
-    // Safety check in case this actor's team is invalid
-    if (GetTeam() == nullptr)
+    // Safety check in case this actor's team is invalid or master override
+    // is set
+    if (!GetCanBeTargeted() || GetTeam() == nullptr)
     {
         return false;
     }

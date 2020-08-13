@@ -5,10 +5,8 @@
 
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Camera/THPlayerCameraManager.h"
-#include "Threshold/Combat/Targetable.h"
 #include "EngineUtils.h"
 
-#include "DrawDebugHelpers.h"
 
 
 ATHPlayerController::ATHPlayerController()
@@ -111,14 +109,7 @@ void ATHPlayerController::Tick(float DeltaTime)
 	}
 
 	// Try to unfollow our target if it's no longer targetable
-	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
-
-	if (TargetInterface != nullptr)
-	{
-		DrawDebugSphere(GetWorld(), TargetInterface->GetTargetWorldLocation(), 10.f, 10, FColor::Red);
-	}
-	
-	if (TargetInterface == nullptr || !TargetInterface->GetCanBeTargeted())
+	if (LockonTarget != nullptr && !LockonTarget->GetCanBeTargeted())
 	{
 		SetTarget(nullptr);
 	}
@@ -145,23 +136,20 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	// Iterate through all actors
 	for (TActorIterator<AActor> TargetIterator(GetWorld()); TargetIterator; ++TargetIterator)
 	{
-		ITeamMember* TargetTeamMember = Cast<ITeamMember>(*TargetIterator);
-		ITargetable* TargetInterface = Cast<ITargetable>(*TargetIterator);
+		ITeamMember* TeamMember = Cast<ITeamMember>(*TargetIterator);
 		
 		// Only check actors belonging to the appropriate teams
-		if (TargetTeamMember == nullptr || TargetInterface == nullptr ||
-			!TargetTeamMember->GetCanBeTargetedBy(PossessedCharacter->Team) || !TargetInterface->GetCanBeTargeted())
+		if (TeamMember == nullptr || !TeamMember->GetCanBeTargetedBy(PossessedCharacter->Team))
 		{
 			continue;
 		}
 
 		FTarget Target;
-		Target.TargetActor = *TargetIterator;
-		Target.TargetInterface = TargetInterface;
+		Target.TargetActor = TeamMember;
 
 		// Limit targets by distance to possessed character
-		Target.Distance = FVector::Distance(TargetInterface->GetTargetWorldLocation(),
-			PossessedCharacter->GetTargetWorldLocation());
+		Target.Distance = FVector::Distance(TeamMember->GetTargetLocation(),
+			PossessedCharacter->GetHeadPosition());
 
 		if (Target.Distance > MaxTargetDistance)
 		{
@@ -169,7 +157,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 		}
 
 		// Only check actors that are visible on screen
-		if (!ProjectWorldLocationToScreen(TargetInterface->GetTargetWorldLocation(), Target.ScreenPosition) ||
+		if (!ProjectWorldLocationToScreen(TeamMember->GetTargetLocation(), Target.ScreenPosition) ||
 			Target.ScreenPosition < FVector2D::ZeroVector || Target.ScreenPosition > ViewportSize)
 		{
 			continue;
@@ -200,31 +188,20 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 	TArray<FTarget> PotentialTargets = GetLockonTargets();
 	FTarget* FoundTarget = PotentialTargets.FindByPredicate([this](const FTarget& Target)
 	{
-		return (Target.TargetActor == LockonTarget);
+		return (&*LockonTarget) == Target.TargetActor;
 	});
 
 	FTarget CurrentTarget;
 
 	if (FoundTarget == nullptr)
 	{
-		ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+		// Add current target to full list
+		CurrentTarget.TargetActor = &(*LockonTarget);
+		CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
+		CurrentTarget.Distance = FVector::Distance(LockonTarget->GetTargetLocation(),
+			PossessedCharacter->GetHeadPosition());
 
-		// Double check to make sure our target is targetable
-		if (TargetInterface != nullptr)
-		{
-			// Add current target to full list
-			CurrentTarget.TargetActor = LockonTarget;
-			CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
-			CurrentTarget.Distance = FVector::Distance(TargetInterface->GetTargetWorldLocation(),
-				PossessedCharacter->GetTargetWorldLocation());
-
-			PotentialTargets.Add(CurrentTarget);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("%s is the current lockon target of %s, but does not implement ITargetable"),
-				*GetNameSafe(LockonTarget), *GetNameSafe(this));
-		}
+		PotentialTargets.Add(CurrentTarget);
 	}
 	else
 	{
@@ -248,19 +225,7 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 	if (LockonTarget != nullptr)
 	{
 		// Calculate pitch and yaw based on distance to target
-		FVector LookVector;
-		ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
-
-		// If target isn't implementing ITargetable, use actor location
-		if (TargetInterface == nullptr)
-		{
-			LookVector = (LockonTarget->GetActorLocation() - PossessedCharacter->GetHeadPosition());
-		}
-		// Otherwise use the correct target locations
-		else
-		{
-			LookVector = (TargetInterface->GetTargetWorldLocation() - PossessedCharacter->GetHeadPosition());
-		}
+		FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetHeadPosition();
 
 		// Rotate towards lockon target
 		FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
@@ -461,17 +426,11 @@ void ATHPlayerController::PreviousTarget()
 }
 
 
-void ATHPlayerController::SetTarget(AActor* NewTarget)
+void ATHPlayerController::SetTarget(ITeamMember* NewTarget)
 {
-	LockonTarget = NewTarget;
-	ITargetable* TargetInterface = Cast<ITargetable>(LockonTarget);
+	LockonTarget.SetInterface(NewTarget);
+	LockonTarget.SetObject(Cast<UObject>(NewTarget));
 
-	// If for some reason the target is not targetable, clear it
-	if (TargetInterface == nullptr)
-	{
-		LockonTarget = nullptr;
-	}
-	
 	if (LockonTarget == nullptr)
 	{
 		// Detach the target indicator and hide it
@@ -481,12 +440,7 @@ void ATHPlayerController::SetTarget(AActor* NewTarget)
 	}
 
 	// Try to use the targetable interface to attach the indicator to the target
-	if (!TargetInterface->AttachToTarget(TargetIndicatorActor))
-	{
-		// if that fails, just attach the indicator directly to the actor's root component
-		TargetIndicatorActor->AttachToActor(LockonTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	}
-	
+	LockonTarget->AttachTargetIndicator(TargetIndicatorActor);
 	TargetIndicatorActor->SetActorHiddenInGame(false);
 }
 
