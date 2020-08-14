@@ -14,6 +14,7 @@
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
+#include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 
 
 // Sets default values
@@ -362,8 +363,21 @@ void ATHCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Set the current health based on blueprint properties
 	CurrentHealth = FMath::Min(StartingHealth, MaxHealth);
+
+	// Register ourself with the combatant subsystem
+	GetWorld()->GetSubsystem<UCombatantSubsystem>()->RegisterCombatant(this);
 }
+
+void ATHCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// Unregister self from the combatant system
+	GetWorld()->GetSubsystem<UCombatantSubsystem>()->UnregisterCombatant(this);
+}
+
 
 void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity)
 {
