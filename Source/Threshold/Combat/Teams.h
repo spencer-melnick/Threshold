@@ -29,12 +29,12 @@ protected:
 
 
 UINTERFACE()
-class UTeamMember : public UInterface
+class UCombatant : public UInterface
 {
     GENERATED_BODY()
 };
 
-class ITeamMember
+class ICombatant
 {
     GENERATED_BODY()
 

@@ -52,7 +52,7 @@ public:
 	void LookUp(float Scale);
 	void Turn(float Scale);
 	void ToggleTarget();
-	void SetTarget(class ITeamMember* NewTarget);
+	void SetTarget(class ICombatant* NewTarget);
 	void NextTarget();
 	void PreviousTarget();
 
@@ -100,7 +100,7 @@ public:
 	// Holds information about potential lockon targets
 	struct FTarget
 	{
-		class ITeamMember* TargetActor;
+		class ICombatant* TargetActor;
 		FVector2D ScreenPosition;
 		float Distance;
 
@@ -159,7 +159,7 @@ private:
 	// Camera control properties
 
 	UPROPERTY()
-	TScriptInterface<ITeamMember> LockonTarget = nullptr;
+	TScriptInterface<ICombatant> LockonTarget = nullptr;
 
 
 

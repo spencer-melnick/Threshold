@@ -562,10 +562,10 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 				for (FHitResult& HitResult : HitResults)
 				{
 					AActor* HitActor = HitResult.GetActor();
-					ITeamMember* HitTeamMember = Cast<ITeamMember>(HitActor);
+					ICombatant* HitCombatant = Cast<ICombatant>(HitActor);
 
 					// Only damage actors with the correct team who we haven't hit yet
-					if (HitTeamMember != nullptr && HitTeamMember->GetCanBeDamagedBy(Team) &&
+					if (HitCombatant != nullptr && HitCombatant->GetCanBeDamagedBy(Team) &&
 						!CurrentlyDamagedActors.Contains(HitActor))
 					{
 						// Track hit actor to prevent duplicate hits

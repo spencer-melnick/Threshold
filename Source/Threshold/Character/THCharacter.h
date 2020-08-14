@@ -27,7 +27,7 @@ enum class ECharacterLifeState : int8
 
 
 UCLASS()
-class THRESHOLD_API ATHCharacter : public ACharacter, public ITeamMember
+class THRESHOLD_API ATHCharacter : public ACharacter, public ICombatant
 {
 	GENERATED_BODY()
 

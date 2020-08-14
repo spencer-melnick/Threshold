@@ -136,19 +136,19 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	// Iterate through all actors
 	for (TActorIterator<AActor> TargetIterator(GetWorld()); TargetIterator; ++TargetIterator)
 	{
-		ITeamMember* TeamMember = Cast<ITeamMember>(*TargetIterator);
+		ICombatant* Combatant = Cast<ICombatant>(*TargetIterator);
 		
 		// Only check actors belonging to the appropriate teams
-		if (TeamMember == nullptr || !TeamMember->GetCanBeTargetedBy(PossessedCharacter->Team))
+		if (Combatant == nullptr || !Combatant->GetCanBeTargetedBy(PossessedCharacter->Team))
 		{
 			continue;
 		}
 
 		FTarget Target;
-		Target.TargetActor = TeamMember;
+		Target.TargetActor = Combatant;
 
 		// Limit targets by distance to possessed character
-		Target.Distance = FVector::Distance(TeamMember->GetTargetLocation(),
+		Target.Distance = FVector::Distance(Combatant->GetTargetLocation(),
 			PossessedCharacter->GetHeadPosition());
 
 		if (Target.Distance > MaxTargetDistance)
@@ -157,7 +157,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 		}
 
 		// Only check actors that are visible on screen
-		if (!ProjectWorldLocationToScreen(TeamMember->GetTargetLocation(), Target.ScreenPosition) ||
+		if (!ProjectWorldLocationToScreen(Combatant->GetTargetLocation(), Target.ScreenPosition) ||
 			Target.ScreenPosition < FVector2D::ZeroVector || Target.ScreenPosition > ViewportSize)
 		{
 			continue;
@@ -426,7 +426,7 @@ void ATHPlayerController::PreviousTarget()
 }
 
 
-void ATHPlayerController::SetTarget(ITeamMember* NewTarget)
+void ATHPlayerController::SetTarget(ICombatant* NewTarget)
 {
 	LockonTarget.SetInterface(NewTarget);
 	LockonTarget.SetObject(Cast<UObject>(NewTarget));
