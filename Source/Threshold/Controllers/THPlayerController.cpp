@@ -5,6 +5,7 @@
 
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Camera/THPlayerCameraManager.h"
+#include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "EngineUtils.h"
 
 
@@ -134,18 +135,16 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	FVector2D ViewportSize(static_cast<float>(ViewportWidth), static_cast<float>(ViewportHeight));
 	
 	// Iterate through all actors
-	for (TActorIterator<AActor> TargetIterator(GetWorld()); TargetIterator; ++TargetIterator)
+	for (TScriptInterface<ICombatant> Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
 	{
-		ICombatant* Combatant = Cast<ICombatant>(*TargetIterator);
-		
 		// Only check actors belonging to the appropriate teams
-		if (Combatant == nullptr || !Combatant->GetCanBeTargetedBy(PossessedCharacter->Team))
+		if (!Combatant->GetCanBeTargetedBy(PossessedCharacter->Team))
 		{
 			continue;
 		}
 
 		FTarget Target;
-		Target.TargetActor = Combatant;
+		Target.TargetActor = &*Combatant;
 
 		// Limit targets by distance to possessed character
 		Target.Distance = FVector::Distance(Combatant->GetTargetLocation(),
@@ -428,8 +427,7 @@ void ATHPlayerController::PreviousTarget()
 
 void ATHPlayerController::SetTarget(ICombatant* NewTarget)
 {
-	LockonTarget.SetInterface(NewTarget);
-	LockonTarget.SetObject(Cast<UObject>(NewTarget));
+	LockonTarget = Cast<UObject>(NewTarget);
 
 	if (LockonTarget == nullptr)
 	{
