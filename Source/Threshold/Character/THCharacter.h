@@ -153,6 +153,11 @@ public:
 	
 	// Actor properties
 
+	// Constants
+
+	static FName DodgeMotionName;
+	
+
 	// How quickly the character can rotate
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Movement")
 	float CharacterRotationSpeed = 90.f;
@@ -162,6 +167,16 @@ public:
 	// relative to movement velocity
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Movement")
 	float MovementThreshold = 0.01f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Movement")
+	float DodgeDistance = 1.f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Movement")
+	class UCurveFloat* DodgePositionCurve = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Movement")
+	float DodgeDuration = 1.f;
+	
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Combat")
 	class UWeaponMoveset* ActiveWeaponMoveset = nullptr;
@@ -292,7 +307,7 @@ private:
 	// Private members
 
 	bool bIsAttacking = false;
-	FVector2D DodgeDirection;
+	FVector DodgeDirection;
 	float CurrentHealth = 0.f;
 	ECharacterLifeState LifeState = ECharacterLifeState::Alive;
 

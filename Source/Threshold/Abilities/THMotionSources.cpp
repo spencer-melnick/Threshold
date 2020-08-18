@@ -13,6 +13,9 @@ FRootMotionSource_PositionCurve::FRootMotionSource_PositionCurve()
     // This setting was grabbed from the constant force code,
     // and should help with consistent ending velocity
     Settings.SetFlag(ERootMotionSourceSettingsFlags::DisablePartialEndTick);
+
+    // Don't affect Z velocity
+    Settings.SetFlag(ERootMotionSourceSettingsFlags::IgnoreZAccumulate);
 }
 
 FRootMotionSource* FRootMotionSource_PositionCurve::Clone() const
@@ -62,8 +65,8 @@ void FRootMotionSource_PositionCurve::PrepareRootMotion(
     // Only apply force if the time changes are significant
     if (NewTimeFractional - PreviousTimeFractional > SMALL_NUMBER && MovementTickTime > SMALL_NUMBER)
     {
-        const FVector PreviousOffset = Direction * Scale * PositionOverTime->GetFloatValue(NewTimeFractional);
-        const FVector NewOffset = Direction * Scale * PositionOverTime->GetFloatValue(PreviousTimeFractional);
+        const FVector PreviousOffset = Direction * Scale * PositionOverTime->GetFloatValue(PreviousTimeFractional);
+        const FVector NewOffset = Direction * Scale * PositionOverTime->GetFloatValue(NewTimeFractional);
 
         const FVector Force = (NewOffset - PreviousOffset) / MovementTickTime;
         const FTransform NewTransform(Force);

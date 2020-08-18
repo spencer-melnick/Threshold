@@ -15,7 +15,9 @@
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
+#include "Threshold/Abilities/THMotionSources.h"
 
+FName ATHCharacter::DodgeMotionName = TEXT("DodgeMotion");
 
 // Sets default values
 ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
@@ -135,19 +137,24 @@ float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 void ATHCharacter::Dodge(FVector DodgeVector)
 {
 	// Only dodge if you can actually move
-	if (!GetCanDodge() || CustomCharacterMovement == nullptr)
+	if (!GetCanDodge() || CustomCharacterMovement == nullptr || DodgePositionCurve == nullptr)
 	{
 		return;
 	}
 
-	// Rotate to face control before dodging
-	// FRotator ControlRotation = GetControlRotation();
-	// FRotator NewRotation(0.f, ControlRotation.Yaw, 0.f);
-	// SetActorRotation(NewRotation);
+	// Set our dodge vector
+	DodgeDirection = DodgeVector.GetSafeNormal2D();
 
-	// Set the movement mode and dodge vector
-	CustomCharacterMovement->SetDodgeVector(DodgeVector);
-	CustomCharacterMovement->SetMovementMode(EMovementMode::MOVE_Custom, ETHCustomMovementTypes::CUSTOMMOVE_Dodge);
+	// Create a new root motion
+	FRootMotionSource_PositionCurve* DodgeMotion = new FRootMotionSource_PositionCurve();
+	DodgeMotion->Direction = DodgeDirection;
+	DodgeMotion->Scale = DodgeDistance;
+	DodgeMotion->Duration = DodgeDuration;
+	DodgeMotion->PositionOverTime = DodgePositionCurve;
+	DodgeMotion->InstanceName = DodgeMotionName;
+
+	// Apply our root motion and track the ID
+	CustomCharacterMovement->ApplyRootMotionSource(DodgeMotion);
 }
 
 
@@ -255,28 +262,22 @@ FVector2D ATHCharacter::GetMovementVelocity() const
 
 FVector2D ATHCharacter::GetDodgeDirection(float Threshold) const
 {
-	if (CustomCharacterMovement == nullptr)
-	{
-		return FVector2D::ZeroVector;
-	}
+	FVector2D LocalDodgeDirection;
 
-	FVector DodgeVector = CustomCharacterMovement->GetDodgeVector();
-	FVector2D DodgeVector2D;
-	DodgeVector2D.X = FVector::DotProduct(DodgeVector, GetActorRightVector());
-	DodgeVector2D.Y = FVector::DotProduct(DodgeVector, GetActorForwardVector());
-	
-	return DodgeVector2D;
+	LocalDodgeDirection.Y = FVector::DotProduct(DodgeDirection, GetActorForwardVector());
+	LocalDodgeDirection.X = FVector::DotProduct(DodgeDirection, GetActorRightVector());
+
+	return LocalDodgeDirection;
 }
 
 bool ATHCharacter::GetIsDodging() const
 {
-	if (CustomCharacterMovement == nullptr)
+	if (!CustomCharacterMovement)
 	{
 		return false;
 	}
-	
-	return (CustomCharacterMovement->MovementMode == MOVE_Custom && 
-		CustomCharacterMovement->CustomMovementMode == CUSTOMMOVE_Dodge);
+
+	return CustomCharacterMovement->GetRootMotionSource(DodgeMotionName).IsValid();
 }
 
 bool ATHCharacter::GetCanWalk() const
