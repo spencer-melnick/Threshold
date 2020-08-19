@@ -156,6 +156,7 @@ public:
 	// Constants
 
 	static FName DodgeMotionName;
+	static FName AbilitySystemComponentName;
 	
 
 	// How quickly the character can rotate
@@ -240,6 +241,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	class UCameraComponent* ThirdPersonCamera;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	class UAbilitySystemComponent* AbilitySystemComponent;
+	
 	
 
 protected:

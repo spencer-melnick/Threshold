@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystemComponent.h"
 
 #include "Threshold/Character/THCharacterMovement.h"
 #include "Threshold/Controllers/THPlayerController.h"
@@ -15,9 +16,15 @@
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
-#include "Threshold/Abilities/THMotionSources.h"
+#include "Threshold/Abilities/Motion/THMotionSources.h"
+
+
+// FName constants
 
 FName ATHCharacter::DodgeMotionName = TEXT("DodgeMotion");
+FName ATHCharacter::AbilitySystemComponentName = TEXT("AbilitySystemComponent");
+
+
 
 // Sets default values
 ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
@@ -39,6 +46,10 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Disable controller rotation for capsule so it can be set manually as needed
 	bUseControllerRotationPitch = false;
+
+	// Attach an ability system component and set it to replicated
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(AbilitySystemComponentName);
+	AbilitySystemComponent->SetIsReplicated(true);
 }
 
 
