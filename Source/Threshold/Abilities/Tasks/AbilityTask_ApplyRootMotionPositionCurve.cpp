@@ -8,7 +8,7 @@
 #include "AbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
-#include "Threshold/Abilities/THMotionSources.h"
+#include "Threshold/Abilities/Motion/THMotionSources.h"
 
 UAbilityTask_ApplyRootMotionPositionCurve* UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(
     UGameplayAbility* OwningAbility,
