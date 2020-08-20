@@ -10,6 +10,7 @@
 #include "AbilitySystemComponent.h"
 
 #include "Threshold/Character/THCharacterMovement.h"
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Controllers/THPlayerController.h"
 #include "Threshold/Animation/THCharacterAnim.h"
 #include "Threshold/Global/THConfig.h"
@@ -17,6 +18,7 @@
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Abilities/Motion/THMotionSources.h"
+#include "Threshold/Abilities/THGameplayAbility.h"
 
 
 // FName constants
@@ -48,7 +50,7 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 	bUseControllerRotationPitch = false;
 
 	// Attach an ability system component and set it to replicated
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(AbilitySystemComponentName);
+	AbilitySystemComponent = CreateDefaultSubobject<UTHAbilitySystemComponent>(AbilitySystemComponentName);
 	AbilitySystemComponent->SetIsReplicated(true);
 }
 
@@ -298,7 +300,8 @@ bool ATHCharacter::GetCanWalk() const
 
 bool ATHCharacter::GetCanDodge() const
 {
-	return (GetCharacterIsAlive() && GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
+	return false;
+	// return (GetCharacterIsAlive() && GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
 }
 
 bool ATHCharacter::GetCanAttack() const
@@ -380,6 +383,8 @@ void ATHCharacter::BeginPlay()
 
 	// Register ourself with the combatant subsystem
 	GetWorld()->GetSubsystem<UCombatantSubsystem>()->RegisterCombatant(this);
+
+	GrantDefaultAbilities();
 }
 
 void ATHCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -389,6 +394,16 @@ void ATHCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	// Unregister self from the combatant system
 	GetWorld()->GetSubsystem<UCombatantSubsystem>()->UnregisterCombatant(this);
 }
+
+void ATHCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent,
+		FGameplayAbilityInputBinds("Confirm", "Cancel", "EAbilityInputType",
+			static_cast<int32>(EAbilityInputType::Cancel), static_cast<int32>(EAbilityInputType::Confirm)));
+}
+
 
 
 void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity)
@@ -612,6 +627,23 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 	// Update our weapon positions using move to avoid copying
 	LastWeaponSweepPositions = MoveTemp(NewWeaponSweepPositions);
 }
+
+void ATHCharacter::GrantDefaultAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent)
+	{
+		return;
+	}
+
+	for (TSubclassOf<UTHGameplayAbility>& AbilityClass : StartingAbilities)
+	{
+		const UTHGameplayAbility* AbilityDefaultObject = AbilityClass.GetDefaultObject();
+		
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
+			AbilityClass, 1, static_cast<int32>(AbilityDefaultObject->DefaultInputBinding), this));
+	}
+}
+
 
 
 

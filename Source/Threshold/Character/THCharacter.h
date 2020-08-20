@@ -229,6 +229,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
 	float HitShakeAmplitude = 10.f;
 
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
+	TArray<TSubclassOf<class UTHGameplayAbility>> StartingAbilities;
+	
 	
 	
 	// Default components
@@ -242,7 +246,7 @@ public:
 	class UCameraComponent* ThirdPersonCamera;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	class UAbilitySystemComponent* AbilitySystemComponent;
+	class UTHAbilitySystemComponent* AbilitySystemComponent;
 	
 	
 
@@ -251,6 +255,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	// Called whenever a new actor overlaps the weapon
 	UFUNCTION()
@@ -285,6 +291,8 @@ private:
 	// overlap any damageable actors and trigger the
 	// appropriate responses
 	void SweepWeaponCollision(float DeltaTime);
+
+	void GrantDefaultAbilities();
 
 
 
