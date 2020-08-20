@@ -7,7 +7,7 @@
 #include "CharacterDodge.generated.h"
 
 
-UCLASS()
+UCLASS(Abstract)
 class UCharacterDodge : public UTHGameplayAbility
 {
 	GENERATED_BODY()
@@ -36,4 +36,8 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float DodgeDuration = 0.3f;
+
+protected:
+	UFUNCTION()
+	void OnDodgeFinished();
 };
