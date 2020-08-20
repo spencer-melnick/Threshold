@@ -21,9 +21,4 @@ public:
 
 	UPROPERTY()
 	EAbilityInputType DefaultInputBinding = EAbilityInputType::None;
-	
-	// Tells our gameplay ability that it will be fed the directional input
-	// from the character input vector on any activation calls via event data
-	UPROPERTY()
-	bool bRequiresDirectionInput = false;
 };
