@@ -64,6 +64,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 								// Grab the movement direction and build event data
 								const FVector InputDirection = OwningCharacter->GetLastMovementInputVector();
 								FAbilityDirectionalData* DirectionalData = new FAbilityDirectionalData();
+								DirectionalData->Direction = InputDirection.GetSafeNormal();
 								FGameplayEventData EventData;
 								EventData.TargetData.Add(DirectionalData);
 

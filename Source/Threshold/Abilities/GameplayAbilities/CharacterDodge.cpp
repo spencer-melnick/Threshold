@@ -13,6 +13,7 @@ UCharacterDodge::UCharacterDodge()
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.Dodge"), false));
 
 	DefaultInputBinding = EAbilityInputType::Dodge;
+	bRequiresDirectionInput = true;
 }
 
 void UCharacterDodge::ActivateAbility(
@@ -40,6 +41,7 @@ void UCharacterDodge::ActivateAbility(
 	UAbilityTask_ApplyRootMotionPositionCurve* RootMotionTask =
     UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(this, NAME_None,
         DirectionalData->Direction, DodgeDistance, DodgeDuration, PositionCurve);
+	RootMotionTask->OnFinish.AddDynamic(this, &UCharacterDodge::OnDodgeFinished);
 	RootMotionTask->ReadyForActivation();
 }
 
@@ -56,5 +58,11 @@ bool UCharacterDodge::CanActivateAbility(
 	}
 
 	return true;
+}
+
+void UCharacterDodge::OnDodgeFinished()
+{
+	check(CurrentActorInfo);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 

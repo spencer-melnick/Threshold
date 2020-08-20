@@ -67,7 +67,7 @@ void ATHPlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("PrimaryAttack", EInputEvent::IE_Released, this, &ATHPlayerController::PrimaryAttack);
 
-	InputComponent->BindAction("Dodge", EInputEvent::IE_Pressed, this, &ATHPlayerController::Dodge);
+	// InputComponent->BindAction("Dodge", EInputEvent::IE_Pressed, this, &ATHPlayerController::Dodge);
 
 	InputComponent->BindAxis("LookUp", this, &ATHPlayerController::LookUp);
     InputComponent->BindAxis("Turn", this, &ATHPlayerController::Turn);

@@ -22,7 +22,7 @@
 USTRUCT()
 struct FRootMotionSource_PositionCurve : public FRootMotionSource
 {
-    GENERATED_BODY()
+    GENERATED_USTRUCT_BODY()
 
     FRootMotionSource_PositionCurve();
 
@@ -59,4 +59,16 @@ struct FRootMotionSource_PositionCurve : public FRootMotionSource
     virtual FString ToSimpleString() const override;
 
     virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
+};
+
+
+// Type traits to allow for proper network serialization
+template<>
+struct TStructOpsTypeTraits<FRootMotionSource_PositionCurve> : public TStructOpsTypeTraitsBase2<FRootMotionSource_PositionCurve>
+{
+	enum
+	{
+		WithNetSerializer = true,
+        WithCopy = true
+    };
 };

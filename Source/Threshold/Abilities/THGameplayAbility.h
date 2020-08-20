@@ -9,7 +9,7 @@
 
 
 
-UCLASS()
+UCLASS(Abstract)
 class UTHGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
