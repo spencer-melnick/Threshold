@@ -52,10 +52,6 @@ void ATHPlayerController::BeginPlay()
 void ATHPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	// Cache character reference
-	PossessedCharacter = Cast<ATHCharacter>(InPawn);
-	UE_LOG(LogTemp, Display, TEXT("%s possessing character"), *GetNameSafe(this));
 }
 
 void ATHPlayerController::SetupInputComponent()
@@ -79,6 +75,7 @@ void ATHPlayerController::SetupInputComponent()
 
 void ATHPlayerController::Tick(float DeltaTime)
 {
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -125,6 +122,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	TArray<FTarget> Targets;
 
 	// Check for possessed character
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
 	if (PossessedCharacter == nullptr || PossessedCharacter->Team == nullptr)
 	{
 		return Targets;
@@ -198,7 +196,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 		CurrentTarget.TargetActor = &(*LockonTarget);
 		CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
 		CurrentTarget.Distance = FVector::Distance(LockonTarget->GetTargetLocation(),
-			PossessedCharacter->GetHeadPosition());
+			GetTHCharacter()->GetHeadPosition());
 
 		PotentialTargets.Add(CurrentTarget);
 	}
@@ -224,7 +222,7 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 	if (LockonTarget != nullptr)
 	{
 		// Calculate pitch and yaw based on distance to target
-		FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetHeadPosition();
+		FVector LookVector = LockonTarget->GetTargetLocation() - GetTHCharacter()->GetHeadPosition();
 
 		// Rotate towards lockon target
 		FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
@@ -259,6 +257,7 @@ bool ATHPlayerController::GetCameraIsDirectlyControlled()
 
 void ATHPlayerController::MoveForward(float Scale)
 {
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -271,6 +270,7 @@ void ATHPlayerController::MoveForward(float Scale)
 
 void ATHPlayerController::MoveRight(float Scale)
 {
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -283,6 +283,7 @@ void ATHPlayerController::MoveRight(float Scale)
 
 void ATHPlayerController::Dodge()
 {
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -326,6 +327,7 @@ void ATHPlayerController::Dodge()
 
 void ATHPlayerController::PrimaryAttack()
 {
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -477,6 +479,8 @@ void ATHPlayerController::QueuePlayerInput(FBufferedInput NewInput)
 
 bool ATHPlayerController::TryConsumePlayerInput(const FBufferedInput* ConsumedInput)
 {
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	
 	switch (ConsumedInput->ActionType)
 	{
 	case FBufferedInput::EInputAction::Dodge:
