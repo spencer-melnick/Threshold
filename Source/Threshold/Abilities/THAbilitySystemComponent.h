@@ -12,7 +12,4 @@ UCLASS()
 class UTHAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-
-public:
-	virtual void AbilityLocalInputPressed(int32 InputID) override;
 };

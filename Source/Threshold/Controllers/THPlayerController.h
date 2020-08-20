@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/Character.h"
 #include "Containers/CircularQueue.h"
+#include "Threshold/Character/THCharacter.h"
 #include "THPlayerController.generated.h"
 
 /**
@@ -61,6 +63,16 @@ public:
 	// Camera effects
 
 	void ApplyHitShake(FVector Direction, float Amplitude);
+
+
+
+	// Accessors
+
+	inline class ATHCharacter* GetTHCharacter() const
+	{
+		return Cast<ATHCharacter>(GetCharacter());
+	}
+	
 
 	
 	// Public properties
@@ -146,8 +158,6 @@ private:
 
 	
 	// Cached actors/components
-	
-	class ATHCharacter* PossessedCharacter = nullptr;
 
 	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;

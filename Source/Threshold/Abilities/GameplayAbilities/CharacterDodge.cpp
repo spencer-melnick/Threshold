@@ -2,7 +2,7 @@
 
 #include "CharacterDodge.h"
 #include "Abilities/Tasks/AbilityTask_WaitTargetData.h"
-#include "Threshold/Abilities/TargetDataTypes.h"
+#include "GameFramework/Character.h"
 #include "Threshold/Abilities/Tasks/AbilityTask_ApplyRootMotionPositionCurve.h"
 
 
@@ -13,7 +13,6 @@ UCharacterDodge::UCharacterDodge()
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.Dodge"), false));
 
 	DefaultInputBinding = EAbilityInputType::Dodge;
-	bRequiresDirectionInput = true;
 }
 
 void UCharacterDodge::ActivateAbility(
@@ -27,20 +26,19 @@ void UCharacterDodge::ActivateAbility(
 		return;
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
+
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !Character)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 
-	// Try to pull our directional data from the event data
-	const FGameplayAbilityTargetDataHandle& TargetData = TriggerEventData->TargetData;
-	checkf(TargetData.Num() > 0, TEXT("UCharacterDodge called with no target data"));
-	const FAbilityDirectionalData* DirectionalData = static_cast<const FAbilityDirectionalData*>(TargetData.Get(0));
+	const FVector Direction = Character->GetLastMovementInputVector().GetSafeNormal();
 
 	// Run a root motion task to apply dodge motion
 	UAbilityTask_ApplyRootMotionPositionCurve* RootMotionTask =
     UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(this, NAME_None,
-        DirectionalData->Direction, DodgeDistance, DodgeDuration, PositionCurve);
+        Direction, DodgeDistance, DodgeDuration, PositionCurve);
 	RootMotionTask->OnFinish.AddDynamic(this, &UCharacterDodge::OnDodgeFinished);
 	RootMotionTask->ReadyForActivation();
 }
