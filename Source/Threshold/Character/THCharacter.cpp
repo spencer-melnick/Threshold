@@ -8,14 +8,14 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-#include "Threshold/Character/THCharacterMovement.h"
+#include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Controllers/THPlayerController.h"
-#include "Threshold/Animation/THCharacterAnim.h"
+#include "Threshold/Character/Animation/THCharacterAnim.h"
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
-#include "Threshold/Abilities/THMotionSources.h"
+#include "Threshold/Character/Movement/THMotionSources.h"
 
 FName ATHCharacter::DodgeMotionName = TEXT("DodgeMotion");
 
