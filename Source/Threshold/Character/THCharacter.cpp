@@ -9,15 +9,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 
-#include "Threshold/Character/THCharacterMovement.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
+#include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Controllers/THPlayerController.h"
-#include "Threshold/Animation/THCharacterAnim.h"
+#include "Threshold/Character/Animation/THCharacterAnim.h"
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
-#include "Threshold/Abilities/Motion/THMotionSources.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
 
 
@@ -163,25 +162,7 @@ float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 void ATHCharacter::Dodge(FVector DodgeVector)
 {
-	// Only dodge if you can actually move
-	if (!GetCanDodge() || CustomCharacterMovement == nullptr || DodgePositionCurve == nullptr)
-	{
-		return;
-	}
 
-	// Set our dodge vector
-	DodgeDirection = DodgeVector.GetSafeNormal2D();
-
-	// Create a new root motion
-	FRootMotionSource_PositionCurve* DodgeMotion = new FRootMotionSource_PositionCurve();
-	DodgeMotion->Direction = DodgeDirection;
-	DodgeMotion->Scale = DodgeDistance;
-	DodgeMotion->Duration = DodgeDuration;
-	DodgeMotion->PositionOverTime = DodgePositionCurve;
-	DodgeMotion->InstanceName = DodgeMotionName;
-
-	// Apply our root motion and track the ID
-	CustomCharacterMovement->ApplyRootMotionSource(DodgeMotion);
 }
 
 

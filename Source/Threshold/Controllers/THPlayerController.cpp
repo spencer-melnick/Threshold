@@ -4,7 +4,7 @@
 #include "THPlayerController.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/THCharacter.h"
-#include "Threshold/Camera/THPlayerCameraManager.h"
+#include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "EngineUtils.h"
 
@@ -52,7 +52,6 @@ void ATHPlayerController::BeginPlay()
 void ATHPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
 }
 
 void ATHPlayerController::SetupInputComponent()
@@ -127,9 +126,8 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	TArray<FTarget> Targets;
 
 	// Check for possessed character
-	ATHCharacter* THCharacter = GetTHCharacter();
-	
-	if (THCharacter == nullptr || THCharacter->Team == nullptr)
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	if (PossessedCharacter == nullptr || PossessedCharacter->Team == nullptr)
 	{
 		return Targets;
 	}
@@ -142,7 +140,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	for (TScriptInterface<ICombatant> Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
 	{
 		// Only check actors belonging to the appropriate teams
-		if (!Combatant->GetCanBeTargetedBy(THCharacter->Team))
+		if (!Combatant->GetCanBeTargetedBy(PossessedCharacter->Team))
 		{
 			continue;
 		}
@@ -152,7 +150,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 
 		// Limit targets by distance to possessed character
 		Target.Distance = FVector::Distance(Combatant->GetTargetLocation(),
-			THCharacter->GetHeadPosition());
+			PossessedCharacter->GetHeadPosition());
 
 		if (Target.Distance > MaxTargetDistance)
 		{
@@ -263,40 +261,40 @@ bool ATHPlayerController::GetCameraIsDirectlyControlled()
 
 void ATHPlayerController::MoveForward(float Scale)
 {
-	ATHCharacter* THCharacter = GetTHCharacter();
-	if (!THCharacter)
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	if (PossessedCharacter == nullptr)
 	{
 		return;
 	}
 
 	FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
 	FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
-	THCharacter->AddMovementInput(MovementBasis * Scale);
+	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
 
 void ATHPlayerController::MoveRight(float Scale)
 {
-	ATHCharacter* THCharacter = GetTHCharacter();
-	if (!THCharacter)
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	if (PossessedCharacter == nullptr)
 	{
 		return;
 	}
 	
 	FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
 	FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
-	THCharacter->AddMovementInput(MovementBasis * Scale);
+	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
 
 void ATHPlayerController::Dodge()
 {
-	ATHCharacter* THCharacter = GetTHCharacter();
-	if (THCharacter == nullptr)
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	if (PossessedCharacter == nullptr)
 	{
 		return;
 	}
 
 	// Calculate dodge vector
-	FVector DodgeVector = THCharacter->GetLastMovementInputVector();
+	FVector DodgeVector = PossessedCharacter->GetLastMovementInputVector();
 
 	// If velocity is small or zero, use backwards direction
 	if (DodgeVector.SizeSquared() < (SMALL_NUMBER * SMALL_NUMBER))
@@ -311,9 +309,9 @@ void ATHPlayerController::Dodge()
 		DodgeVector.Normalize();
 	}
 
-	if (THCharacter->GetCanDodge())
+	if (PossessedCharacter->GetCanDodge())
 	{
-		THCharacter->Dodge(DodgeVector);
+		PossessedCharacter->Dodge(DodgeVector);
 	}
 	else
 	{
@@ -333,15 +331,15 @@ void ATHPlayerController::Dodge()
 
 void ATHPlayerController::PrimaryAttack()
 {
-	ATHCharacter* THCharacter = GetTHCharacter();
-	if (THCharacter == nullptr)
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	if (PossessedCharacter == nullptr)
 	{
 		return;
 	}
 
-	if (THCharacter->GetCanAttack())
+	if (PossessedCharacter->GetCanAttack())
 	{
-		THCharacter->PrimaryAttack();
+		PossessedCharacter->PrimaryAttack();
 	}
 	else
 	{
@@ -485,8 +483,8 @@ void ATHPlayerController::QueuePlayerInput(FBufferedInput NewInput)
 
 bool ATHPlayerController::TryConsumePlayerInput(const FBufferedInput* ConsumedInput)
 {
-	ATHCharacter* THCharacter = GetTHCharacter();
-	if (!THCharacter)
+	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	if (!PossessedCharacter)
 	{
 		return false;
 	}
@@ -494,17 +492,17 @@ bool ATHPlayerController::TryConsumePlayerInput(const FBufferedInput* ConsumedIn
 	switch (ConsumedInput->ActionType)
 	{
 	case FBufferedInput::EInputAction::Dodge:
-		if (THCharacter->GetCanDodge())
+		if (PossessedCharacter->GetCanDodge())
 		{
-			THCharacter->Dodge(ConsumedInput->RecordedInputVector);
+			PossessedCharacter->Dodge(ConsumedInput->RecordedInputVector);
 			return true;
 		}
 		return false;
 	
 	case FBufferedInput::EInputAction::PrimaryAttack:
-		if (THCharacter->GetCanAttack())
+		if (PossessedCharacter->GetCanAttack())
 		{
-			THCharacter->PrimaryAttack();
+			PossessedCharacter->PrimaryAttack();
 			return true;
 		}
 		return false;
