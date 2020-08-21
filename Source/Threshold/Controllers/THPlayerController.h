@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Character.h"
 #include "Containers/CircularQueue.h"
+#include "GameFramework/Character.h"
 #include "Threshold/Character/THCharacter.h"
 #include "THPlayerController.generated.h"
 
@@ -69,7 +70,7 @@ public:
 
 	// Accessors
 
-	inline class ATHCharacter* GetTHCharacter() const
+	inline ATHCharacter* GetTHCharacter() const
 	{
 		return Cast<ATHCharacter>(GetCharacter());
 	}
