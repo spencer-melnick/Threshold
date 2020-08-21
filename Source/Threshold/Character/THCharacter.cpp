@@ -52,6 +52,9 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 	// Attach an ability system component and set it to replicated
 	AbilitySystemComponent = CreateDefaultSubobject<UTHAbilitySystemComponent>(AbilitySystemComponentName);
 	AbilitySystemComponent->SetIsReplicated(true);
+
+	// Set mixed mode for player controlled characters!
+	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 }
 
 
@@ -114,6 +117,17 @@ void ATHCharacter::PostInitializeComponents()
 		CharacterAnim = Cast<UTHCharacterAnim>(SkeletalMesh->GetAnimInstance());
 	}
 }
+
+void ATHCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+}
+
 
 float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 	AController* EventInstigator, AActor* DamageCauser)
@@ -630,7 +644,7 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 
 void ATHCharacter::GrantDefaultAbilities()
 {
-	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent)
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || bWasGrantedStaringAbilities)
 	{
 		return;
 	}
@@ -642,6 +656,8 @@ void ATHCharacter::GrantDefaultAbilities()
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
 			AbilityClass, 1, static_cast<int32>(AbilityDefaultObject->DefaultInputBinding), this));
 	}
+
+	bWasGrantedStaringAbilities = true;
 }
 
 

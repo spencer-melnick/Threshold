@@ -2,7 +2,7 @@
 
 
 #include "THPlayerController.h"
-
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Camera/THPlayerCameraManager.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
@@ -105,6 +105,18 @@ void ATHPlayerController::Tick(float DeltaTime)
 		SetTarget(nullptr);
 	}
 }
+
+void ATHPlayerController::AcknowledgePossession(APawn* P)
+{
+	Super::AcknowledgePossession(P);
+
+	ATHCharacter* THCharacter = Cast<ATHCharacter>(P);
+	if (THCharacter)
+	{
+		THCharacter->AbilitySystemComponent->InitAbilityActorInfo(THCharacter, THCharacter);
+	}
+}
+
 
 
 

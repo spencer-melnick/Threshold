@@ -32,6 +32,7 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void AcknowledgePossession(APawn* P) override;
 
 
 	
