@@ -33,7 +33,7 @@ void UCharacterDodge::ActivateAbility(
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 
-	const FVector Direction = Character->GetLastMovementInputVector().GetSafeNormal();
+	const FVector Direction = FVector::ForwardVector;
 
 	// Run a root motion task to apply dodge motion
 	UAbilityTask_ApplyRootMotionPositionCurve* RootMotionTask =

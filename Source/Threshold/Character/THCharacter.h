@@ -43,6 +43,8 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
+	virtual void PossessedBy(AController* NewController) override;
+
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -322,6 +324,7 @@ private:
 	FVector DodgeDirection;
 	float CurrentHealth = 0.f;
 	ECharacterLifeState LifeState = ECharacterLifeState::Alive;
+	bool bWasGrantedStaringAbilities = false;
 
 
 	// Attack information

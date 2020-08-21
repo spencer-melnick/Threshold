@@ -12,4 +12,7 @@ UCLASS()
 class UTHAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
+
+public:
+	UTHAbilitySystemComponent();
 };
