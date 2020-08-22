@@ -38,6 +38,11 @@ public:
 	float DodgeDuration = 0.3f;
 
 protected:
+	void ApplyDodgeMotionTask(const FVector Direction);
+
+	UFUNCTION()
+	void OnClientDataReceived(const FGameplayAbilityTargetDataHandle& Data);
+	
 	UFUNCTION()
 	void OnDodgeFinished();
 };
