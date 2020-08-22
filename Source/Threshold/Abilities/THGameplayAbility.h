@@ -21,4 +21,7 @@ public:
 
 	UPROPERTY()
 	EAbilityInputType DefaultInputBinding = EAbilityInputType::None;
+
+protected:
+	void SendTargetDataToServer(const FGameplayAbilityTargetDataHandle& TargetData);
 };
