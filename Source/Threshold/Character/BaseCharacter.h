@@ -37,6 +37,8 @@ public:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	void PossessedBy(AController* NewController) override;
@@ -66,6 +68,9 @@ public:
 	// character moving at their max walk speed
 	FVector GetLocalMovementVectorScaled() const;
 
+	// Returns the location in world space for targeting look calculations
+	FVector GetWorldLookLocation() const;
+
 
 
 	// Editor properties
@@ -81,11 +86,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	bool bUseSocketForTargetLocation = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat", meta=(EditCondition="!bUseTargetForSocketLocation"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat", meta=(EditCondition="!bUseSocketForTargetLocation"))
 	FVector RelativeTargetLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat", meta=(EditCondition="bUseTargetForSocketLocation"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat", meta=(EditCondition="bUseSocketForTargetLocation"))
 	FName TargetSocketName;
+
+	// This location is used for determining the direction of the camera when locking on. It doesn't support sockets
+	// because sockets move a lot during animation and using fast changing positions can cause unnecessary camera shake.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FVector RelativeLookLocation;
 	
 
 
@@ -95,18 +105,18 @@ public:
 
 
 
+	// Components
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTHAbilitySystemComponent* AbilitySystemComponent = nullptr;
+
+
+	
 private:
 
 	// Helper functions
 
 	void GrantStartingAbilities();
-
-
-
-	// Components
-
-	UPROPERTY(VisibleAnywhere)
-	UTHAbilitySystemComponent* AbilitySystemComponent = nullptr;
 
 	
 	

@@ -4,15 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "GameFramework/Character.h"
-#include "Containers/CircularQueue.h"
-#include "GameFramework/Character.h"
-#include "Threshold/Character/THCharacter.h"
+#include "Threshold/Character/BaseCharacter.h"
+#include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "THPlayerController.generated.h"
-
-/**
- * 
- */
 
 
 
@@ -23,7 +17,6 @@ class THRESHOLD_API ATHPlayerController : public APlayerController
 
 public:
 	ATHPlayerController();
-	ATHPlayerController(FVTableHelper& Helper);
 
 
 	
@@ -41,13 +34,6 @@ public:
 	
 	void MoveForward(float Scale);
 	void MoveRight(float Scale);
-	void Dodge();
-
-
-
-	// Actions
-
-	void PrimaryAttack();
 
 
 	
@@ -70,9 +56,14 @@ public:
 
 	// Accessors
 
-	inline ATHCharacter* GetTHCharacter() const
+	ABaseCharacter* GetBaseCharacter() const
 	{
-		return Cast<ATHCharacter>(GetCharacter());
+		return Cast<ABaseCharacter>(GetCharacter());
+	}
+
+	ATHPlayerCameraManager* GetTHPlayerCameraManager() const
+	{
+		return Cast<ATHPlayerCameraManager>(PlayerCameraManager);
 	}
 	
 
@@ -96,13 +87,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Targeting")
 	TSubclassOf<AActor> TargetIndicatorClass;
 
-	// How long an action will stay in the input buffer before being
-	// flushed
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	float ActionBufferTime = 0.5f;
-
-	const int32 InputBufferSize = 2;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	class UCurveFloat* HitShakeCurve = nullptr;
 
@@ -122,20 +106,7 @@ public:
 	};
 
 
-
-	// Holds buffered inputs
-	struct FBufferedInput
-	{
-		enum class EInputAction
-		{
-			Dodge,
-			PrimaryAttack
-		};
-
-		EInputAction ActionType;
-		FVector RecordedInputVector = FVector::ZeroVector;
-		float BufferedTime = 0.f;
-	};
+	
 
 protected:
 	// Helper functions
@@ -152,31 +123,15 @@ protected:
 	virtual bool GetCameraIsDirectlyControlled();
 
 private:
-	// Helper functions
-
-	void QueuePlayerInput(FBufferedInput NewInput);
-	bool TryConsumePlayerInput(const FBufferedInput* ConsumedInput);
-
-
+	// Spawned actors
 	
-	// Cached actors/components
-
 	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;
 
-	class ATHPlayerCameraManager* ThresholdCameraManager = nullptr;
 
 
-
-	// Camera control properties
+	// Camera control members
 
 	UPROPERTY()
 	TScriptInterface<ICombatant> LockonTarget = nullptr;
-
-
-
-	// Input buffering data
-
-	TCircularQueue<FBufferedInput> InputBuffer;
-	
 };
