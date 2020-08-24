@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 // Portions of this source file have modified by Spencer Melnick and these modifications are
-// Copyright © 2020 Spencer Melnick
+// Copyright (c) 2020 Spencer Melnick
 
 #pragma once
 
