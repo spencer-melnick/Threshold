@@ -9,6 +9,8 @@
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 
 
+
+
 // Component name constants
 
 FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"));
@@ -21,6 +23,10 @@ FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"))
 ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	// Enable ticking
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	
 	// Create our default ability system component
 	AbilitySystemComponent = CreateDefaultSubobject<UTHAbilitySystemComponent>(AbilitySystemComponentName);
 }
@@ -32,6 +38,8 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 void ABaseCharacter::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	// Try to set up our starting abilities
 	GrantStartingAbilities();
 
@@ -43,6 +51,13 @@ void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// Remove this character from the active combatants
 	GetWorld()->GetSubsystem<UCombatantSubsystem>()->UnregisterCombatant(this);
+}
+
+void ABaseCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// Do something
 }
 
 
@@ -190,6 +205,12 @@ FVector ABaseCharacter::GetLocalMovementVectorScaled() const
 	// Transform our world space movement into local space movement
 	return ActorToWorld().TransformVector(WorldMovementVector);
 }
+
+FVector ABaseCharacter::GetWorldLookLocation() const
+{
+	return GetTransform().TransformPosition(RelativeLookLocation);
+}
+
 
 
 
