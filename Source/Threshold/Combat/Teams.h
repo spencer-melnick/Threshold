@@ -8,7 +8,7 @@
 #include "UObject/Object.h"
 #include "Teams.generated.h"
 
-UCLASS(Blueprintable)
+UCLASS(Abstract)
 class THRESHOLD_API UTeam : public UObject
 {
     GENERATED_BODY()
