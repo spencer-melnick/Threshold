@@ -1,4 +1,4 @@
-// Copyright © 2020 Spencer Melnick
+// Copyright (c) 2020 Spencer Melnick
 
 
 #include "THCharacter.h"
