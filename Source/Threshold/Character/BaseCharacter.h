@@ -39,9 +39,9 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	void PossessedBy(AController* NewController) override;
+	virtual void PossessedBy(AController* NewController) override;
 
 
 
@@ -57,18 +57,19 @@ public:
 
 	// Accessors
 
-	UTHAbilitySystemComponent* GetAbilitySystemComponent() const
-	{
-		return AbilitySystemComponent;
-	}
-
 	const USkeletalMeshSocket* GetTargetSocket() const;
 
 	// Returns the character's movement speed in actor space, scaled so that a magnitude of 1 corresponds to the
 	// character moving at their max walk speed
+	UFUNCTION(BlueprintCallable)
 	FVector GetLocalMovementVectorScaled() const;
 
+	// Returns the character's normalized movement speed in actor space
+	UFUNCTION(BlueprintCallable)
+	FVector GetLocalMovementVectorNormalized() const;
+
 	// Returns the location in world space for targeting look calculations
+	UFUNCTION(BlueprintCallable)
 	FVector GetWorldLookLocation() const;
 
 

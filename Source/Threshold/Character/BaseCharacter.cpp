@@ -4,6 +4,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Threshold/Threshold.h"
+#include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
@@ -21,7 +22,8 @@ FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"))
 // Default constructor
 
 ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass(ACharacter::CharacterMovementComponentName,
+		UTHCharacterMovement::StaticClass()))
 {
 	// Enable ticking
 	PrimaryActorTick.bCanEverTick = true;
@@ -29,6 +31,10 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	// Create our default ability system component
 	AbilitySystemComponent = CreateDefaultSubobject<UTHAbilitySystemComponent>(AbilitySystemComponentName);
+	
+	// Drive our rotation using the movement component instead of directly reading the control rotation
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 }
 
 
@@ -203,8 +209,14 @@ FVector ABaseCharacter::GetLocalMovementVectorScaled() const
 	const FVector WorldMovementVector = GetVelocity() / MovementComponent->GetMaxSpeed();
 
 	// Transform our world space movement into local space movement
-	return ActorToWorld().TransformVector(WorldMovementVector);
+	return GetTransform().InverseTransformVector(WorldMovementVector);
 }
+
+FVector ABaseCharacter::GetLocalMovementVectorNormalized() const
+{
+	return GetLocalMovementVectorScaled().GetSafeNormal();
+}
+
 
 FVector ABaseCharacter::GetWorldLookLocation() const
 {

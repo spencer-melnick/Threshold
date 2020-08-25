@@ -29,9 +29,6 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	ThirdPersonCameraComponent->SetupAttachment(SpringArmComponent);
 
 	// Set defaults so the controller drives our rotation properly
-	// We don't want to have the controller directly set the pawn rotation, but we do want to have it set the spring
-	// arm rotation
-	bUseControllerRotationYaw = false;
 	SpringArmComponent->bUsePawnControlRotation = true;
 	SpringArmComponent->bInheritPitch = true;
 	SpringArmComponent->bInheritYaw = true;
