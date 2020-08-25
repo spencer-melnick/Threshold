@@ -50,13 +50,23 @@ void ABaseCharacter::BeginPlay()
 	GrantStartingAbilities();
 
 	// Register this character as a combatant
-	GetWorld()->GetSubsystem<UCombatantSubsystem>()->RegisterCombatant(this);
+	UCombatantSubsystem* CombatantSubsystem = GetWorld()->GetSubsystem<UCombatantSubsystem>();
+	if (CombatantSubsystem)
+	{
+		CombatantSubsystem->RegisterCombatant(this);
+	}
 }
 
 void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// Remove this character from the active combatants
-	GetWorld()->GetSubsystem<UCombatantSubsystem>()->UnregisterCombatant(this);
+	// Make sure to check for a valid subsystem - exiting the game was causing a crash because the subsystem
+	// was destroyed before the character!
+	UCombatantSubsystem* CombatantSubsystem = GetWorld()->GetSubsystem<UCombatantSubsystem>();
+	if (CombatantSubsystem)
+	{
+		// Remove this character from the active combatants
+		CombatantSubsystem->UnregisterCombatant(this);
+	}
 }
 
 void ABaseCharacter::Tick(float DeltaSeconds)

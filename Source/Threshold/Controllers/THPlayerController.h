@@ -10,6 +10,11 @@
 
 
 
+/**
+ * This is the base class for the player character controller. It has minimal functionality, providing a targeting
+ * system that sets control rotation, and movement inputs. The rest of the character input is handled via gameplay
+ * abilities, that are bound in the ability system component
+ */
 UCLASS()
 class THRESHOLD_API ATHPlayerController : public APlayerController
 {
