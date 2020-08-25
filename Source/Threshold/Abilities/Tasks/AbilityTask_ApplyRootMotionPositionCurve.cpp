@@ -66,6 +66,8 @@ void UAbilityTask_ApplyRootMotionPositionCurve::SharedInitAndApply()
 }
 
 
+
+
 // The following function implementation is adapted from original Unreal Engine Code
 // The original code as part of the Unreal Engine is
 // Copyright Epic Games, Inc. All Rights Reserved.
@@ -89,6 +91,7 @@ void UAbilityTask_ApplyRootMotionPositionCurve::TickTask(float DeltaTime)
         {
             // Task has finished
             bIsFinished = true;
+
             if (!bIsSimulating)
             {
                 MyActor->ForceNetUpdate();

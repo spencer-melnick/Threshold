@@ -2,10 +2,12 @@
 
 #include "CharacterDodge.h"
 #include "GameFramework/Character.h"
+#include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/Tasks/AbilityTask_ApplyRootMotionPositionCurve.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
 #include "Threshold/Abilities/AbilityInputTypes.h"
 #include "Threshold/Abilities/TargetDataTypes.h"
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 
 
 UCharacterDodge::UCharacterDodge()
@@ -81,10 +83,11 @@ bool UCharacterDodge::CanActivateAbility(
 
 void UCharacterDodge::ApplyDodgeMotionTask(const FVector Direction)
 {
+	
 	// Run a root motion task to apply dodge motion
 	UAbilityTask_ApplyRootMotionPositionCurve* RootMotionTask =
-    UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(this, NAME_None,
-        Direction, DodgeDistance, DodgeDuration, PositionCurve);
+    UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(this,
+    	ABaseCharacter::DodgeRootMotionName, Direction, DodgeDistance, DodgeDuration, PositionCurve);
 	RootMotionTask->OnFinish.AddDynamic(this, &UCharacterDodge::OnDodgeFinished);
 	RootMotionTask->ReadyForActivation();
 }
@@ -93,6 +96,7 @@ void UCharacterDodge::OnClientDataReceived(const FGameplayAbilityTargetDataHandl
 {
 	if (!Data.IsValid(0) || Data.Num() != 1)
 	{
+		// Check to see that we actually got the right amount of valid data
 		UE_LOG(LogTemp, Error, TEXT("UCharacterDodge received wrong amount of target data from client; expected 1 got %d"), Data.Num());
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
@@ -102,6 +106,7 @@ void UCharacterDodge::OnClientDataReceived(const FGameplayAbilityTargetDataHandl
 
 	if (TargetData->GetScriptStruct() != FAbilityDirectionalData::StaticStruct())
 	{
+		// Check if the data type is actually correct before attempting to cast
 		UE_LOG(LogTemp, Error, TEXT("UCharacterDodge received incorrect data type from client"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
@@ -111,10 +116,11 @@ void UCharacterDodge::OnClientDataReceived(const FGameplayAbilityTargetDataHandl
 	ApplyDodgeMotionTask(DirectionalData->Direction);
 }
 
-
 void UCharacterDodge::OnDodgeFinished()
 {
-	check(CurrentActorInfo);
+	check(CurrentActorInfo)
+
+	// End this ability so we can reactivate it later
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
