@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameplayTags.h"
 #include "Threshold/Combat/Teams.h"
 #include "BaseCharacter.generated.h"
 
@@ -34,13 +35,9 @@ public:
 	// Engine overrides
 
 	virtual void BeginPlay() override;
-
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
 	virtual void Tick(float DeltaSeconds) override;
-
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
 	virtual void PossessedBy(AController* NewController) override;
 
 
@@ -48,11 +45,9 @@ public:
 	// Combatant overrides
 
 	virtual TSubclassOf<UTeam> GetTeam() const override;
-	
 	virtual FVector GetTargetLocation() const override;
-
 	virtual void AttachTargetIndicator(AActor* TargetIndicator) override;
-
+	
 
 
 	// Accessors
@@ -71,6 +66,14 @@ public:
 	// Returns the location in world space for targeting look calculations
 	UFUNCTION(BlueprintCallable)
 	FVector GetWorldLookLocation() const;
+	
+	UTHAbilitySystemComponent* GetAbilitySystemComponent() const
+	{
+		return AbilitySystemComponent;
+	}
+
+	UFUNCTION(BlueprintCallable, Category="BaseCharacter")
+    bool GetIsDodging() const;
 
 
 
@@ -98,20 +101,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FVector RelativeLookLocation;
 
-
-
-	// Accessors
-	
-	UTHAbilitySystemComponent* GetAbilitySystemComponent() const
-	{
-		return AbilitySystemComponent;
-	}
+	// This is the cue we use to notify the animation that we're dodging
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FGameplayTag DodgeCueTag;
 	
 
 
 	// Component name constants - useful for overriding in derived classes
 
 	static FName AbilitySystemComponentName;
+	static FName DodgeRootMotionName;
 
 
 	
@@ -133,4 +132,5 @@ private:
 	// Private members
 	
 	bool bWasGrantedStartingAbilities = false;
+	bool bIsDodging = false;
 };

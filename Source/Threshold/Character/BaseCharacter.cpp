@@ -15,6 +15,7 @@
 // Component name constants
 
 FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"));
+FName ABaseCharacter::DodgeRootMotionName(TEXT("DodgeRootMotionInstance"));
 
 
 
@@ -179,7 +180,6 @@ void ABaseCharacter::AttachTargetIndicator(AActor* TargetIndicator)
 
 
 
-
 // Accessors
 
 const USkeletalMeshSocket* ABaseCharacter::GetTargetSocket() const
@@ -236,6 +236,20 @@ FVector ABaseCharacter::GetWorldLookLocation() const
 {
 	return GetTransform().TransformPosition(RelativeLookLocation);
 }
+
+bool ABaseCharacter::GetIsDodging() const
+{
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+
+	if (!MovementComponent)
+	{
+		return false;
+	}
+
+	// TODO: Find a better way of detecting dodge motion
+	return MovementComponent->GetRootMotionSource(DodgeRootMotionName).IsValid();
+}
+
 
 
 

@@ -37,6 +37,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float DodgeDuration = 0.3f;
 
+	UPROPERTY(EditDefaultsOnly)
+	FGameplayTag DodgeTag;
+
 protected:
 	void ApplyDodgeMotionTask(const FVector Direction);
 
