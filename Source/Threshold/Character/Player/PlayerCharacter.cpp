@@ -3,6 +3,7 @@
 #include "PlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 
 
 
@@ -32,5 +33,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	SpringArmComponent->bUsePawnControlRotation = true;
 	SpringArmComponent->bInheritPitch = true;
 	SpringArmComponent->bInheritYaw = true;
+
+	// Replicate gameplay effects to the owning client - suggested for player controlled characters
+	GetAbilitySystemComponent()->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 }
 
