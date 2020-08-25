@@ -97,19 +97,21 @@ public:
 	// because sockets move a lot during animation and using fast changing positions can cause unnecessary camera shake.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FVector RelativeLookLocation;
+
+
+
+	// Accessors
+	
+	UTHAbilitySystemComponent* GetAbilitySystemComponent() const
+	{
+		return AbilitySystemComponent;
+	}
 	
 
 
 	// Component name constants - useful for overriding in derived classes
 
 	static FName AbilitySystemComponentName;
-
-
-
-	// Components
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTHAbilitySystemComponent* AbilitySystemComponent = nullptr;
 
 
 	
@@ -120,6 +122,13 @@ private:
 	void GrantStartingAbilities();
 
 	
+
+	// Components
+
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	UTHAbilitySystemComponent* AbilitySystemComponent = nullptr;
+
+
 	
 	// Private members
 	

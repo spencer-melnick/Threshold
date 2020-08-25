@@ -31,6 +31,10 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 	
 	// Create our default ability system component
 	AbilitySystemComponent = CreateDefaultSubobject<UTHAbilitySystemComponent>(AbilitySystemComponentName);
+	AbilitySystemComponent->SetIsReplicated(true);
+
+	// Don't replicate gameplay effects - suggested for AI controlled characters
+	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Minimal;
 	
 	// Drive our rotation using the movement component instead of directly reading the control rotation
 	bUseControllerRotationYaw = false;

@@ -29,6 +29,20 @@ public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 
+
+	// Accessors
+	
+	USpringArmComponent* GetSpringArmComponent() const
+	{
+		return SpringArmComponent;
+	}
+
+	UCameraComponent* GetThirdPersonCameraComponent() const
+	{
+		return ThirdPersonCameraComponent;
+	}
+	
+
 	
 	// Component name overrides
 
@@ -37,11 +51,12 @@ public:
 
 	
 
+private:
 	// Components
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	USpringArmComponent* SpringArmComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UCameraComponent* ThirdPersonCameraComponent;
 };
