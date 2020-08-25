@@ -25,7 +25,10 @@ enum class ECharacterLifeState : int8
 };
 
 
-
+/**
+ * This is the old base character class. It is now deprecated, but kept for reference while I move some functionality
+ * over to the new base character class. DO NOT USE!
+ */
 UCLASS()
 class THRESHOLD_API ATHCharacter : public ACharacter, public ICombatant
 {
