@@ -29,20 +29,6 @@ public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 
-
-	// Accessors
-
-	USpringArmComponent* GetSpringArmComponent() const
-	{
-		return SpringArmComponent;
-	}
-
-	UCameraComponent* GetThirdPersonCameraComponent() const
-	{
-		return ThirdPersonCameraComponent;
-	}
-
-
 	
 	// Component name overrides
 

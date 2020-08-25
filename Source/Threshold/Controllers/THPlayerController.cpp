@@ -69,10 +69,10 @@ void ATHPlayerController::AcknowledgePossession(APawn* P)
 {
 	Super::AcknowledgePossession(P);
 
-	ATHCharacter* THCharacter = Cast<ATHCharacter>(P);
-	if (THCharacter)
+	ABaseCharacter* PossessedCharacter = Cast<ABaseCharacter>(P);
+	if (PossessedCharacter)
 	{
-		THCharacter->AbilitySystemComponent->InitAbilityActorInfo(THCharacter, THCharacter);
+		PossessedCharacter->AbilitySystemComponent->InitAbilityActorInfo(PossessedCharacter, PossessedCharacter);
 	}
 }
 
