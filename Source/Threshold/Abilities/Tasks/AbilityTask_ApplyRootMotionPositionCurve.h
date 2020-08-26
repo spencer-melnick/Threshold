@@ -25,12 +25,14 @@ public:
         FVector Direction,
         float Scale,
         float Duration,
-        class UCurveFloat* PositionOverTime
+        class UCurveFloat* PositionOverTime,
+        FGameplayTag LocallyAppliedTag
     );
 
     virtual void TickTask(float DeltaTime) override;
     virtual void PreDestroyFromReplication() override;
     virtual void OnDestroy(bool bInOwnerFinished) override;
+	virtual void Activate() override;
 
 protected:
     virtual void SharedInitAndApply() override;
@@ -46,4 +48,9 @@ protected:
 
     UPROPERTY(Replicated)
     class UCurveFloat* PositionOverTime = nullptr;
+
+	// This tag is applied to the owning ability system component locally (not replicated) and removed once the root
+	// motion ends
+	UPROPERTY(Replicated)
+	FGameplayTag LocallyAppliedTag;
 };

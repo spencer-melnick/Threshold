@@ -51,7 +51,7 @@ class UAT_ServerWaitForClientTargetData : public UAbilityTask
 	UFUNCTION()
     void OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& Data, FGameplayTag ActivationTag);
 
-	protected:
+protected:
 	virtual void OnDestroy(bool AbilityEnded) override;
 
 	bool bTriggerOnce;
