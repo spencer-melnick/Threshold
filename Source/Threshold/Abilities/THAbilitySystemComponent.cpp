@@ -16,6 +16,14 @@ UTHAbilitySystemComponent::UTHAbilitySystemComponent()
 
 
 
+
+// Constants
+
+const int32 UTHAbilitySystemComponent::MaxInputBufferSize = 2;
+
+
+
+
 // Engine overrides
 
 bool UTHAbilitySystemComponent::GetShouldTick() const
@@ -102,9 +110,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 				}
 				else if (bEnableInputBuffering)
 				{
-					// Push it back to our input buffer
-					InputBuffer.Enqueue({InputID, MoveTemp(InputData),
-						GetWorld()->GetRealTimeSeconds()});
+					BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
 				}
 			}
 		}
@@ -130,7 +136,7 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		if (GetWorld()->GetRealTimeSeconds() - Input->InputTime > InputBufferingTime)
 		{
 			// Remove expired inputs and check the next input
-			InputBuffer.Pop();
+			RemoveFrontInput();
 			continue;
 		}
 		
@@ -154,7 +160,7 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
                            "buffer of %s but does not have input buffering enabled"),
                            *GameplayAbility->GetName(), *GetNameSafe(this))
-					InputBuffer.Pop();
+					RemoveFrontInput();
 					continue;
 				}
 
@@ -170,7 +176,7 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					}
 					
 					TryActivateAbility(Spec.Handle);
-					InputBuffer.Pop();
+					RemoveFrontInput();
 				}
 			}
 
@@ -214,4 +220,32 @@ void UTHAbilitySystemComponent::RemoveGameplayCueLocal(const FGameplayTag Gamepl
 
 
 
+// Input buffer helpers
+
+void UTHAbilitySystemComponent::BufferInput(FBufferedInput&& Input)
+{
+	// Used to track number of buffered inputs since TQueue does not hold a size
+	CurrentInputBufferSize++;
+
+	while (CurrentInputBufferSize > MaxInputBufferSize)
+	{
+		// Remove the front input if the buffer is full
+		CurrentInputBufferSize--;
+		InputBuffer.Pop();
+	}
+					
+	// Push it back to our input buffer
+	InputBuffer.Enqueue(Input);
+}
+
+void UTHAbilitySystemComponent::RemoveFrontInput()
+{
+	if (InputBuffer.IsEmpty())
+	{
+		return;
+	}
+
+	CurrentInputBufferSize--;
+	InputBuffer.Pop();
+}
 
