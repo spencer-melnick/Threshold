@@ -16,7 +16,8 @@ UAbilityTask_ApplyRootMotionPositionCurve* UAbilityTask_ApplyRootMotionPositionC
     FVector Direction,
     float Scale,
     float Duration,
-    UCurveFloat* PositionOverTime)
+    UCurveFloat* PositionOverTime,
+    FGameplayTag LocallyAppliedTag)
 {
     UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Duration(Duration);
 
@@ -28,6 +29,7 @@ UAbilityTask_ApplyRootMotionPositionCurve* UAbilityTask_ApplyRootMotionPositionC
     Task->Scale = Scale;
     Task->Duration = Duration;
     Task->PositionOverTime = PositionOverTime;
+	Task->LocallyAppliedTag = LocallyAppliedTag;
     Task->SharedInitAndApply();
 
     return Task;
@@ -118,6 +120,7 @@ void UAbilityTask_ApplyRootMotionPositionCurve::GetLifetimeReplicatedProps(TArra
     DOREPLIFETIME(UAbilityTask_ApplyRootMotionPositionCurve, Scale);
     DOREPLIFETIME(UAbilityTask_ApplyRootMotionPositionCurve, Duration);
     DOREPLIFETIME(UAbilityTask_ApplyRootMotionPositionCurve, PositionOverTime);
+	DOREPLIFETIME(UAbilityTask_ApplyRootMotionPositionCurve, LocallyAppliedTag);
 }
 
 void UAbilityTask_ApplyRootMotionPositionCurve::PreDestroyFromReplication()
@@ -133,5 +136,19 @@ void UAbilityTask_ApplyRootMotionPositionCurve::OnDestroy(bool bInOwnerFinished)
         MovementComponent->RemoveRootMotionSourceByID(RootMotionSourceID);
     }
 
+	// Remove our locally applied tag
+	check(AbilitySystemComponent);
+	AbilitySystemComponent->RemoveLooseGameplayTag(LocallyAppliedTag);
+
     Super::OnDestroy(bInOwnerFinished);
 }
+
+void UAbilityTask_ApplyRootMotionPositionCurve::Activate()
+{
+	Super::Activate();
+	
+	// Applies our tag to the ability system component without replication
+	check(AbilitySystemComponent);
+	AbilitySystemComponent->AddLooseGameplayTag(LocallyAppliedTag);
+}
+

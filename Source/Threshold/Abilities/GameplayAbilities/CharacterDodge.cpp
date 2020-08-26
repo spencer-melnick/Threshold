@@ -2,7 +2,6 @@
 
 #include "CharacterDodge.h"
 #include "GameFramework/Character.h"
-#include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/Tasks/AbilityTask_ApplyRootMotionPositionCurve.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
 #include "Threshold/Abilities/AbilityInputTypes.h"
@@ -87,7 +86,7 @@ void UCharacterDodge::ApplyDodgeMotionTask(const FVector Direction)
 	// Run a root motion task to apply dodge motion
 	UAbilityTask_ApplyRootMotionPositionCurve* RootMotionTask =
     UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(this,
-    	ABaseCharacter::DodgeRootMotionName, Direction, DodgeDistance, DodgeDuration, PositionCurve);
+    	NAME_None, Direction, DodgeDistance, DodgeDuration, PositionCurve, LocalDodgeTag);
 	RootMotionTask->OnFinish.AddDynamic(this, &UCharacterDodge::OnDodgeFinished);
 	RootMotionTask->ReadyForActivation();
 }

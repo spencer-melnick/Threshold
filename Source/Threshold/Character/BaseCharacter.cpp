@@ -15,7 +15,6 @@
 // Component name constants
 
 FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"));
-FName ABaseCharacter::DodgeRootMotionName(TEXT("DodgeRootMotionInstance"));
 
 
 
@@ -239,19 +238,13 @@ FVector ABaseCharacter::GetWorldLookLocation() const
 
 bool ABaseCharacter::GetIsDodging() const
 {
-	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
-
-	if (!MovementComponent)
+	if (!AbilitySystemComponent)
 	{
 		return false;
 	}
 
-	// TODO: Find a better way of detecting dodge motion
-	return MovementComponent->GetRootMotionSource(DodgeRootMotionName).IsValid();
+	return AbilitySystemComponent->HasMatchingGameplayTag(DodgeTag);
 }
-
-
-
 
 
 

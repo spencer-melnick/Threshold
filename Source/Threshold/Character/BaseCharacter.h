@@ -101,16 +101,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FVector RelativeLookLocation;
 
-	// This is the cue we use to notify the animation that we're dodging
+	// This is the cue we check against to see if we are dodging
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
-	FGameplayTag DodgeCueTag;
+	FGameplayTag DodgeTag;
 	
 
 
 	// Component name constants - useful for overriding in derived classes
 
 	static FName AbilitySystemComponentName;
-	static FName DodgeRootMotionName;
 
 
 	

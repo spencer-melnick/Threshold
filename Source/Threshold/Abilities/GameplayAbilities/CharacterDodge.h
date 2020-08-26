@@ -37,8 +37,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	float DodgeDuration = 0.3f;
 
+	// This tag is applied to the ability system component locally by the task - that means that it is not replicated,
+	// but it should be the same across all machines. This is used for changing visual properties when a dodge
+	// begins, not for any gameplay code
 	UPROPERTY(EditDefaultsOnly)
-	FGameplayTag DodgeTag;
+	FGameplayTag LocalDodgeTag;
 
 protected:
 	void ApplyDodgeMotionTask(const FVector Direction);
