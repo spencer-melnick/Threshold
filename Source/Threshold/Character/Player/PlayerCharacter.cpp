@@ -36,5 +36,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Replicate gameplay effects to the owning client - suggested for player controlled characters
 	GetAbilitySystemComponent()->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
+
+	// Enable input buffering on the ability system component
+	GetAbilitySystemComponent()->bEnableInputBuffering = true;
 }
 
