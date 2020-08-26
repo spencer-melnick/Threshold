@@ -92,6 +92,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 					// If we can activate the ability, consume the data right away and activate it normally
 					for (UGameplayAbility* AbilityInstance : Spec.GetAbilityInstances())
 					{
+						// TODO: Find better way to send buffered data to ability activation!
 						// Each instance needs the data
 						UTHGameplayAbility* THAbilityInstance = Cast<UTHGameplayAbility>(AbilityInstance);
 						check(THAbilityInstance);
@@ -162,6 +163,7 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					// Consume the input and activate the ability!
 					for (UGameplayAbility* AbilityInstance : Spec.GetAbilityInstances())
 					{
+						// TODO: Find better way to send buffered data to ability activation!
 						UTHGameplayAbility* THAbilityInstance = Cast<UTHGameplayAbility>(AbilityInstance);
 						check(THAbilityInstance);
 						THAbilityInstance->ConsumeInputData(Input->Data);
