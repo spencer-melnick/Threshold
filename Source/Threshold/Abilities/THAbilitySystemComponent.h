@@ -47,7 +47,7 @@ public:
 
 	// Constants
 
-	static const int32 InputBufferSize;
+	static const int32 MaxInputBufferSize;
 
 
 	
@@ -73,5 +73,14 @@ private:
 		float InputTime;
 	};
 
+
+	// Input buffer helpers
+
+	void BufferInput(FBufferedInput&& Input);
+	void RemoveFrontInput();
+	
+	
+
 	TQueue<FBufferedInput, EQueueMode::Spsc> InputBuffer;
+	int32 CurrentInputBufferSize = 0;
 };
