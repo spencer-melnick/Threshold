@@ -17,3 +17,9 @@ enum class EAbilityInputType : uint8
 	SecondaryAttack,
 	Interact
 };
+
+// This is the base struct for any input data we're feeding to buffered abilities
+struct FBufferedAbilityInputData
+{
+	
+};

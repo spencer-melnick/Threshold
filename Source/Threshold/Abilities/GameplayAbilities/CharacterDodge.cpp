@@ -9,6 +9,10 @@
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 
 
+
+
+// Default constructor
+
 UCharacterDodge::UCharacterDodge()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -17,6 +21,11 @@ UCharacterDodge::UCharacterDodge()
 
 	DefaultInputBinding = EAbilityInputType::Dodge;
 }
+
+
+
+
+// Engine overrides
 
 void UCharacterDodge::ActivateAbility(
 	const FGameplayAbilitySpecHandle Handle,
@@ -38,8 +47,8 @@ void UCharacterDodge::ActivateAbility(
 
 	if (IsLocallyControlled())
 	{
-		// If this is running on the client calculate direction
-		const FVector Direction = Character->GetLastMovementInputVector().GetSafeNormal();
+		// If this is running on the client use buffered data
+		const FVector Direction = StoredInputData.DodgeVector;
 
 		if (IsPredictingClient())
 		{
@@ -79,6 +88,53 @@ bool UCharacterDodge::CanActivateAbility(
 
 	return true;
 }
+
+// THGameplayAbility overrides
+
+TUniquePtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
+	const FGameplayAbilityActorInfo* ActorInfo)
+{
+	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
+	{
+		return nullptr;
+	}
+
+	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
+	if (!Character)
+	{
+		return nullptr;
+	}
+
+	TUniquePtr<FDodgeInputData> InputData = MakeUnique<FDodgeInputData>();
+	const FVector LastMovementVector = Character->GetLastMovementInputVector();
+
+	if (LastMovementVector.IsNearlyZero())
+	{
+		// If our movement vector is nearly zero, dodge backwards from the control (i.e. camera) rotation
+		InputData->DodgeVector = Character->GetControlRotation().RotateVector(FVector::BackwardVector);
+	}
+	else
+	{
+		// Otherwise dodge in the direction of the movement
+		InputData->DodgeVector = LastMovementVector.GetSafeNormal();
+	}
+
+	return MoveTemp(InputData);
+}
+
+void UCharacterDodge::ConsumeInputData(const FBufferedAbilityInputData* InputData)
+{
+	if (InputData)
+	{
+		// Copy the input data from the payload
+		StoredInputData = *(static_cast<const FDodgeInputData*>(InputData));
+	}
+}
+
+
+
+
+// Helper functions
 
 void UCharacterDodge::ApplyDodgeMotionTask(const FVector Direction)
 {
