@@ -15,6 +15,10 @@ class UCharacterDodge : public UTHGameplayAbility
 public:
 	UCharacterDodge();
 
+
+
+	// Engine overrides
+	
 	virtual void ActivateAbility(
 		const FGameplayAbilitySpecHandle Handle,
 		const FGameplayAbilityActorInfo* ActorInfo,
@@ -27,6 +31,21 @@ public:
 		const FGameplayTagContainer* SourceTags,
 		const FGameplayTagContainer* TargetTags,
 		OUT FGameplayTagContainer* OptionalRelevantTags) const override;
+
+
+
+	
+	// THGameplayAbility overrides
+
+	virtual TSharedPtr<FBufferedAbilityInputData> GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
+        const FGameplayAbilityActorInfo* ActorInfo) override;
+	virtual void ConsumeInputData(TWeakPtr<FBufferedAbilityInputData> InputData) override;
+	virtual bool GetInputBufferingEnabled() const override { return true; }
+	
+	
+
+
+	// Public properties
 	
 	UPROPERTY(EditAnywhere)
 	class UCurveFloat* PositionCurve = nullptr;
@@ -43,7 +62,19 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag LocalDodgeTag;
 
+
+	
 protected:
+	// Custom input data struct
+	struct FDodgeInputData : FBufferedAbilityInputData
+	{
+		FVector DodgeVector;
+	};
+
+
+	
+	// Helper functions and delegates
+	
 	void ApplyDodgeMotionTask(const FVector Direction);
 
 	UFUNCTION()
@@ -51,4 +82,9 @@ protected:
 	
 	UFUNCTION()
 	void OnDodgeFinished();
+
+
+
+	// Stored input data - only works if this ability is instanced!
+	FDodgeInputData StoredInputData;
 };
