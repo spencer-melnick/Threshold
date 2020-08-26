@@ -19,7 +19,15 @@ enum class EAbilityInputType : uint8
 };
 
 // This is the base struct for any input data we're feeding to buffered abilities
+USTRUCT()
 struct FBufferedAbilityInputData
 {
+	GENERATED_BODY()
+	
 	virtual ~FBufferedAbilityInputData() = default;
+
+	virtual UScriptStruct* GetScriptStruct() const
+	{
+		return FBufferedAbilityInputData::StaticStruct();
+	}
 };
