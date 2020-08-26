@@ -37,9 +37,9 @@ public:
 	
 	// THGameplayAbility overrides
 
-	virtual TUniquePtr<FBufferedAbilityInputData> GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
+	virtual TSharedPtr<FBufferedAbilityInputData> GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
         const FGameplayAbilityActorInfo* ActorInfo) override;
-	virtual void ConsumeInputData(const FBufferedAbilityInputData* InputData) override;
+	virtual void ConsumeInputData(TWeakPtr<FBufferedAbilityInputData> InputData) override;
 	virtual bool GetInputBufferingEnabled() const override { return true; }
 	
 	

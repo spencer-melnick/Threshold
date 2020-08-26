@@ -21,5 +21,5 @@ enum class EAbilityInputType : uint8
 // This is the base struct for any input data we're feeding to buffered abilities
 struct FBufferedAbilityInputData
 {
-	
+	virtual ~FBufferedAbilityInputData() = default;
 };
