@@ -7,6 +7,22 @@
 #include "CharacterDodge.generated.h"
 
 
+
+USTRUCT()
+struct FDodgeInputData : public FBufferedAbilityInputData
+{
+	GENERATED_BODY()
+	
+	FVector DodgeVector;
+
+	virtual UScriptStruct* GetScriptStruct() const override
+	{
+		return FDodgeInputData::StaticStruct();
+	};
+};
+
+
+
 UCLASS(Abstract)
 class UCharacterDodge : public UTHGameplayAbility
 {
@@ -34,16 +50,13 @@ public:
 
 
 
-	
 	// THGameplayAbility overrides
 
 	virtual TSharedPtr<FBufferedAbilityInputData> GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
         const FGameplayAbilityActorInfo* ActorInfo) override;
-	virtual void ConsumeInputData(TWeakPtr<FBufferedAbilityInputData> InputData) override;
 	virtual bool GetInputBufferingEnabled() const override { return true; }
 	
 	
-
 
 	// Public properties
 	
@@ -65,14 +78,6 @@ public:
 
 	
 protected:
-	// Custom input data struct
-	struct FDodgeInputData : FBufferedAbilityInputData
-	{
-		FVector DodgeVector;
-	};
-
-
-	
 	// Helper functions and delegates
 	
 	void ApplyDodgeMotionTask(const FVector Direction);

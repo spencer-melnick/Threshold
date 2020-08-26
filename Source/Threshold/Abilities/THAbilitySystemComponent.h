@@ -17,12 +17,30 @@ class UTHAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	UTHAbilitySystemComponent();
 
+
+	
 	// Engine overrides
 
 	virtual bool GetShouldTick() const override;
 	virtual void AbilityLocalInputPressed(int32 InputID) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 		FActorComponentTickFunction* ThisTickFunction) override;
+
+
+
+	// Input buffering functions
+
+	template <typename T>
+	TWeakPtr<T> GetPendingAbilityInput() const
+	{
+		if (!MostRecentInputData.IsValid() || MostRecentInputData->GetScriptStruct() != T::StaticStruct())
+		{
+			// Validate that our data is the correct type
+			return nullptr;
+		}
+
+		return StaticCastSharedPtr<T>(MostRecentInputData);
+	};
 	
 
 
@@ -81,6 +99,7 @@ private:
 	
 	
 
+	TSharedPtr<FBufferedAbilityInputData> MostRecentInputData;
 	TQueue<FBufferedInput, EQueueMode::Spsc> InputBuffer;
 	int32 CurrentInputBufferSize = 0;
 };

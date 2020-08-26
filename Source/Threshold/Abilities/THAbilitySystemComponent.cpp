@@ -39,6 +39,8 @@ bool UTHAbilitySystemComponent::GetShouldTick() const
 }
 
 
+
+
 // The following function is a modified version of the code present in the Unreal Engine source, the original code is
 // Copyright Epic Games, Inc. All Rights Reserved.
 void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
@@ -97,15 +99,8 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 
 				if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
 				{
-					// If we can activate the ability, consume the data right away and activate it normally
-					for (UGameplayAbility* AbilityInstance : Spec.GetAbilityInstances())
-					{
-						// TODO: Find better way to send buffered data to ability activation!
-						// Each instance needs the data
-						UTHGameplayAbility* THAbilityInstance = Cast<UTHGameplayAbility>(AbilityInstance);
-						check(THAbilityInstance);
-						THAbilityInstance->ConsumeInputData(InputData);
-					}
+					// If we can activate the ability make the data available and activate the ability normally
+					MostRecentInputData = InputData;
 					TryActivateAbility(Spec.Handle);
 				}
 				else if (bEnableInputBuffering)
@@ -166,15 +161,8 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 				if (GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
 				{
-					// Consume the input and activate the ability!
-					for (UGameplayAbility* AbilityInstance : Spec.GetAbilityInstances())
-					{
-						// TODO: Find better way to send buffered data to ability activation!
-						UTHGameplayAbility* THAbilityInstance = Cast<UTHGameplayAbility>(AbilityInstance);
-						check(THAbilityInstance);
-						THAbilityInstance->ConsumeInputData(Input->Data);
-					}
-					
+					// Ready the input and activate the ability!
+					MostRecentInputData = Input->Data;
 					TryActivateAbility(Spec.Handle);
 					RemoveFrontInput();
 				}

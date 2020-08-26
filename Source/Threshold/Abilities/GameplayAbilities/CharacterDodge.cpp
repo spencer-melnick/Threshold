@@ -2,6 +2,7 @@
 
 #include "CharacterDodge.h"
 #include "GameFramework/Character.h"
+#include "Threshold/Threshold.h"
 #include "Threshold/Abilities/Tasks/AbilityTask_ApplyRootMotionPositionCurve.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
 #include "Threshold/Abilities/AbilityInputTypes.h"
@@ -38,30 +39,35 @@ void UCharacterDodge::ActivateAbility(
 		return;
 	}
 
-	const ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
+	const UTHAbilitySystemComponent* AbilitySystemComponent =
+		Cast<UTHAbilitySystemComponent>(ActorInfo->AbilitySystemComponent);
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !Character)
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AbilitySystemComponent)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 
-	if (IsLocallyControlled())
+	if (IsLocallyControlled() || IsPredictingClient())
 	{
-		// If this is running on the client use buffered data
-		const FVector Direction = StoredInputData.DodgeVector;
+		// Try to grab our input data
+		const TSharedPtr<FDodgeInputData> InputData =
+            AbilitySystemComponent->GetPendingAbilityInput<FDodgeInputData>().Pin();
 
-		if (IsPredictingClient())
+		if (!InputData.IsValid())
 		{
-			// Send the directional data to the server
-			FAbilityDirectionalData* DirectionalData = new FAbilityDirectionalData();
-			DirectionalData->Direction = Direction;
-			FGameplayAbilityTargetDataHandle TargetDataHandle;
-			TargetDataHandle.Add(DirectionalData);
-			SendTargetDataToServer(TargetDataHandle);
+			UE_LOG(LogThresholdGeneral, Error, TEXT("%s was called with incorrect input data type"), *GetNameSafe(this))
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		}
 		
+		// Send the directional data to the server
+		FAbilityDirectionalData* DirectionalData = new FAbilityDirectionalData();
+		DirectionalData->Direction = InputData->DodgeVector;
+		FGameplayAbilityTargetDataHandle TargetDataHandle;
+		TargetDataHandle.Add(DirectionalData);
+		SendTargetDataToServer(TargetDataHandle);
+	
 		// Apply the locally simulated motion
-		ApplyDodgeMotionTask(Direction);
+		ApplyDodgeMotionTask(InputData->DodgeVector);
 	}
 	else
 	{
@@ -120,20 +126,6 @@ TSharedPtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const F
 	}
 
 	return MoveTemp(InputData);
-}
-
-void UCharacterDodge::ConsumeInputData(TWeakPtr<FBufferedAbilityInputData> InputData)
-{
-	if (InputData.IsValid())
-	{
-		const TSharedPtr<FBufferedAbilityInputData> InputDataPinned = InputData.Pin();
-
-		if (InputDataPinned)
-		{
-			// Copy the input data from the payload
-			StoredInputData = *(static_cast<FDodgeInputData*>(InputDataPinned.Get()));
-		}
-	}
 }
 
 
