@@ -91,7 +91,7 @@ bool UCharacterDodge::CanActivateAbility(
 
 // THGameplayAbility overrides
 
-TUniquePtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
+TSharedPtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
 	const FGameplayAbilityActorInfo* ActorInfo)
 {
 	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
@@ -105,7 +105,7 @@ TUniquePtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const F
 		return nullptr;
 	}
 
-	TUniquePtr<FDodgeInputData> InputData = MakeUnique<FDodgeInputData>();
+	TSharedPtr<FDodgeInputData> InputData = MakeShared<FDodgeInputData>();
 	const FVector LastMovementVector = Character->GetLastMovementInputVector();
 
 	if (LastMovementVector.IsNearlyZero())
@@ -122,12 +122,17 @@ TUniquePtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const F
 	return MoveTemp(InputData);
 }
 
-void UCharacterDodge::ConsumeInputData(const FBufferedAbilityInputData* InputData)
+void UCharacterDodge::ConsumeInputData(TWeakPtr<FBufferedAbilityInputData> InputData)
 {
-	if (InputData)
+	if (InputData.IsValid())
 	{
-		// Copy the input data from the payload
-		StoredInputData = *(static_cast<const FDodgeInputData*>(InputData));
+		const TSharedPtr<FBufferedAbilityInputData> InputDataPinned = InputData.Pin();
+
+		if (InputDataPinned)
+		{
+			// Copy the input data from the payload
+			StoredInputData = *(static_cast<FDodgeInputData*>(InputDataPinned.Get()));
+		}
 	}
 }
 

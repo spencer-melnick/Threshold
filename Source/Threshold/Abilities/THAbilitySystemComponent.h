@@ -69,7 +69,7 @@ private:
 	struct FBufferedInput
 	{
 		int32 InputID;
-		TUniquePtr<FBufferedAbilityInputData> Data;
+		TSharedPtr<FBufferedAbilityInputData> Data;
 		float InputTime;
 	};
 

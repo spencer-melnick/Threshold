@@ -35,13 +35,6 @@ bool UTHAbilitySystemComponent::GetShouldTick() const
 // Copyright Epic Games, Inc. All Rights Reserved.
 void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 {
-	if (!bEnableInputBuffering)
-	{
-		// If input buffering isn't enabled, just use the original input logic
-		Super::AbilityLocalInputPressed(InputID);
-		return;
-	}
-
 	// Consume the input if this InputID is overloaded with GenericConfirm/Cancel and the GenericConfim/Cancel callback is bound
 	if (IsGenericConfirmInputBound(InputID))
 	{
@@ -91,7 +84,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 			else
 			{
 				// Generate some input data
-				TUniquePtr<FBufferedAbilityInputData> InputData =
+				TSharedPtr<FBufferedAbilityInputData> InputData =
 					GameplayAbility->GenerateInputData(Spec.Handle, AbilityActorInfo.Get());
 
 				if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
@@ -102,11 +95,11 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 						// Each instance needs the data
 						UTHGameplayAbility* THAbilityInstance = Cast<UTHGameplayAbility>(AbilityInstance);
 						check(THAbilityInstance);
-						THAbilityInstance->ConsumeInputData(InputData.Get());
+						THAbilityInstance->ConsumeInputData(InputData);
 					}
 					TryActivateAbility(Spec.Handle);
 				}
-				else
+				else if (bEnableInputBuffering)
 				{
 					// Push it back to our input buffer
 					InputBuffer.Enqueue({InputID, MoveTemp(InputData),
@@ -171,7 +164,7 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					{
 						UTHGameplayAbility* THAbilityInstance = Cast<UTHGameplayAbility>(AbilityInstance);
 						check(THAbilityInstance);
-						THAbilityInstance->ConsumeInputData(Input->Data.Get());
+						THAbilityInstance->ConsumeInputData(Input->Data);
 					}
 					
 					TryActivateAbility(Spec.Handle);
