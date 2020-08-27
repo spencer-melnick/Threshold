@@ -14,7 +14,7 @@
 #include "Threshold/Controllers/THPlayerController.h"
 #include "Threshold/Character/Animation/THCharacterAnim.h"
 #include "Threshold/Global/THConfig.h"
-#include "Threshold/Combat/WeaponMoveset.h"
+#include "Threshold/Combat/Weapons/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
