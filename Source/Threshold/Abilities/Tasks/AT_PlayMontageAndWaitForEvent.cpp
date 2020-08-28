@@ -119,18 +119,18 @@ void UAT_PlayMontageAndWaitForEvent::Activate()
 	}
 
 	bool bPlayedMontage = false;
-	UTHAbilitySystemComponent* AbilitySystemComponent = GetTargetASC();
+	UTHAbilitySystemComponent* ASC = GetTargetASC();
 
-	if (AbilitySystemComponent)
+	if (ASC)
 	{
 		const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
 		UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
 			// Bind to event callback
-			EventHandle = AbilitySystemComponent->AddGameplayEventTagContainerDelegate(EventTags, FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UAT_PlayMontageAndWaitForEvent::OnGameplayEvent));
+			EventHandle = ASC->AddGameplayEventTagContainerDelegate(EventTags, FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UAT_PlayMontageAndWaitForEvent::OnGameplayEvent));
 
-			if (AbilitySystemComponent->PlayMontage(Ability, Ability->GetCurrentActivationInfo(), MontageToPlay, Rate, StartSection) > 0.f)
+			if (ASC->PlayMontage(Ability, Ability->GetCurrentActivationInfo(), MontageToPlay, Rate, StartSection) > 0.f)
 			{
 				// Playing a montage could potentially fire off a callback into game code which could kill this ability! Early out if we are  pending kill.
 				if (ShouldBroadcastAbilityTaskDelegates() == false)
@@ -202,10 +202,10 @@ void UAT_PlayMontageAndWaitForEvent::OnDestroy(bool AbilityEnded)
 		}
 	}
 
-	UTHAbilitySystemComponent* AbilitySystemComponent = GetTargetASC();
-	if (AbilitySystemComponent)
+	UTHAbilitySystemComponent* ASC = GetTargetASC();
+	if (ASC)
 	{
-		AbilitySystemComponent->RemoveGameplayEventTagContainerDelegate(EventTags, EventHandle);
+		ASC->RemoveGameplayEventTagContainerDelegate(EventTags, EventHandle);
 	}
 
 	Super::OnDestroy(AbilityEnded);
