@@ -30,6 +30,12 @@ public:
 
 
 
+	// Engine overrides
+
+	virtual void Tick(float DeltaSeconds) override;
+
+
+
 	// Accessors
 	
 	USpringArmComponent* GetSpringArmComponent() const
@@ -41,6 +47,14 @@ public:
 	{
 		return ThirdPersonCameraComponent;
 	}
+
+
+
+	// Editor properties
+
+	// This is the tag we check against to see if our attack is damaging for local logic
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FGameplayTag DamagingTag;
 	
 
 	

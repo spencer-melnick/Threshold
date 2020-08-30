@@ -101,7 +101,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FVector RelativeLookLocation;
 
-	// This is the cue we check against to see if we are dodging
+	// This is the tag we check against to see if we are dodging for animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FGameplayTag DodgeTag;
 	

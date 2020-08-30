@@ -4,6 +4,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 
@@ -39,5 +40,19 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Enable input buffering on the ability system component
 	GetAbilitySystemComponent()->bEnableInputBuffering = true;
+}
+
+
+
+
+// Engine overrides
+
+void APlayerCharacter::Tick(float DeltaSeconds)
+{
+	const UTHAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (ASC && ASC->HasMatchingGameplayTag(DamagingTag))
+	{
+		// Do something
+	}
 }
 
