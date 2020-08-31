@@ -12,3 +12,12 @@ bool FAbilityDirectionalData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool&
 	return true;
 }
 
+bool FWeaponHitTargetData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+	Super::NetSerialize(Ar, Map, bOutSuccess);
+	HitVelocity.NetSerialize(Ar, Map, bOutSuccess);
+
+	bOutSuccess = true;
+	return true;
+}
+

@@ -5,8 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "DrawDebugHelpers.h"
-
-
+#include "Threshold/Threshold.h"
 
 
 // Component name constants
@@ -59,5 +58,21 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+
+
+
+// Base character overrides
+
+void APlayerCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
+{
+	Super::OnHitGameplayEvent(GameplayTag, EventData);
+
+	if (EventData->Instigator == this)
+	{
+		UE_LOG(LogThresholdGeneral, Display, TEXT("%s hit %s locally"), *GetNameSafe(this),
+			*GetNameSafe(EventData->Target))
+	}
 }
 
