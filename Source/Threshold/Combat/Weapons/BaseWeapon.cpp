@@ -36,8 +36,10 @@ ABaseWeapon::ABaseWeapon()
 
 void ABaseWeapon::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	// Create some empty socket positions
-	LastSocketPositions.InsertDefaulted(TraceSocketNames.Num());
+	LastSocketPositions.InsertZeroed(0, TraceSocketNames.Num());
 }
 
 void ABaseWeapon::Tick(float DeltaSeconds)

@@ -58,6 +58,6 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 
 void APlayerCharacter::BeginPlay()
 {
-
+	Super::BeginPlay();
 }
 
