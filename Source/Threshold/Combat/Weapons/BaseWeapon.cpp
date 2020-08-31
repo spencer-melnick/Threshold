@@ -3,6 +3,7 @@
 #include "BaseWeapon.h"
 #include "Engine/World.h"
 #include "Components/MeshComponent.h"
+#include "DrawDebugHelpers.h"
 
 
 
@@ -23,6 +24,9 @@ ABaseWeapon::ABaseWeapon()
 	// Our tick should be disabled on start, but we want to re-enable it when we do weapon traces
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Replicate weapon actor spawning
+	bReplicates = true;
 }
 
 
@@ -54,7 +58,7 @@ void ABaseWeapon::Tick(float DeltaSeconds)
 		if (bAreSocketPositionsUpToDate)
 		{
 			// Do trace here
-			
+			DrawDebugLine(GetWorld(), LastSocketPositions[i], NewSocketLocation, FColor::Blue);
 		}
 
 		LastSocketPositions[i] = NewSocketLocation;

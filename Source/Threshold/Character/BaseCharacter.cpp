@@ -3,11 +3,13 @@
 #include "BaseCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
+#include "Threshold/Combat/Weapons/BaseWeapon.h"
 
 
 
@@ -59,6 +61,23 @@ void ABaseCharacter::BeginPlay()
 	{
 		CombatantSubsystem->RegisterCombatant(this);
 	}
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		// Server spawning logic
+		
+		if (StartingWeaponClass)
+		{
+			// Spawn the starting weapon and attach it
+			EquippedWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(StartingWeaponClass.Get()));
+			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
+				WeaponSocketName);
+		}
+	}
+
+	// Register gameplay tag callbacks
+	AbilitySystemComponent->RegisterGameplayTagEvent(DamagingTag, EGameplayTagEventType::NewOrRemoved).AddUObject(
+		this, &ABaseCharacter::DamagingTagChanged);
 }
 
 void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -101,6 +120,14 @@ void ABaseCharacter::PossessedBy(AController* NewController)
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	}
 }
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseCharacter, EquippedWeapon)
+}
+
 
 
 
@@ -245,6 +272,40 @@ bool ABaseCharacter::GetIsDodging() const
 
 	return AbilitySystemComponent->HasMatchingGameplayTag(DodgeTag);
 }
+
+
+
+
+// Gameplay tag responses
+
+void ABaseCharacter::DamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (EquippedWeapon)
+	{
+		if (NewCount == 0)
+		{
+			// If the tag is removed, stop the weapon trace
+			EquippedWeapon->StopWeaponTrace();
+		}
+		else
+		{
+			// If the tag is applied, start the weapon trace
+			EquippedWeapon->StartWeaponTrace();
+		}
+	}
+}
+
+
+
+
+
+// Network replication functions
+
+void ABaseCharacter::OnRep_EquippedWeapon()
+{
+	// Do something!
+}
+
 
 
 

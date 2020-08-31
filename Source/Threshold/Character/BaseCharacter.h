@@ -16,6 +16,7 @@
 class USkeletalMeshSocket;
 class UTHGameplayAbility;
 class UTHAbilitySystemComponent;
+class ABaseWeapon;
 
 
 
@@ -39,6 +40,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 
@@ -104,6 +106,16 @@ public:
 	// This is the tag we check against to see if we are dodging for animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FGameplayTag DodgeTag;
+
+	// This is the tag we check against to see if our attack is damaging for local logic
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
+	FGameplayTag DamagingTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
+	TSubclassOf<ABaseWeapon> StartingWeaponClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FName WeaponSocketName = NAME_None;
 	
 
 
@@ -112,9 +124,32 @@ public:
 	static FName AbilitySystemComponentName;
 
 
+
+
+
+protected:
+	// Gameplay tag responses
+
+	virtual void DamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	
+	
+	// Network replication functions
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+	
+	
+	
+
+	// Replicated variables
+
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
+	ABaseWeapon* EquippedWeapon = nullptr;
+	
+	
 	
 private:
-
 	// Helper functions
 
 	void GrantStartingAbilities();
@@ -131,5 +166,4 @@ private:
 	// Private members
 	
 	bool bWasGrantedStartingAbilities = false;
-	bool bIsDodging = false;
 };
