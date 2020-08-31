@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "BaseWeapon.generated.h"
 
@@ -12,6 +13,7 @@
 
 class UMeshComponent;
 class UWeaponMoveset;
+class ABaseCharacter;
 
 
 
@@ -41,6 +43,12 @@ public:
 	void StopWeaponTrace();
 	
 	
+
+	// Accessors
+
+	ABaseCharacter* GetOwningCharacter() const;
+	
+	
 	
 	// Public components
 	
@@ -61,12 +69,42 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon")
 	TArray<FName> TraceSocketNames;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
+	float TraceSphereRadius = 10.f;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
+	TEnumAsByte<ECollisionChannel> TraceChannel;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
+	FGameplayTag HitEventTag;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon")
 	UWeaponMoveset* Moveset = nullptr;
 
 
+protected:
+	// Helper functions
+
+	void HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVelocity);
+	
+	
+	
+	// Blueprint events
+
+	// Called when the weapon trace starts locally
+	UFUNCTION(BlueprintImplementableEvent, Category="Weapon")
+	void OnStartWeaponTrace();
+
+	// Called when the weapon trace stops locally
+	UFUNCTION(BlueprintImplementableEvent, Category="Weapon")
+    void OnStopWeaponTrace();
+
+
 	
 private:
+	// Private variables
+	
 	bool bAreSocketPositionsUpToDate = false;
 	TArray<FVector> LastSocketPositions;
+	TArray<TWeakObjectPtr<ABaseCharacter>> DamagedCharacters;
 };

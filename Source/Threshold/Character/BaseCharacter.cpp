@@ -77,7 +77,9 @@ void ABaseCharacter::BeginPlay()
 
 	// Register gameplay tag callbacks
 	AbilitySystemComponent->RegisterGameplayTagEvent(DamagingTag, EGameplayTagEventType::NewOrRemoved).AddUObject(
-		this, &ABaseCharacter::DamagingTagChanged);
+		this, &ABaseCharacter::OnDamagingTagChanged_Internal);
+	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(HitEventTag.GetSingleTagContainer(),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &ABaseCharacter::OnHitGameplayEvent_Internal));
 }
 
 void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -278,7 +280,7 @@ bool ABaseCharacter::GetIsDodging() const
 
 // Gameplay tag responses
 
-void ABaseCharacter::DamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
 	if (EquippedWeapon)
 	{
@@ -295,6 +297,14 @@ void ABaseCharacter::DamagingTagChanged(const FGameplayTag CallbackTag, int32 Ne
 	}
 }
 
+void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
+{
+	check(EventData);
+	
+	// Do something
+}
+
+
 
 
 
@@ -305,7 +315,6 @@ void ABaseCharacter::OnRep_EquippedWeapon()
 {
 	// Do something!
 }
-
 
 
 

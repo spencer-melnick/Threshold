@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameplayTags.h"
+#include "Abilities/GameplayAbilityTypes.h"
 #include "Threshold/Combat/Teams.h"
 #include "BaseCharacter.generated.h"
 
@@ -116,6 +117,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FName WeaponSocketName = NAME_None;
+
+	// This is the tag for weapon hit events
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
+	FGameplayTag HitEventTag;
 	
 
 
@@ -130,7 +135,8 @@ public:
 protected:
 	// Gameplay tag responses
 
-	virtual void DamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData);
 
 	
 	
@@ -150,6 +156,20 @@ protected:
 	
 	
 private:
+	// Internal delegates
+
+	void OnDamagingTagChanged_Internal(const FGameplayTag CallbackTag, int32 NewCount)
+	{
+		OnDamagingTagChanged(CallbackTag, NewCount);
+	}
+
+	void OnHitGameplayEvent_Internal(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
+	{
+		OnHitGameplayEvent(GameplayTag, EventData);
+	}
+	
+
+	
 	// Helper functions
 
 	void GrantStartingAbilities();
