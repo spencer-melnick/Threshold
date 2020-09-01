@@ -7,6 +7,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Character/BaseCharacter.h"
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 
 
 // Default constructor
@@ -70,6 +71,32 @@ bool UWeaponAttack::CanActivateAbility(
 
 	return (OwningCharacter->GetEquippedWeapon() != nullptr);
 }
+
+
+
+
+// Input buffering overrides
+
+bool UWeaponAttack::GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	check(ActorInfo);
+
+	const ABaseCharacter* OwningCharacter = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
+	if (!OwningCharacter)
+	{
+		return false;
+	}
+
+	UTHAbilitySystemComponent* AbilitySystemComponent = OwningCharacter->GetTHAbilitySystemComponent();
+
+	if (!AbilitySystemComponent)
+	{
+		return false;
+	}
+
+	return AbilitySystemComponent->HasMatchingGameplayTag(LocalComboTag);
+}
+
 
 
 

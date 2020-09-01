@@ -44,9 +44,25 @@ public:
 
 
 
+	// Input buffering overrides
+	
+	virtual bool GetInputBufferingEnabled() const override
+	{
+		return true;
+	}
+
+	virtual bool GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const override;	
+
+
+
 	// Editor properties
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Attack")
 	UAnimMontage* AttackMontage = nullptr;
+
+	// Tag that must be applied locally for this ability to be able to trigger a combo
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Attack")
+	FGameplayTag LocalComboTag;
 
 
 
