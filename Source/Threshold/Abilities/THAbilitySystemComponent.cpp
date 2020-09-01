@@ -257,6 +257,7 @@ void UTHAbilitySystemComponent::BufferInput(FBufferedInput&& Input)
 					
 	// Push it back to our input buffer
 	InputBuffer.Enqueue(Input);
+	UpdateShouldTick();
 }
 
 void UTHAbilitySystemComponent::RemoveFrontInput()
@@ -268,6 +269,7 @@ void UTHAbilitySystemComponent::RemoveFrontInput()
 
 	CurrentInputBufferSize--;
 	InputBuffer.Pop();
+	UpdateShouldTick();
 }
 
 void UTHAbilitySystemComponent::DispatchInputEvents(FGameplayAbilitySpec& Spec)
