@@ -31,7 +31,7 @@ void UAnimNotifyState_Tag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequ
 }
 
 
-UTHAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent)
+UAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent)
 {
 	if (!MeshComponent)
 	{
@@ -47,7 +47,7 @@ UTHAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkel
 		return nullptr;
 	}
 
-	UTHAbilitySystemComponent* AbilitySystemComponent = BaseCharacter->GetAbilitySystemComponent();
+	UAbilitySystemComponent* AbilitySystemComponent = BaseCharacter->GetAbilitySystemComponent();
 
 	if (!AbilitySystemComponent)
 	{

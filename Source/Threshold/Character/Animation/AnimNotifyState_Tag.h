@@ -35,5 +35,5 @@ public:
 	FGameplayTagContainer AppliedTags;
 
 protected:
-	static UTHAbilitySystemComponent* GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent);
+	static UAbilitySystemComponent* GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent);
 };

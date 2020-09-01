@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "GameplayTags.h"
 #include "Abilities/GameplayAbilityTypes.h"
+#include "AbilitySystemInterface.h"
 #include "Threshold/Combat/Teams.h"
 #include "BaseCharacter.generated.h"
 
@@ -25,7 +26,7 @@ class ABaseWeapon;
  * This is the custom base class for all characters used in the game!
  */
 UCLASS()
-class THRESHOLD_API ABaseCharacter : public ACharacter, public ICombatant
+class THRESHOLD_API ABaseCharacter : public ACharacter, public ICombatant, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -70,7 +71,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetWorldLookLocation() const;
 	
-	UTHAbilitySystemComponent* GetAbilitySystemComponent() const
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UTHAbilitySystemComponent* GetTHAbilitySystemComponent() const
 	{
 		return AbilitySystemComponent;
 	}

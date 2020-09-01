@@ -4,7 +4,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Threshold/Threshold.h"
 
 
@@ -35,10 +34,10 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	SpringArmComponent->bInheritYaw = true;
 
 	// Replicate gameplay effects to the owning client - suggested for player controlled characters
-	GetAbilitySystemComponent()->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
+	GetTHAbilitySystemComponent()->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 
 	// Enable input buffering on the ability system component
-	GetAbilitySystemComponent()->bEnableInputBuffering = true;
+	GetTHAbilitySystemComponent()->bEnableInputBuffering = true;
 }
 
 
@@ -48,7 +47,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 void APlayerCharacter::Tick(float DeltaSeconds)
 {
-	const UTHAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	const UTHAbilitySystemComponent* ASC = GetTHAbilitySystemComponent();
 	if (ASC && ASC->HasMatchingGameplayTag(DamagingTag))
 	{
 		// Do something

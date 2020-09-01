@@ -8,8 +8,8 @@
 #include "Threshold/Combat/Teams.h"
 #include "Threshold/Abilities/TargetDataTypes.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
+#include "Threshold/Abilities/AbilityFunctionLibrary.h"
 #include "Components/MeshComponent.h"
-#include "Threshold/Threshold.h"
 
 
 // Component name constants
@@ -145,7 +145,7 @@ void ABaseWeapon::StopWeaponTrace()
 void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVelocity)
 {
 	ABaseCharacter* OwningCharacter = GetOwningCharacter();
-	UTHAbilitySystemComponent* AbilitySystemComponent = OwningCharacter->GetAbilitySystemComponent();
+	UTHAbilitySystemComponent* AbilitySystemComponent = OwningCharacter->GetTHAbilitySystemComponent();
 
 	if (!OwningCharacter || !AbilitySystemComponent)
 	{
@@ -167,34 +167,18 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 		DamagedCharacters.Add(HitCharacter);
 
 		// Create a new gameplay event from our data
-		FGameplayEventData EventData;
-		EventData.EventTag = HitEventTag;
-		EventData.Instigator = OwningCharacter;
-		AbilitySystemComponent->GetOwnedGameplayTags(EventData.InstigatorTags);
-		EventData.Target = HitCharacter;
+		FGameplayEventData EventData = UAbilityFunctionLibrary::CreateGameplayEvent(OwningCharacter, HitCharacter, HitEventTag);
 		EventData.TargetData.Add(new FWeaponHitTargetData(HitResult, HitVelocity));
 
 		// Create a new gameplay cue from our data
-		FGameplayCueParameters CueParameters;
-		AbilitySystemComponent->GetOwnedGameplayTags(CueParameters.AggregatedSourceTags);
+		FGameplayCueParameters CueParameters = UAbilityFunctionLibrary::CreateGameplayCue(OwningCharacter, this, HitCharacter);
 		CueParameters.EffectContext = FGameplayEffectContextHandle(new FGameplayEffectContext());
 		CueParameters.EffectContext.AddHitResult(HitResult);
 
-		UTHAbilitySystemComponent* HitASC = HitCharacter->GetAbilitySystemComponent();
-		if (!HitASC)
+		UTHAbilitySystemComponent* HitASC = HitCharacter->GetTHAbilitySystemComponent();
+		if (HitASC)
 		{
-			// Warn if for some reason the hit character is missing an ability system component
-			UE_LOG(LogThresholdGeneral, Warning, TEXT("%s was hit by %s with weapon %s, but does not have a valid "
-                "THAbilitySystemComponent"), *GetNameSafe(HitCharacter), *GetNameSafe(OwningCharacter),
-                *GetNameSafe(this))
-		}
-		else
-		{
-			// Fill out the target tags and have the target handle the event
-			HitASC->GetOwnedGameplayTags(EventData.TargetTags);
 			HitASC->HandleGameplayEvent(HitEventTag, &EventData);
-
-			HitASC->GetOwnedGameplayTags(CueParameters.AggregatedTargetTags);
 		}
 
 		// Try to have our owning character handle the event as well
