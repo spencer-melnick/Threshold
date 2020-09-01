@@ -4,8 +4,9 @@
 
 #include "WeaponAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-
-
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
+#include "Threshold/Threshold.h"
+#include "Threshold/Character/BaseCharacter.h"
 
 
 // Default constructor
@@ -41,6 +42,10 @@ void UWeaponAttack::ActivateAbility(
 		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
 	MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
 	MontageTask->ReadyForActivation();
+
+	UAbilityTask_WaitInputPress* InputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	InputTask->OnPress.AddDynamic(this, &UWeaponAttack::OnInputPressed);
+	InputTask->ReadyForActivation();
 }
 
 bool UWeaponAttack::CanActivateAbility(
@@ -55,8 +60,15 @@ bool UWeaponAttack::CanActivateAbility(
 		return false;
 	}
 
-	// Optional activation logic
-	return true;
+	check(ActorInfo);
+
+	const ABaseCharacter* OwningCharacter = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
+	if (!OwningCharacter)
+	{
+		return false;
+	}
+
+	return (OwningCharacter->GetEquippedWeapon() != nullptr);
 }
 
 
@@ -68,4 +80,11 @@ void UWeaponAttack::OnAnimationFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
+
+void UWeaponAttack::OnInputPressed(float ElapsedTime)
+{
+	// Check if we can trigger an attack combo
+	UE_LOG(LogThresholdGeneral, Display, TEXT("Weapon input triggered"))
+}
+
 

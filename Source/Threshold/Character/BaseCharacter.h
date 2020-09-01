@@ -82,6 +82,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category="BaseCharacter")
     bool GetIsDodging() const;
 
+	UFUNCTION(BlueprintCallable, Category="BaseCharacter")
+	ABaseWeapon* GetEquippedWeapon() const
+	{
+		return EquippedWeapon;
+	}
+
 
 
 	// Editor properties
