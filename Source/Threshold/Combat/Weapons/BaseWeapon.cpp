@@ -141,7 +141,6 @@ void ABaseWeapon::StopWeaponTrace()
 
 // Helper functions
 
-// TODO: Break up the gameplay event and cue activation functions
 void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVelocity)
 {
 	ABaseCharacter* OwningCharacter = GetOwningCharacter();
