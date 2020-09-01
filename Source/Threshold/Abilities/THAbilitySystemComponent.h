@@ -96,6 +96,7 @@ private:
 
 	void BufferInput(FBufferedInput&& Input);
 	void RemoveFrontInput();
+	void DispatchInputEvents(FGameplayAbilitySpec& Spec);
 	
 	
 

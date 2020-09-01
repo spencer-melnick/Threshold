@@ -56,4 +56,7 @@ protected:
 	
 	UFUNCTION()
 	void OnAnimationFinished();
+
+	UFUNCTION()
+	void OnInputPressed(float ElapsedTime);
 };
