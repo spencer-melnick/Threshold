@@ -33,7 +33,7 @@ public:
 	// due to the mechanism for storing and sending input data not traveling through normal GAS paths
 	virtual bool GetInputBufferingEnabled() const { return false; }
 
-	// This function indicates whether the ability currently accepts an input event if it is already active - the
+	// This function indicates whether the ability currently accepts an input if it is already active - the
 	// ability must have input buffering enabled for this to work.
 	virtual bool GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle SpecHandle,
 		const FGameplayAbilityActorInfo* ActorInfo) const
