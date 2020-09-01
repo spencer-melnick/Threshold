@@ -23,7 +23,7 @@ const FName ABaseWeapon::MeshComponentName(TEXT("MeshComponent"));
 ABaseWeapon::ABaseWeapon()
 {
 	// Create a static mesh by default, but allow this to be changed in derived classes
-	MeshComponent = Cast<UMeshComponent>(CreateDefaultSubobject<UStaticMeshComponent>(MeshComponentName));
+	RootComponent = Cast<UMeshComponent>(CreateDefaultSubobject<UStaticMeshComponent>(MeshComponentName));
 
 	// Our tick should be disabled on start, but we want to re-enable it when we do weapon traces
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -56,13 +56,13 @@ void ABaseWeapon::Tick(float DeltaSeconds)
 
 	for (int32 i = 0; i < TraceSocketNames.Num(); i++)
 	{
-		if (!MeshComponent->DoesSocketExist(TraceSocketNames[i]))
+		if (!GetMeshComponent()->DoesSocketExist(TraceSocketNames[i]))
 		{
 			// A simple check to see if the socket exists before we try to update or trace
 			continue;
 		}
 		
-		const FVector NewSocketLocation = MeshComponent->GetSocketLocation(TraceSocketNames[i]);
+		const FVector NewSocketLocation = GetMeshComponent()->GetSocketLocation(TraceSocketNames[i]);
 		const FVector OldSocketLocation = LastSocketPositions[i];
 
 		if (bAreSocketPositionsUpToDate)
@@ -141,6 +141,7 @@ void ABaseWeapon::StopWeaponTrace()
 
 // Helper functions
 
+// TODO: Break up the gameplay event and cue activation functions
 void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVelocity)
 {
 	ABaseCharacter* OwningCharacter = GetOwningCharacter();
@@ -173,6 +174,12 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 		EventData.Target = HitCharacter;
 		EventData.TargetData.Add(new FWeaponHitTargetData(HitResult, HitVelocity));
 
+		// Create a new gameplay cue from our data
+		FGameplayCueParameters CueParameters;
+		AbilitySystemComponent->GetOwnedGameplayTags(CueParameters.AggregatedSourceTags);
+		CueParameters.EffectContext = FGameplayEffectContextHandle(new FGameplayEffectContext());
+		CueParameters.EffectContext.AddHitResult(HitResult);
+
 		UTHAbilitySystemComponent* HitASC = HitCharacter->GetAbilitySystemComponent();
 		if (!HitASC)
 		{
@@ -186,10 +193,15 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 			// Fill out the target tags and have the target handle the event
 			HitASC->GetOwnedGameplayTags(EventData.TargetTags);
 			HitASC->HandleGameplayEvent(HitEventTag, &EventData);
+
+			HitASC->GetOwnedGameplayTags(CueParameters.AggregatedTargetTags);
 		}
 
 		// Try to have our owning character handle the event as well
 		AbilitySystemComponent->HandleGameplayEvent(HitEventTag, &EventData);
+
+		// Dispatch a local gameplay cue
+		AbilitySystemComponent->ExecuteGameplayCueLocal(HitCueTag, CueParameters);
 	}
 }
 
