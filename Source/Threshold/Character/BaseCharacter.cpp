@@ -265,6 +265,12 @@ FVector ABaseCharacter::GetWorldLookLocation() const
 	return GetTransform().TransformPosition(RelativeLookLocation);
 }
 
+UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
+{
+	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
+}
+
+
 bool ABaseCharacter::GetIsDodging() const
 {
 	if (!AbilitySystemComponent)
