@@ -47,13 +47,11 @@ public:
 	// Accessors
 
 	ABaseCharacter* GetOwningCharacter() const;
-	
-	
-	
-	// Public components
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMeshComponent* MeshComponent;
+
+	UMeshComponent* GetMeshComponent() const
+	{
+		return Cast<UMeshComponent>(RootComponent);
+	}
 
 
 
@@ -77,6 +75,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
 	FGameplayTag HitEventTag;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon", meta=(Categories="GameplayCue"))
+	FGameplayTag HitCueTag;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon")
 	UWeaponMoveset* Moveset = nullptr;

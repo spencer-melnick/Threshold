@@ -103,7 +103,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 					MostRecentInputData = InputData;
 					TryActivateAbility(Spec.Handle);
 				}
-				else if (bEnableInputBuffering)
+				else if (bEnableInputBuffering && GameplayAbility->GetInputBufferingEnabled())
 				{
 					BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
 				}
