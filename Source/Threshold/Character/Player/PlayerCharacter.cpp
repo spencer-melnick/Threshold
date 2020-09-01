@@ -47,6 +47,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 void APlayerCharacter::Tick(float DeltaSeconds)
 {
+	Super::Tick(DeltaSeconds);
+	
 	const UTHAbilitySystemComponent* ASC = GetTHAbilitySystemComponent();
 	if (ASC && ASC->HasMatchingGameplayTag(DamagingTag))
 	{

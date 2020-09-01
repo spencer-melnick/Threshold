@@ -16,6 +16,7 @@
 // Forward declarations
 
 class USkeletalMeshSocket;
+class UCurveFloat;
 class UTHGameplayAbility;
 class UTHAbilitySystemComponent;
 class ABaseWeapon;
@@ -124,6 +125,13 @@ public:
 	// This is the tag for weapon hit events
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
 	FGameplayTag HitEventTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	UCurveFloat* HitSlowdownCurve = nullptr;
+
+	// After this amount of time we stop evaluating hit slowdown
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	float MaxHitSlowdownTime = 0.3f;
 	
 
 
@@ -136,6 +144,13 @@ public:
 
 
 protected:
+	// Helper functions
+
+	void StartHitSlowdown();
+	void EvaluateHitSlowdown(float DeltaTime);
+	
+
+	
 	// Gameplay tag responses
 
 	virtual void OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
@@ -189,4 +204,7 @@ private:
 	// Private members
 	
 	bool bWasGrantedStartingAbilities = false;
+
+	bool bHitSlowdownActive = false;
+	float AccumulatedHitSlowdownTime = 0.f;
 };

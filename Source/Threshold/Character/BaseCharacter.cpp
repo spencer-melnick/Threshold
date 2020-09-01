@@ -98,7 +98,7 @@ void ABaseCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	// Do something
+	EvaluateHitSlowdown(DeltaSeconds);
 }
 
 
@@ -284,6 +284,42 @@ bool ABaseCharacter::GetIsDodging() const
 
 
 
+// Helper functions
+
+void ABaseCharacter::StartHitSlowdown()
+{
+	bHitSlowdownActive = true;
+	AccumulatedHitSlowdownTime = 0.f;
+}
+
+void ABaseCharacter::EvaluateHitSlowdown(float DeltaTime)
+{
+	if (!bHitSlowdownActive)
+	{
+		return;
+	}
+
+	// Accumulate time using simple delta time
+	AccumulatedHitSlowdownTime += DeltaTime;
+
+	if (AccumulatedHitSlowdownTime >= MaxHitSlowdownTime)
+	{
+		// Stop the slowdown when the accumulated time exceeds our maximum
+		bHitSlowdownActive = false;
+		GetMesh()->GlobalAnimRateScale = 1.f;
+		return;
+	}
+
+	if (HitSlowdownCurve)
+	{
+		// Scale our animation rate by the curve value 
+		GetMesh()->GlobalAnimRateScale = HitSlowdownCurve->GetFloatValue(AccumulatedHitSlowdownTime);
+	}
+}
+
+
+
+
 // Gameplay tag responses
 
 void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
@@ -307,7 +343,7 @@ void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGamepla
 {
 	check(EventData);
 	
-	// Do something
+	StartHitSlowdown();
 }
 
 
