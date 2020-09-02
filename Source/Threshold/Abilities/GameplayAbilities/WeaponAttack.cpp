@@ -137,7 +137,7 @@ UWeaponMoveset* UWeaponAttack::GetMoveset(AActor* OwningActor)
 
 void UWeaponAttack::OnAnimationFinished()
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 
 	// If the animation has ended then we didn't end up doing a combo, so our next move should start from the beginning
 	UE_LOG(LogThresholdGeneral, Display, TEXT("Animation ended without doing a combo"))
