@@ -69,12 +69,16 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 		{
 			continue;
 		}
+
+		if (GameplayAbility->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerActor)
+		{
+			// If the ability is instanced, we can do the rest of our checks on the primary instance
+			GameplayAbility = Cast<UTHGameplayAbility>(Spec.GetPrimaryInstance());
+		}
+		// If the ability is valid and instanced per actor, but doesn't have a valid instance, something went very wrong
+		check(GameplayAbility);
 		
 		Spec.InputPressed = true;
-
-		// We can replicate an input pressed event immediately if the ability doesn't have input buffering or it's currently accepting secondary input
-		const bool bReplicateInputImmediately = !GameplayAbility->GetInputBufferingEnabled() || GameplayAbility->GetCanAcceptInputPressed(Spec.Handle, AbilityActorInfo.Get());
-
 		if (!GameplayAbility->GetInputBufferingEnabled())
 		{
 			// Handle unbuffered abilities
@@ -93,34 +97,20 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 			TSharedPtr<FBufferedAbilityInputData> InputData =
                 GameplayAbility->GenerateInputData(Spec.Handle, AbilityActorInfo.Get());
 
-			if (Spec.IsActive())
+			const bool bCanRetriggerAbility = GameplayAbility->CanBeRetriggered(Spec.Handle, AbilityActorInfo.Get());
+			const bool bCanActivateAbility = GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get());
+
+			if (bCanActivateAbility && (!Spec.IsActive() || bCanRetriggerAbility))
 			{
-				// If the ability is already active
-				if (GameplayAbility->GetCanAcceptInputPressed(Spec.Handle, AbilityActorInfo.Get()))
-				{
-					// but we can accept a new input currently, dispatch it immediately
-					DispatchInputEvents(Spec);
-				}
-				else
-				{
-					// otherwise buffer the activation
-					BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
-				}
+				// Set the input data and activate the ability
+				MostRecentInputData = InputData;
+				TryActivateAbility(Spec.Handle);
 			}
-			else
+			else if (bEnableInputBuffering)
 			{
-				// If the ability isn't active
-				if (GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
-				{
-					// and we can activate the ability make the data available and activate the ability normally
-					MostRecentInputData = InputData;
-					TryActivateAbility(Spec.Handle);
-				}
-				else if (bEnableInputBuffering)
-				{
-					// If the ability isn't active, but we can't activate for some other reason buffer the activation
-					BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
-				}
+				// Buffer the input
+				// TODO: Store some unique identifier in the input buffer so we can find the correct spec later
+				BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
 			}
 		}
 	}
@@ -148,8 +138,8 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			continue;
 		}
 
+		// Because of this, we can only buffer input for one ability per InputID
 		FGameplayAbilitySpec* FoundSpec;
-
 		{
 			ABILITYLIST_SCOPE_LOCK();
 			FoundSpec = ActivatableAbilities.Items.FindByPredicate([InputID](const FGameplayAbilitySpec& Spec)
@@ -178,31 +168,27 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			continue;
 		}
 		
-		FoundSpec->InputPressed = true;
-		if (!FoundSpec->IsActive())
+		if (GameplayAbility->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerActor)
+        {
+        	// If the ability is instanced, we can do the rest of our checks on the primary instance
+        	GameplayAbility = Cast<UTHGameplayAbility>(FoundSpec->GetPrimaryInstance());
+        }
+        // If the ability is valid and instanced per actor, but doesn't have a valid instance, something went very wrong
+        check(GameplayAbility);
+
+		const bool bCanRetriggerAbility = GameplayAbility->CanBeRetriggered(FoundSpec->Handle, AbilityActorInfo.Get());
+		const bool bCanActivateAbility = GameplayAbility->CanActivateAbility(FoundSpec->Handle, AbilityActorInfo.Get());
+		
+		if (bCanActivateAbility && (!FoundSpec->IsActive() || bCanRetriggerAbility))
 		{
-			if (GameplayAbility->CanActivateAbility(FoundSpec->Handle, AbilityActorInfo.Get()))
-			{
-				// If the ability isn't active and we can activate it, ready the input and activate the ability
-				MostRecentInputData = Input->Data;
-				TryActivateAbility(FoundSpec->Handle);
-				RemoveFrontInput();
-			}
-			else
-			{
-				// If the ability isn't active currently, but can't be activated, then it is blocking the buffer and we should stop
-				break;
-			}
-		}
-		else if (GameplayAbility->GetCanAcceptInputPressed(FoundSpec->Handle, AbilityActorInfo.Get()))
-		{
-			// If the ability is currently active, but it can accept a secondary input, dispatch the event
-			DispatchInputEvents(*FoundSpec);
+			// Ready the input and activate the ability
+			MostRecentInputData = Input->Data;
+			TryActivateAbility(FoundSpec->Handle);
 			RemoveFrontInput();
 		}
 		else
 		{
-			// If the ability is active, but can't accept a secondary input, then it is blocking and we should stop
+			// If we can't activate the ability then it is blocking the buffer and we should stop
 			break;
 		}
 	}

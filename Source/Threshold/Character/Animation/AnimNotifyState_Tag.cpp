@@ -58,3 +58,9 @@ UAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkelet
 
 	return AbilitySystemComponent;
 }
+
+FString UAnimNotifyState_Tag::GetNotifyName_Implementation() const
+{
+	return FString::Format(TEXT("GameplayTag: {0}"), {AppliedTags.ToStringSimple()});
+}
+

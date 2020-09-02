@@ -30,6 +30,8 @@ public:
 		float TotalDuration) override;
 	virtual void NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 
+	virtual FString GetNotifyName_Implementation() const override;
+
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GameplayTag")
 	FGameplayTagContainer AppliedTags;
