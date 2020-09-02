@@ -4,18 +4,21 @@
 
 #include "WeaponAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
+#include "Threshold/Combat/Weapons/BaseWeapon.h"
+#include "Threshold/Combat/Weapons/WeaponMoveset.h"
 
 
 // Default constructor
 
 UWeaponAttack::UWeaponAttack()
 {
+	bRetriggerInstancedAbility = true;
 	DefaultInputBinding = EAbilityInputType::PrimaryAttack;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 
@@ -34,19 +37,39 @@ void UWeaponAttack::ActivateAbility(
 		return;
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AttackMontage)
+	// TODO: fix all of these repeated EndAbility calls D:
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+	
+	const UWeaponMoveset* WeaponMoveset = GetMoveset(ActorInfo->AvatarActor.Get());
+
+	if (!WeaponMoveset)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
+	// TODO: Request the active weapon move from the client!
+	const int32 NextWeaponMoveIndex = WeaponMoveset->GetNextWeaponMoveIndex(CurrentWeaponMoveIndex, EWeaponMoveType::Primary);
+	const FWeaponMove* WeaponMove = WeaponMoveset->GetWeaponMove(NextWeaponMoveIndex);
+
+	if (!WeaponMove || !WeaponMove->Animation)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
+
+	// Trigger the animation
 	UAbilityTask_PlayMontageAndWait* MontageTask =
-		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
+		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, WeaponMove->Animation);
 	MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
 	MontageTask->ReadyForActivation();
 
-	UAbilityTask_WaitInputPress* InputTask = UAbilityTask_WaitInputPress::WaitInputPress(this);
-	InputTask->OnPress.AddDynamic(this, &UWeaponAttack::OnInputPressed);
-	InputTask->ReadyForActivation();
+	// Keep track of where we are in our combo
+	CurrentWeaponMoveIndex = NextWeaponMoveIndex;
 }
 
 bool UWeaponAttack::CanActivateAbility(
@@ -63,13 +86,14 @@ bool UWeaponAttack::CanActivateAbility(
 
 	check(ActorInfo);
 
-	const ABaseCharacter* OwningCharacter = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
-	if (!OwningCharacter)
+	// Check that our next weapon move exists
+	const UWeaponMoveset* WeaponMoveset = GetMoveset(ActorInfo->AvatarActor.Get());
+	if (!WeaponMoveset)
 	{
 		return false;
 	}
-
-	return (OwningCharacter->GetEquippedWeapon() != nullptr);
+	
+	return WeaponMoveset->IsValidMove(WeaponMoveset->GetNextWeaponMoveIndex(CurrentWeaponMoveIndex, EWeaponMoveType::Primary));
 }
 
 
@@ -77,26 +101,34 @@ bool UWeaponAttack::CanActivateAbility(
 
 // Input buffering overrides
 
-bool UWeaponAttack::GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const
+bool UWeaponAttack::CanBeRetriggered(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const
 {
 	check(ActorInfo);
 
 	const ABaseCharacter* OwningCharacter = Cast<ABaseCharacter>(ActorInfo->AvatarActor);
-	if (!OwningCharacter)
+	if (!OwningCharacter || !OwningCharacter->GetTHAbilitySystemComponent())
 	{
 		return false;
 	}
 
-	UTHAbilitySystemComponent* AbilitySystemComponent = OwningCharacter->GetTHAbilitySystemComponent();
-
-	if (!AbilitySystemComponent)
-	{
-		return false;
-	}
-
-	return AbilitySystemComponent->HasMatchingGameplayTag(LocalComboTag);
+	return OwningCharacter->GetTHAbilitySystemComponent()->HasMatchingGameplayTag(LocalComboTag);
 }
 
+
+
+
+// Helper functions
+
+UWeaponMoveset* UWeaponAttack::GetMoveset(AActor* OwningActor)
+{
+	const ABaseCharacter* OwningCharacter = Cast<ABaseCharacter>(OwningActor);
+	if (!OwningCharacter || !OwningCharacter->GetEquippedWeapon())
+	{
+		return nullptr;
+	}
+
+	return OwningCharacter->GetEquippedWeapon()->Moveset;
+}
 
 
 
@@ -106,12 +138,10 @@ bool UWeaponAttack::GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle Sp
 void UWeaponAttack::OnAnimationFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
 
-void UWeaponAttack::OnInputPressed(float ElapsedTime)
-{
-	// Check if we can trigger an attack combo
-	UE_LOG(LogThresholdGeneral, Display, TEXT("Weapon input triggered"))
+	// If the animation has ended then we didn't end up doing a combo, so our next move should start from the beginning
+	UE_LOG(LogThresholdGeneral, Display, TEXT("Animation ended without doing a combo"))
+	CurrentWeaponMoveIndex = -1;
 }
 
 

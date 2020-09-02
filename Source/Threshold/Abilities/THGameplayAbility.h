@@ -35,7 +35,7 @@ public:
 
 	// This function indicates whether the ability currently accepts an input if it is already active - the
 	// ability must have input buffering enabled for this to work.
-	virtual bool GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle SpecHandle,
+	virtual bool CanBeRetriggered(const FGameplayAbilitySpecHandle SpecHandle,
 		const FGameplayAbilityActorInfo* ActorInfo) const
 	{
 		return false;

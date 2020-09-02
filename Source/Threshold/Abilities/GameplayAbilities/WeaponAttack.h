@@ -11,6 +11,7 @@
 // Forward declarations
 
 class UAnimMontage;
+class UWeaponMoveset;
 
 
 
@@ -51,7 +52,7 @@ public:
 		return true;
 	}
 
-	virtual bool GetCanAcceptInputPressed(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const override;	
+	virtual bool CanBeRetriggered(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const override;	
 
 
 
@@ -67,12 +68,17 @@ public:
 
 
 protected:
+	// Helper functions
+
+	static UWeaponMoveset* GetMoveset(AActor* OwningActor);
+
+	
 
 	// Task callbacks
 	
 	UFUNCTION()
 	void OnAnimationFinished();
 
-	UFUNCTION()
-	void OnInputPressed(float ElapsedTime);
+	bool bShouldCombo = false;
+	int32 CurrentWeaponMoveIndex = -1;
 };

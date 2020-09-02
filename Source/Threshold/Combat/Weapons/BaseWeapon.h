@@ -42,9 +42,6 @@ public:
 
 	void StartWeaponTrace();
 	void StopWeaponTrace();
-
-	// Returns the next weapon move if there is a valid next weapon move in the current moveset, nullptr otherwise
-	FWeaponMove* GetNextWeaponMove();
 	
 	
 
@@ -114,5 +111,4 @@ private:
 	bool bAreSocketPositionsUpToDate = false;
 	TArray<FVector> LastSocketPositions;
 	TArray<TWeakObjectPtr<ABaseCharacter>> DamagedCharacters;
-	FWeaponMove* ActiveWeaponMove = nullptr;
 };
