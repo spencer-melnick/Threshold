@@ -21,3 +21,12 @@ bool FWeaponHitTargetData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bO
 	return true;
 }
 
+bool FIntegralTargetData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+	Ar << IntegralData;
+
+	bOutSuccess = true;
+	return true;
+}
+
+

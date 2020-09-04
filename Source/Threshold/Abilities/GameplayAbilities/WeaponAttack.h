@@ -72,12 +72,18 @@ protected:
 
 	static UWeaponMoveset* GetMoveset(AActor* OwningActor);
 
+	// Returns true if the playback was successful, or false if the ability should be ended
+	bool PlayAttackAnimation(int32 WeaponMoveIndex);
+
 	
 
 	// Task callbacks
 	
 	UFUNCTION()
 	void OnAnimationFinished();
+
+	UFUNCTION()
+	void OnServerReceiveData(const FGameplayAbilityTargetDataHandle& Data);
 
 	bool bShouldCombo = false;
 	int32 CurrentWeaponMoveIndex = -1;

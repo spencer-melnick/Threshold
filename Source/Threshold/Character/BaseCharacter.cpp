@@ -37,6 +37,9 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Don't replicate gameplay effects - suggested for AI controlled characters
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Minimal;
+
+	// Disable montage position replication so we can locally predict slowdown
+	AbilitySystemComponent->SetMontageRepAnimPositionMethod(ERepAnimPositionMethod::CurrentSectionId);
 	
 	// Drive our rotation using the movement component instead of directly reading the control rotation
 	bUseControllerRotationYaw = false;
