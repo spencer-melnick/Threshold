@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
-#include "AnimNotifyState_Tag.h"
+#include "AnimNotifyState_LooseTag.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 
-void UAnimNotifyState_Tag::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UAnimNotifyState_LooseTag::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float TotalDuration)
 {
 	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent(MeshComp);
@@ -18,7 +18,7 @@ void UAnimNotifyState_Tag::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSe
 	AbilitySystemComponent->AddLooseGameplayTags(AppliedTags);
 }
 
-void UAnimNotifyState_Tag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
+void UAnimNotifyState_LooseTag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent(MeshComp);
 
@@ -31,7 +31,7 @@ void UAnimNotifyState_Tag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequ
 }
 
 
-UAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent)
+UAbilitySystemComponent* UAnimNotifyState_LooseTag::GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent)
 {
 	if (!MeshComponent)
 	{
@@ -42,7 +42,7 @@ UAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkelet
 
 	if (!BaseCharacter)
 	{
-		UE_LOG(LogThresholdGeneral, Warning, TEXT("Cannot fire AnimNotifyState_Tag with mesh component %s - component "
+		UE_LOG(LogThresholdGeneral, Warning, TEXT("Cannot fire AnimNotifyState_LooseTag with mesh component %s - component "
 			"does not have a valid BaseCharacter owner"), *GetNameSafe(MeshComponent))
 		return nullptr;
 	}
@@ -51,7 +51,7 @@ UAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkelet
 
 	if (!AbilitySystemComponent)
 	{
-		UE_LOG(LogThresholdGeneral, Warning, TEXT("Cannot fire AnimNotifyState_Tag with character %s - character "
+		UE_LOG(LogThresholdGeneral, Warning, TEXT("Cannot fire AnimNotifyState_LooseTag with character %s - character "
             "does not have a valid AbilitySystemComponent"), *GetNameSafe(BaseCharacter))
 		return nullptr;
 	}
@@ -59,8 +59,8 @@ UAbilitySystemComponent* UAnimNotifyState_Tag::GetAbilitySystemComponent(USkelet
 	return AbilitySystemComponent;
 }
 
-FString UAnimNotifyState_Tag::GetNotifyName_Implementation() const
+FString UAnimNotifyState_LooseTag::GetNotifyName_Implementation() const
 {
-	return FString::Format(TEXT("GameplayTag: {0}"), {AppliedTags.ToStringSimple()});
+	return FString::Format(TEXT("LooseTag: {0}"), {AppliedTags.ToStringSimple()});
 }
 

@@ -9,6 +9,7 @@
 #include "Threshold/Abilities/TargetDataTypes.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/AbilityFunctionLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Components/MeshComponent.h"
 
 
@@ -176,14 +177,9 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 		CueParameters.Location = HitResult.Location;
 		CueParameters.Normal = -HitVelocity.GetSafeNormal();
 
-		UTHAbilitySystemComponent* HitASC = HitCharacter->GetTHAbilitySystemComponent();
-		if (HitASC)
-		{
-			HitASC->HandleGameplayEvent(HitEventTag, &EventData);
-		}
-
-		// Try to have our owning character handle the event as well
-		AbilitySystemComponent->HandleGameplayEvent(HitEventTag, &EventData);
+		// Send events to both characters
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwningCharacter, HitEventTag, EventData);
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitCharacter, HitEventTag, EventData);
 
 		// Dispatch a local gameplay cue
 		AbilitySystemComponent->ExecuteGameplayCueLocal(HitCueTag, CueParameters);

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
-#pragma once
-
 #include "WeaponAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
