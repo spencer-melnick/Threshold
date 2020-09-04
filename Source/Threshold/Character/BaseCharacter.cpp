@@ -72,9 +72,8 @@ void ABaseCharacter::BeginPlay()
 		if (StartingWeaponClass)
 		{
 			// Spawn the starting weapon and attach it
-			EquippedWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(StartingWeaponClass.Get()));
-			EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
-				WeaponSocketName);
+			ABaseWeapon* NewWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(StartingWeaponClass.Get()));
+			EquipWeapon(NewWeapon);
 		}
 	}
 
@@ -207,6 +206,69 @@ void ABaseCharacter::AttachTargetIndicator(AActor* TargetIndicator)
 	TargetIndicator->AttachToComponent(SkeletalMeshComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	TargetIndicator->SetActorRelativeLocation(RelativeTargetLocation);
 }
+
+
+
+
+// Weapon controls
+
+void ABaseCharacter::EquipWeapon(AActor* NewWeapon)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		// Only equip the weapon on the server
+		return;
+	}
+	
+	ABaseWeapon* NewWeaponBase = Cast<ABaseWeapon>(NewWeapon);
+	
+	if (!NewWeaponBase || EquippedWeapon == NewWeaponBase)
+	{
+		// If the weapon did not change, don't bother doing anything
+		return;
+	}
+
+	if (!EquippedWeapon)
+	{
+		// Unequip our old weapon
+		UnequipWeapon();
+	}
+
+	// Attach the weapon to our mesh socket
+	NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
+        WeaponSocketName);
+
+	for (TSubclassOf<UTHGameplayAbility>& WeaponAbilityClass : NewWeaponBase->WeaponAbilities)
+	{
+		// Grant all of our weapon abilities to character
+		const UTHGameplayAbility* AbilityDefaultObject = WeaponAbilityClass.GetDefaultObject();
+
+		FGameplayAbilitySpecHandle AbilitySpecHandle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
+            WeaponAbilityClass, 1, static_cast<int32>(AbilityDefaultObject->DefaultInputBinding), this));
+		WeaponAbilitySpecHandles.Add(AbilitySpecHandle);
+	}
+
+	EquippedWeapon = NewWeaponBase;
+}
+
+void ABaseCharacter::UnequipWeapon()
+{
+	if (GetLocalRole() != ROLE_Authority || !EquippedWeapon)
+	{
+		// Only unequip the weapon on the server if we have a valid weapon
+		return;
+	}
+
+	for (FGameplayAbilitySpecHandle& AbilitySpecHandle : WeaponAbilitySpecHandles)
+	{
+		// Clear our previously granted abilities
+		AbilitySystemComponent->ClearAbility(AbilitySpecHandle);
+	}
+
+	WeaponAbilitySpecHandles.Empty();
+}
+
+
 
 
 

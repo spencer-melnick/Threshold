@@ -52,6 +52,13 @@ public:
 	virtual TSubclassOf<UTeam> GetTeam() const override;
 	virtual FVector GetTargetLocation() const override;
 	virtual void AttachTargetIndicator(AActor* TargetIndicator) override;
+
+
+
+	// Weapon controls
+
+	void EquipWeapon(AActor* NewWeapon);
+	void UnequipWeapon();
 	
 
 
@@ -210,7 +217,8 @@ private:
 	// Private members
 	
 	bool bWasGrantedStartingAbilities = false;
-
 	bool bHitSlowdownActive = false;
 	float AccumulatedHitSlowdownTime = 0.f;
+	UPROPERTY()
+	TArray<FGameplayAbilitySpecHandle> WeaponAbilitySpecHandles;
 };

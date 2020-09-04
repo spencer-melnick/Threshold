@@ -60,6 +60,12 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 
 	// ---------------------------------------------------------
 
+	FBufferedInput BufferedInput;
+	BufferedInput.InputTime = GetWorld()->GetRealTimeSeconds();
+	BufferedInput.InputID = InputID;
+
+	bool bAbilityTriggered = false;
+	
 	ABILITYLIST_SCOPE_LOCK();
 	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 	{
@@ -70,14 +76,6 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 			continue;
 		}
 
-		if (GameplayAbility->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerActor)
-		{
-			// If the ability is instanced, we can do the rest of our checks on the primary instance
-			GameplayAbility = Cast<UTHGameplayAbility>(Spec.GetPrimaryInstance());
-		}
-		// If the ability is valid and instanced per actor, but doesn't have a valid instance, something went very wrong
-		check(GameplayAbility);
-		
 		Spec.InputPressed = true;
 		if (!GameplayAbility->GetInputBufferingEnabled())
 		{
@@ -89,6 +87,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 			else
 			{
 				TryActivateAbility(Spec.Handle);
+				bAbilityTriggered = true;
 			}
 		}
 		else
@@ -97,22 +96,25 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 			TSharedPtr<FBufferedAbilityInputData> InputData =
                 GameplayAbility->GenerateInputData(Spec.Handle, AbilityActorInfo.Get());
 
-			const bool bCanRetriggerAbility = GameplayAbility->CanBeRetriggered(Spec.Handle, AbilityActorInfo.Get());
-			const bool bCanActivateAbility = GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get());
-
-			if (bCanActivateAbility && (!Spec.IsActive() || bCanRetriggerAbility))
+			if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
 			{
-				// Set the input data and activate the ability
 				MostRecentInputData = InputData;
 				TryActivateAbility(Spec.Handle);
+				bAbilityTriggered = true;
+				break;
 			}
-			else if (bEnableInputBuffering)
+			else
 			{
-				// Buffer the input
-				// TODO: Store some unique identifier in the input buffer so we can find the correct spec later
-				BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
+				// Add our data to the buffer list
+				BufferedInput.Data.Add(Spec.Handle, InputData);
 			}
 		}
+	}
+
+	if (!bAbilityTriggered)
+	{
+		// If no ability was triggered, store all of our data in the input buffer
+		BufferInput(MoveTemp(BufferedInput));
 	}
 }
 
@@ -129,7 +131,7 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	while (!InputBuffer.IsEmpty())
 	{			
 		FBufferedInput* Input = InputBuffer.Peek();
-		const float InputID = Input->InputID;
+		const int32 InputID = Input->InputID;
 
 		if (GetWorld()->GetRealTimeSeconds() - Input->InputTime > InputBufferingTime)
 		{
@@ -138,57 +140,52 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			continue;
 		}
 
-		// Because of this, we can only buffer input for one ability per InputID
-		FGameplayAbilitySpec* FoundSpec;
+		bool bAbilityTriggered = false;
+
+		for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 		{
-			ABILITYLIST_SCOPE_LOCK();
-			FoundSpec = ActivatableAbilities.Items.FindByPredicate([InputID](const FGameplayAbilitySpec& Spec)
+			if (Spec.InputID != InputID)
 			{
-				return Spec.InputID == InputID;
-			});
-		}
+				continue;
+			}
+			
+			UTHGameplayAbility* GameplayAbility = Cast<UTHGameplayAbility>(Spec.Ability);
 
-		if (!FoundSpec)
-		{
-			// There is no ability to trigger this input
-			RemoveFrontInput();
-			continue;
-		}
-
-		UTHGameplayAbility* GameplayAbility = Cast<UTHGameplayAbility>(FoundSpec->Ability);
-
-		if (!GameplayAbility || !GameplayAbility->GetInputBufferingEnabled())
-		{
-			// If we have an ability that shouldn't be buffered, warn and remove it from the input buffer
-			// This should only occur if an ability is changing it's input buffer enabled status
-			UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
-                   "buffer of %s but is not a THGameplayAbility or does not have input buffering enabled"),
-                   *GameplayAbility->GetName(), *GetNameSafe(this))
-			RemoveFrontInput();
-			continue;
-		}
+			if (!GameplayAbility || !GameplayAbility->GetInputBufferingEnabled())
+			{
+				// If we have an ability that shouldn't be buffered, warn and remove it from the input buffer
+				// This should only occur if an ability is changing it's input buffer enabled status
+				UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
+                       "buffer of %s but is not a THGameplayAbility or does not have input buffering enabled"),
+                       *GameplayAbility->GetName(), *GetNameSafe(this))
+				continue;
+			}
 		
-		if (GameplayAbility->GetInstancingPolicy() == EGameplayAbilityInstancingPolicy::InstancedPerActor)
-        {
-        	// If the ability is instanced, we can do the rest of our checks on the primary instance
-        	GameplayAbility = Cast<UTHGameplayAbility>(FoundSpec->GetPrimaryInstance());
-        }
-        // If the ability is valid and instanced per actor, but doesn't have a valid instance, something went very wrong
-        check(GameplayAbility);
+			if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
+			{
+				// Ready the input and activate the ability
+				TSharedPtr<FBufferedAbilityInputData>* InputFound = Input->Data.Find(Spec.Handle);
 
-		const bool bCanRetriggerAbility = GameplayAbility->CanBeRetriggered(FoundSpec->Handle, AbilityActorInfo.Get());
-		const bool bCanActivateAbility = GameplayAbility->CanActivateAbility(FoundSpec->Handle, AbilityActorInfo.Get());
-		
-		if (bCanActivateAbility && (!FoundSpec->IsActive() || bCanRetriggerAbility))
-		{
-			// Ready the input and activate the ability
-			MostRecentInputData = Input->Data;
-			TryActivateAbility(FoundSpec->Handle);
-			RemoveFrontInput();
+				if (InputFound)
+				{
+					MostRecentInputData = *InputFound;
+					TryActivateAbility(Spec.Handle);
+					RemoveFrontInput();
+					bAbilityTriggered = true;
+					break;
+				}
+				else
+				{
+					UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
+				       "buffer of %s but does not have any generated input data"),
+				       *GameplayAbility->GetName(), *GetNameSafe(this))
+				}
+			}
 		}
-		else
+
+		if (!bAbilityTriggered)
 		{
-			// If we can't activate the ability then it is blocking the buffer and we should stop
+			// If no abilities were triggered then the buffer is blocked and we should exit
 			break;
 		}
 	}

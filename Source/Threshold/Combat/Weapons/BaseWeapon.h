@@ -12,9 +12,8 @@
 // Forward declarations
 
 class UMeshComponent;
-class UWeaponMoveset;
+class UTHGameplayAbility;
 class ABaseCharacter;
-struct FWeaponMove;
 
 
 
@@ -83,7 +82,7 @@ public:
 	FGameplayTag HitCueTag;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Weapon")
-	UWeaponMoveset* Moveset = nullptr;
+	TArray<TSubclassOf<UTHGameplayAbility>> WeaponAbilities;
 
 
 protected:

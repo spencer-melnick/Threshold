@@ -43,12 +43,6 @@ public:
 		const FGameplayTagContainer* TargetTags,
 		OUT FGameplayTagContainer* OptionalRelevantTags) const override;
 
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		bool bReplicateEndAbility,
-		bool bWasCancelled) override;
-
 
 
 	// Input buffering overrides
@@ -58,8 +52,6 @@ public:
 		return true;
 	}
 
-	virtual bool CanBeRetriggered(const FGameplayAbilitySpecHandle SpecHandle, const FGameplayAbilityActorInfo* ActorInfo) const override;	
-
 
 
 	// Editor properties
@@ -67,30 +59,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Attack")
 	UAnimMontage* AttackMontage = nullptr;
 
-	// Tag that must be applied locally for this ability to be able to trigger a combo
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Attack")
-	FGameplayTag LocalComboTag;
-
 
 
 protected:
-	// Helper functions
-
-	static UWeaponMoveset* GetMoveset(AActor* OwningActor);
-
-	// Returns true if the playback was successful, or false if the ability should be ended
-	bool PlayAttackAnimation(int32 WeaponMoveIndex);
-
-	
-
 	// Task callbacks
 	
 	UFUNCTION()
 	void OnAnimationFinished();
-
-	UFUNCTION()
-	void OnServerReceiveData(const FGameplayAbilityTargetDataHandle& Data);
-
-	bool bShouldCombo = false;
-	int32 CurrentWeaponMoveIndex = -1;
 };
