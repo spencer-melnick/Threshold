@@ -87,8 +87,8 @@ private:
 	struct FBufferedInput
 	{
 		int32 InputID;
-		TSharedPtr<FBufferedAbilityInputData> Data;
 		float InputTime;
+		TMap<FGameplayAbilitySpecHandle, TSharedPtr<FBufferedAbilityInputData>> Data;
 	};
 
 
