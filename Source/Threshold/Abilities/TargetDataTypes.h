@@ -84,6 +84,34 @@ struct FWeaponHitTargetData : public FGameplayAbilityTargetData_SingleTargetHit
 
 
 
+/**
+ * Target data that just holds a single integer value
+ * (Is this entirely necessary? It seems like I'm just using target data for my own generic data payloads at this point)
+ */
+USTRUCT()
+struct FIntegralTargetData : public FGameplayAbilityTargetData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 IntegralData = 0;
+
+	virtual UScriptStruct* GetScriptStruct() const override
+	{
+		return FIntegralTargetData::StaticStruct();
+	}
+
+	virtual FString ToString() const override
+	{
+		return TEXT("FIntegralTargetData");
+	}
+
+	bool NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess);
+};
+
+
+
+
 // Type traits to allow for proper network serialization
 
 template<>
@@ -103,4 +131,13 @@ struct TStructOpsTypeTraits<FWeaponHitTargetData> : public TStructOpsTypeTraitsB
 	{
 		WithNetSerializer = true
 	};
+};
+
+template<>
+struct TStructOpsTypeTraits<FIntegralTargetData> : public TStructOpsTypeTraitsBase2<FIntegralTargetData>
+{
+	enum
+	{
+		WithNetSerializer = true
+    };
 };

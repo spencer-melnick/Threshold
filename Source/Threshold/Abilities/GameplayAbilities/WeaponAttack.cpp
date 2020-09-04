@@ -4,7 +4,9 @@
 
 #include "WeaponAttack.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
 #include "Threshold/Threshold.h"
+#include "Threshold/Abilities/TargetDataTypes.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Combat/Weapons/BaseWeapon.h"
@@ -39,31 +41,44 @@ void UWeaponAttack::ActivateAbility(
 
 	if (CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
-		const UWeaponMoveset* WeaponMoveset = GetMoveset(ActorInfo->AvatarActor.Get());
-		UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
-
-		if (WeaponMoveset && AbilitySystemComponent)
+		if (IsLocallyControlled() || IsPredictingClient())
 		{
-			// TODO: Request the active weapon move from the client!
-			const int32 NextWeaponMoveIndex = WeaponMoveset->GetNextWeaponMoveIndex(CurrentWeaponMoveIndex, EWeaponMoveType::Primary);
-			const FWeaponMove* WeaponMove = WeaponMoveset->GetWeaponMove(NextWeaponMoveIndex);
+			// Only do checks and moveset calculation if we're the listen server or the client
+			
+			check(ActorInfo);
+			const UWeaponMoveset* Moveset = GetMoveset(ActorInfo->AvatarActor.Get());
 
-			if (WeaponMove && WeaponMove->Animation)
+			if (Moveset)
 			{
-				// Disable montage position replication so we can locally predict slowdown
-				AbilitySystemComponent->SetMontageRepAnimPositionMethod(ERepAnimPositionMethod::CurrentSectionId);
-				
-				// Trigger the animation
-				UAbilityTask_PlayMontageAndWait* MontageTask =
-                    UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, WeaponMove->Animation);
-				MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
-				MontageTask->ReadyForActivation();
+				const int32 NextWeaponMoveIndex = Moveset->GetNextWeaponMoveIndex(CurrentWeaponMoveIndex, EWeaponMoveType::Primary);
+				if (Moveset->IsValidMove(NextWeaponMoveIndex))
+				{
+					if (IsPredictingClient())
+					{
+						// Put our move index into target data to send to the server
+						FIntegralTargetData* MoveIndexTargetData = new FIntegralTargetData();
+						MoveIndexTargetData->IntegralData = NextWeaponMoveIndex;
+						FGameplayAbilityTargetDataHandle TargetDataHandle;
+						TargetDataHandle.Add(MoveIndexTargetData);
+						SendTargetDataToServer(TargetDataHandle);
+					}
 
-				// Keep track of where we are in our combo
-				CurrentWeaponMoveIndex = NextWeaponMoveIndex;
-
-				return;
+					if (PlayAttackAnimation(NextWeaponMoveIndex))
+					{
+						// Early exit on success so we skip the EndAbility call
+						return;
+					}
+				}
 			}
+		}
+		else
+		{
+			// If we're the server wait for the requested move from the client
+			UAT_ServerWaitForClientTargetData* WaitTask =
+				UAT_ServerWaitForClientTargetData::ServerWaitForClientTargetData(this, NAME_None, true);
+			WaitTask->ValidData.AddDynamic(this, &UWeaponAttack::OnServerReceiveData);
+			WaitTask->ReadyForActivation();
+			return;
 		}
 	}
 
@@ -128,6 +143,34 @@ UWeaponMoveset* UWeaponAttack::GetMoveset(AActor* OwningActor)
 	return OwningCharacter->GetEquippedWeapon()->Moveset;
 }
 
+bool UWeaponAttack::PlayAttackAnimation(int32 WeaponMoveIndex)
+{
+	const UWeaponMoveset* WeaponMoveset = GetMoveset(CurrentActorInfo->AvatarActor.Get());
+	UAbilitySystemComponent* AbilitySystemComponent = CurrentActorInfo->AbilitySystemComponent.Get();
+
+	if (WeaponMoveset && AbilitySystemComponent)
+	{
+		const FWeaponMove* WeaponMove = WeaponMoveset->GetWeaponMove(WeaponMoveIndex);
+
+		if (WeaponMove && WeaponMove->Animation)
+		{
+			// Trigger the animation
+			UAbilityTask_PlayMontageAndWait* MontageTask =
+                UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, WeaponMove->Animation);
+			MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
+			MontageTask->ReadyForActivation();
+
+			// Keep track of where we are in our combo
+			CurrentWeaponMoveIndex = WeaponMoveIndex;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 
 
 
@@ -138,8 +181,37 @@ void UWeaponAttack::OnAnimationFinished()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 
 	// If the animation has ended then we didn't end up doing a combo, so our next move should start from the beginning
-	UE_LOG(LogThresholdGeneral, Display, TEXT("Animation ended without doing a combo"))
 	CurrentWeaponMoveIndex = -1;
+}
+
+void UWeaponAttack::OnServerReceiveData(const FGameplayAbilityTargetDataHandle& Data)
+{
+	if (!Data.IsValid(0) || Data.Num() != 1)
+	{
+		// Check to see that we actually got the right amount of valid data
+		UE_LOG(LogThresholdGeneral, Error, TEXT("UWeaponAttack received wrong amount of target data from client; expected 1 got %d"), Data.Num());
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	const FGameplayAbilityTargetData* TargetData = Data.Get(0);
+
+	if (TargetData->GetScriptStruct() != FIntegralTargetData::StaticStruct())
+	{
+		// Check if the data type is actually correct before attempting to cast
+		UE_LOG(LogThresholdGeneral, Error, TEXT("UWeaponAttack received incorrect data type from client"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+	
+	const FIntegralTargetData* IntegralData = static_cast<const FIntegralTargetData*>(TargetData);
+	// TODO: Validate the move based on rough timing here
+
+	if (!PlayAttackAnimation(IntegralData->IntegralData))
+	{
+		UE_LOG(LogThresholdGeneral, Error, TEXT("UWeaponAttack received data on server, but could not perform the attack"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	}
 }
 
 
