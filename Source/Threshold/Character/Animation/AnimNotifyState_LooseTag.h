@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "GameplayTagContainer.h"
-#include "AnimNotifyState_Tag.generated.h"
+#include "AnimNotifyState_LooseTag.generated.h"
 
 
 
@@ -20,8 +20,8 @@ class UTHAbilitySystemComponent;
  * the flexibility of gameplay tags.
  */
 UCLASS(editinlinenew, Blueprintable, const, hidecategories = Object, collapsecategories,
-	meta=(ShowWorldContextPin, DisplayName="GameplayTag"))
-class UAnimNotifyState_Tag : public UAnimNotifyState
+	meta=(ShowWorldContextPin, DisplayName="LooseTag"))
+class UAnimNotifyState_LooseTag : public UAnimNotifyState
 {
 	GENERATED_BODY()
 
