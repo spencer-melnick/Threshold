@@ -37,39 +37,37 @@ void UWeaponAttack::ActivateAbility(
 		return;
 	}
 
-	// TODO: fix all of these repeated EndAbility calls D:
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
+		const UWeaponMoveset* WeaponMoveset = GetMoveset(ActorInfo->AvatarActor.Get());
+		UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+
+		if (WeaponMoveset && AbilitySystemComponent)
+		{
+			// TODO: Request the active weapon move from the client!
+			const int32 NextWeaponMoveIndex = WeaponMoveset->GetNextWeaponMoveIndex(CurrentWeaponMoveIndex, EWeaponMoveType::Primary);
+			const FWeaponMove* WeaponMove = WeaponMoveset->GetWeaponMove(NextWeaponMoveIndex);
+
+			if (WeaponMove && WeaponMove->Animation)
+			{
+				// Disable montage position replication so we can locally predict slowdown
+				AbilitySystemComponent->SetMontageRepAnimPositionMethod(ERepAnimPositionMethod::CurrentSectionId);
+				
+				// Trigger the animation
+				UAbilityTask_PlayMontageAndWait* MontageTask =
+                    UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, WeaponMove->Animation);
+				MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
+				MontageTask->ReadyForActivation();
+
+				// Keep track of where we are in our combo
+				CurrentWeaponMoveIndex = NextWeaponMoveIndex;
+
+				return;
+			}
+		}
 	}
-	
-	const UWeaponMoveset* WeaponMoveset = GetMoveset(ActorInfo->AvatarActor.Get());
 
-	if (!WeaponMoveset)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	// TODO: Request the active weapon move from the client!
-	const int32 NextWeaponMoveIndex = WeaponMoveset->GetNextWeaponMoveIndex(CurrentWeaponMoveIndex, EWeaponMoveType::Primary);
-	const FWeaponMove* WeaponMove = WeaponMoveset->GetWeaponMove(NextWeaponMoveIndex);
-
-	if (!WeaponMove || !WeaponMove->Animation)
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
-
-	// Trigger the animation
-	UAbilityTask_PlayMontageAndWait* MontageTask =
-		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, WeaponMove->Animation);
-	MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
-	MontageTask->ReadyForActivation();
-
-	// Keep track of where we are in our combo
-	CurrentWeaponMoveIndex = NextWeaponMoveIndex;
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 }
 
 bool UWeaponAttack::CanActivateAbility(
