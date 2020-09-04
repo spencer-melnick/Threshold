@@ -173,6 +173,8 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 		FGameplayCueParameters CueParameters = UAbilityFunctionLibrary::CreateGameplayCue(OwningCharacter, this, HitCharacter);
 		CueParameters.EffectContext = FGameplayEffectContextHandle(new FGameplayEffectContext());
 		CueParameters.EffectContext.AddHitResult(HitResult);
+		CueParameters.Location = HitResult.Location;
+		CueParameters.Normal = -HitVelocity.GetSafeNormal();
 
 		UTHAbilitySystemComponent* HitASC = HitCharacter->GetTHAbilitySystemComponent();
 		if (HitASC)
