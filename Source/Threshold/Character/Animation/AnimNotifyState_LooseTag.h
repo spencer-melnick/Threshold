@@ -36,6 +36,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GameplayTag")
 	FGameplayTagContainer AppliedTags;
 
+	// If this is set, tags will be extended on the server - this is useful if tags are used for combo windows, because
+	// extending them on the server will allow for greater leniency when clients request a combo
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bExtendTagOnServer = false;
+
 protected:
 	static UAbilitySystemComponent* GetAbilitySystemComponent(USkeletalMeshComponent* MeshComponent);
 };

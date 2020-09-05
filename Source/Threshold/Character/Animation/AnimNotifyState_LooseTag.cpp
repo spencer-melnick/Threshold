@@ -5,6 +5,10 @@
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 
+
+
+// UAnimNotifyState_LooseTag
+
 void UAnimNotifyState_LooseTag::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float TotalDuration)
 {
@@ -27,7 +31,27 @@ void UAnimNotifyState_LooseTag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAni
 		return;
 	}
 
-	AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTags);
+	const bool bPredictedElsewhere = AbilitySystemComponent->AbilityActorInfo->IsNetAuthority() && !AbilitySystemComponent->AbilityActorInfo->IsLocallyControlled();
+
+	/* if (!bExtendTagOnServer || !bPredictedElsewhere)
+	{
+		AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTags);
+	}
+	else */
+	{
+		// Extend the tag on the server
+		const FGameplayTagContainer AppliedTagsCopy = AppliedTags;
+		FTimerHandle TimerHandle;
+		const FTimerDelegate TimerDelegate = FTimerDelegate::CreateLambda([AbilitySystemComponent, AppliedTagsCopy]
+		{
+			if (IsValid(AbilitySystemComponent))
+			{
+				AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTagsCopy);
+			}
+		});
+		const float TagExtensionTime = IConsoleManager::Get().FindConsoleVariable(TEXT("th.TagExtensionTime"))->GetFloat();
+		MeshComp->GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, TagExtensionTime, false);
+	}
 }
 
 
@@ -63,4 +87,3 @@ FString UAnimNotifyState_LooseTag::GetNotifyName_Implementation() const
 {
 	return FString::Format(TEXT("LooseTag: {0}"), {AppliedTags.ToStringSimple()});
 }
-
