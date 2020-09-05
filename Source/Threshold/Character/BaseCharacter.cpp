@@ -407,8 +407,11 @@ void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 
 void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
 {
 	check(EventData);
-	
-	StartHitSlowdown();
+
+	if (bEnableHitSlowdown)
+	{
+		StartHitSlowdown();
+	}
 }
 
 

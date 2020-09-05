@@ -139,6 +139,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
 	FGameplayTag HitEventTag;
 
+	// After this amount of time we stop evaluating hit slowdown
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	bool bEnableHitSlowdown = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	UCurveFloat* HitSlowdownCurve = nullptr;
 
