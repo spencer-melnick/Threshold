@@ -19,11 +19,11 @@
 			"Enabled": true
 		},
 		{
-			"Name": "RiderLink",
+			"Name": "GameplayAbilities",
 			"Enabled": true
 		},
 		{
-			"Name": "GameplayAbilities",
+			"Name": "RiderLink",
 			"Enabled": true
 		}
 	]

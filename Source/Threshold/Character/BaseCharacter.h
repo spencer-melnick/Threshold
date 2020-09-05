@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameplayTags.h"
+#include "Abilities/GameplayAbilityTypes.h"
+#include "AbilitySystemInterface.h"
 #include "Threshold/Combat/Teams.h"
 #include "BaseCharacter.generated.h"
 
@@ -14,8 +16,10 @@
 // Forward declarations
 
 class USkeletalMeshSocket;
+class UCurveFloat;
 class UTHGameplayAbility;
 class UTHAbilitySystemComponent;
+class ABaseWeapon;
 
 
 
@@ -23,7 +27,7 @@ class UTHAbilitySystemComponent;
  * This is the custom base class for all characters used in the game!
  */
 UCLASS()
-class THRESHOLD_API ABaseCharacter : public ACharacter, public ICombatant
+class THRESHOLD_API ABaseCharacter : public ACharacter, public ICombatant, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -39,6 +43,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 
@@ -47,6 +52,13 @@ public:
 	virtual TSubclassOf<UTeam> GetTeam() const override;
 	virtual FVector GetTargetLocation() const override;
 	virtual void AttachTargetIndicator(AActor* TargetIndicator) override;
+
+
+
+	// Weapon controls
+
+	void EquipWeapon(AActor* NewWeapon);
+	void UnequipWeapon();
 	
 
 
@@ -67,13 +79,21 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetWorldLookLocation() const;
 	
-	UTHAbilitySystemComponent* GetAbilitySystemComponent() const
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+	UTHAbilitySystemComponent* GetTHAbilitySystemComponent() const
 	{
 		return AbilitySystemComponent;
 	}
 
 	UFUNCTION(BlueprintCallable, Category="BaseCharacter")
     bool GetIsDodging() const;
+
+	UFUNCTION(BlueprintCallable, Category="BaseCharacter")
+	ABaseWeapon* GetEquippedWeapon() const
+	{
+		return EquippedWeapon;
+	}
 
 
 
@@ -101,9 +121,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FVector RelativeLookLocation;
 
-	// This is the cue we check against to see if we are dodging
+	// This is the tag we check against to see if we are dodging for animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FGameplayTag DodgeTag;
+
+	// This is the tag we check against to see if our attack is damaging for local logic
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
+	FGameplayTag DamagingTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
+	TSubclassOf<ABaseWeapon> StartingWeaponClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FName WeaponSocketName = NAME_None;
+
+	// This is the tag for weapon hit events
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
+	FGameplayTag HitEventTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	UCurveFloat* HitSlowdownCurve = nullptr;
+
+	// After this amount of time we stop evaluating hit slowdown
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
+	float MaxHitSlowdownTime = 0.3f;
 	
 
 
@@ -112,9 +153,54 @@ public:
 	static FName AbilitySystemComponentName;
 
 
+
+
+
+protected:
+	// Helper functions
+
+	void StartHitSlowdown();
+	void EvaluateHitSlowdown(float DeltaTime);
+	
+
+	
+	// Gameplay tag responses
+
+	virtual void OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData);
+
+	
+	
+	// Network replication functions
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+	
+	
+	
+
+	// Replicated variables
+
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
+	ABaseWeapon* EquippedWeapon = nullptr;
+	
+	
 	
 private:
+	// Internal delegates
 
+	void OnDamagingTagChanged_Internal(const FGameplayTag CallbackTag, int32 NewCount)
+	{
+		OnDamagingTagChanged(CallbackTag, NewCount);
+	}
+
+	void OnHitGameplayEvent_Internal(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
+	{
+		OnHitGameplayEvent(GameplayTag, EventData);
+	}
+	
+
+	
 	// Helper functions
 
 	void GrantStartingAbilities();
@@ -131,5 +217,8 @@ private:
 	// Private members
 	
 	bool bWasGrantedStartingAbilities = false;
-	bool bIsDodging = false;
+	bool bHitSlowdownActive = false;
+	float AccumulatedHitSlowdownTime = 0.f;
+	UPROPERTY()
+	TArray<FGameplayAbilitySpecHandle> WeaponAbilitySpecHandles;
 };

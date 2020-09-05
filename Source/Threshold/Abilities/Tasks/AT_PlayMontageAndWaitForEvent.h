@@ -20,7 +20,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FRPGPlayMontageAndWaitForEventDeleg
  * It is expected that each game will have a set of game-specific tasks to do what they want
  */
 UCLASS()
-class ACTIONRPG_API UAT_PlayMontageAndWaitForEvent : public UAbilityTask
+class THRESHOLD_API UAT_PlayMontageAndWaitForEvent : public UAbilityTask
 {
 	GENERATED_BODY()
 
