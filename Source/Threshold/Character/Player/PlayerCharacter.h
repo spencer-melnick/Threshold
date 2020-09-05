@@ -12,6 +12,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class ABaseWeapon;
 
 
 
@@ -27,6 +28,19 @@ class THRESHOLD_API APlayerCharacter : public ABaseCharacter
 
 public:
 	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
+
+
+
+	// Engine overrides
+
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
+
+
+
+	// Base character overrides
+
+	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData) override;
 
 
 

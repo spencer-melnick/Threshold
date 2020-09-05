@@ -3,11 +3,13 @@
 #include "BaseCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
+#include "Threshold/Combat/Weapons/BaseWeapon.h"
 
 
 
@@ -35,6 +37,9 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Don't replicate gameplay effects - suggested for AI controlled characters
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Minimal;
+
+	// Disable montage position replication so we can locally predict slowdown
+	AbilitySystemComponent->SetMontageRepAnimPositionMethod(ERepAnimPositionMethod::CurrentSectionId);
 	
 	// Drive our rotation using the movement component instead of directly reading the control rotation
 	bUseControllerRotationYaw = false;
@@ -59,6 +64,24 @@ void ABaseCharacter::BeginPlay()
 	{
 		CombatantSubsystem->RegisterCombatant(this);
 	}
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		// Server spawning logic
+		
+		if (StartingWeaponClass)
+		{
+			// Spawn the starting weapon and attach it
+			ABaseWeapon* NewWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(StartingWeaponClass.Get()));
+			EquipWeapon(NewWeapon);
+		}
+	}
+
+	// Register gameplay tag callbacks
+	AbilitySystemComponent->RegisterGameplayTagEvent(DamagingTag, EGameplayTagEventType::NewOrRemoved).AddUObject(
+		this, &ABaseCharacter::OnDamagingTagChanged_Internal);
+	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(HitEventTag.GetSingleTagContainer(),
+		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &ABaseCharacter::OnHitGameplayEvent_Internal));
 }
 
 void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -77,7 +100,7 @@ void ABaseCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	// Do something
+	EvaluateHitSlowdown(DeltaSeconds);
 }
 
 
@@ -101,6 +124,14 @@ void ABaseCharacter::PossessedBy(AController* NewController)
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	}
 }
+
+void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABaseCharacter, EquippedWeapon)
+}
+
 
 
 
@@ -179,6 +210,69 @@ void ABaseCharacter::AttachTargetIndicator(AActor* TargetIndicator)
 
 
 
+// Weapon controls
+
+void ABaseCharacter::EquipWeapon(AActor* NewWeapon)
+{
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		// Only equip the weapon on the server
+		return;
+	}
+	
+	ABaseWeapon* NewWeaponBase = Cast<ABaseWeapon>(NewWeapon);
+	
+	if (!NewWeaponBase || EquippedWeapon == NewWeaponBase)
+	{
+		// If the weapon did not change, don't bother doing anything
+		return;
+	}
+
+	if (!EquippedWeapon)
+	{
+		// Unequip our old weapon
+		UnequipWeapon();
+	}
+
+	// Attach the weapon to our mesh socket
+	NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale,
+        WeaponSocketName);
+
+	for (TSubclassOf<UTHGameplayAbility>& WeaponAbilityClass : NewWeaponBase->WeaponAbilities)
+	{
+		// Grant all of our weapon abilities to character
+		const UTHGameplayAbility* AbilityDefaultObject = WeaponAbilityClass.GetDefaultObject();
+
+		FGameplayAbilitySpecHandle AbilitySpecHandle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
+            WeaponAbilityClass, 1, static_cast<int32>(AbilityDefaultObject->DefaultInputBinding), this));
+		WeaponAbilitySpecHandles.Add(AbilitySpecHandle);
+	}
+
+	EquippedWeapon = NewWeaponBase;
+}
+
+void ABaseCharacter::UnequipWeapon()
+{
+	if (GetLocalRole() != ROLE_Authority || !EquippedWeapon)
+	{
+		// Only unequip the weapon on the server if we have a valid weapon
+		return;
+	}
+
+	for (FGameplayAbilitySpecHandle& AbilitySpecHandle : WeaponAbilitySpecHandles)
+	{
+		// Clear our previously granted abilities
+		AbilitySystemComponent->ClearAbility(AbilitySpecHandle);
+	}
+
+	WeaponAbilitySpecHandles.Empty();
+}
+
+
+
+
+
+
 // Accessors
 
 const USkeletalMeshSocket* ABaseCharacter::GetTargetSocket() const
@@ -236,6 +330,12 @@ FVector ABaseCharacter::GetWorldLookLocation() const
 	return GetTransform().TransformPosition(RelativeLookLocation);
 }
 
+UAbilitySystemComponent* ABaseCharacter::GetAbilitySystemComponent() const
+{
+	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
+}
+
+
 bool ABaseCharacter::GetIsDodging() const
 {
 	if (!AbilitySystemComponent)
@@ -244,6 +344,83 @@ bool ABaseCharacter::GetIsDodging() const
 	}
 
 	return AbilitySystemComponent->HasMatchingGameplayTag(DodgeTag);
+}
+
+
+
+
+// Helper functions
+
+void ABaseCharacter::StartHitSlowdown()
+{
+	bHitSlowdownActive = true;
+	AccumulatedHitSlowdownTime = 0.f;
+}
+
+void ABaseCharacter::EvaluateHitSlowdown(float DeltaTime)
+{
+	if (!bHitSlowdownActive)
+	{
+		return;
+	}
+
+	// Accumulate time using simple delta time
+	AccumulatedHitSlowdownTime += DeltaTime;
+
+	if (AccumulatedHitSlowdownTime >= MaxHitSlowdownTime)
+	{
+		// Stop the slowdown when the accumulated time exceeds our maximum
+		bHitSlowdownActive = false;
+		GetMesh()->GlobalAnimRateScale = 1.f;
+		return;
+	}
+
+	if (HitSlowdownCurve)
+	{
+		// Scale our animation rate by the curve value 
+		GetMesh()->GlobalAnimRateScale = HitSlowdownCurve->GetFloatValue(AccumulatedHitSlowdownTime);
+	}
+}
+
+
+
+
+// Gameplay tag responses
+
+void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	if (EquippedWeapon)
+	{
+		if (NewCount == 0)
+		{
+			// If the tag is removed, stop the weapon trace
+			EquippedWeapon->StopWeaponTrace();
+		}
+		else
+		{
+			// If the tag is applied, start the weapon trace
+			EquippedWeapon->StartWeaponTrace();
+		}
+	}
+}
+
+void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
+{
+	check(EventData);
+	
+	StartHitSlowdown();
+}
+
+
+
+
+
+
+// Network replication functions
+
+void ABaseCharacter::OnRep_EquippedWeapon()
+{
+	// Do something!
 }
 
 

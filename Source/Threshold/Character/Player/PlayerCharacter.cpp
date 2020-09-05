@@ -4,8 +4,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
-
-
+#include "Threshold/Threshold.h"
 
 
 // Component name constants
@@ -35,9 +34,46 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	SpringArmComponent->bInheritYaw = true;
 
 	// Replicate gameplay effects to the owning client - suggested for player controlled characters
-	GetAbilitySystemComponent()->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
+	GetTHAbilitySystemComponent()->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 
 	// Enable input buffering on the ability system component
-	GetAbilitySystemComponent()->bEnableInputBuffering = true;
+	GetTHAbilitySystemComponent()->bEnableInputBuffering = true;
+}
+
+
+
+
+// Engine overrides
+
+void APlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	const UTHAbilitySystemComponent* ASC = GetTHAbilitySystemComponent();
+	if (ASC && ASC->HasMatchingGameplayTag(DamagingTag))
+	{
+		// Do something
+	}
+}
+
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+
+
+
+// Base character overrides
+
+void APlayerCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
+{
+	Super::OnHitGameplayEvent(GameplayTag, EventData);
+
+	if (EventData->Instigator == this)
+	{
+		UE_LOG(LogThresholdGeneral, Display, TEXT("%s hit %s locally"), *GetNameSafe(this),
+			*GetNameSafe(EventData->Target))
+	}
 }
 

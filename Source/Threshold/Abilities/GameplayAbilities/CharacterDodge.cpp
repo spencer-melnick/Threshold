@@ -58,13 +58,16 @@ void UCharacterDodge::ActivateAbility(
 			UE_LOG(LogThresholdGeneral, Error, TEXT("%s was called with incorrect input data type"), *GetNameSafe(this))
 			EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		}
-		
-		// Send the directional data to the server
-		FAbilityDirectionalData* DirectionalData = new FAbilityDirectionalData();
-		DirectionalData->Direction = InputData->DodgeVector;
-		FGameplayAbilityTargetDataHandle TargetDataHandle;
-		TargetDataHandle.Add(DirectionalData);
-		SendTargetDataToServer(TargetDataHandle);
+
+		if (IsPredictingClient())
+		{
+			// Send the directional data to the server
+			FAbilityDirectionalData* DirectionalData = new FAbilityDirectionalData();
+			DirectionalData->Direction = InputData->DodgeVector;
+			FGameplayAbilityTargetDataHandle TargetDataHandle;
+			TargetDataHandle.Add(DirectionalData);
+			SendTargetDataToServer(TargetDataHandle);
+		}
 	
 		// Apply the locally simulated motion
 		ApplyDodgeMotionTask(InputData->DodgeVector);

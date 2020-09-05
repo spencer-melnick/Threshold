@@ -60,55 +60,61 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 
 	// ---------------------------------------------------------
 
+	FBufferedInput BufferedInput;
+	BufferedInput.InputTime = GetWorld()->GetRealTimeSeconds();
+	BufferedInput.InputID = InputID;
+
+	bool bAbilityTriggered = false;
+	
 	ABILITYLIST_SCOPE_LOCK();
 	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 	{
-		if (Spec.InputID != InputID || !Spec.Ability)
+		UTHGameplayAbility* GameplayAbility = Cast<UTHGameplayAbility>(Spec.Ability);
+
+		if (Spec.InputID != InputID || !GameplayAbility)
 		{
 			continue;
 		}
-		
-		UTHGameplayAbility* GameplayAbility = Cast<UTHGameplayAbility>(Spec.Ability);
+
 		Spec.InputPressed = true;
-		
-		if (Spec.IsActive())
+		if (!GameplayAbility->GetInputBufferingEnabled())
 		{
-			if (Spec.Ability->bReplicateInputDirectly && IsOwnerActorAuthoritative() == false)
+			// Handle unbuffered abilities
+			if (Spec.IsActive())
 			{
-				ServerSetInputPressed(Spec.Handle);
-			}
-
-			AbilitySpecInputPressed(Spec);
-
-			// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
-			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
-		}
-
-		if (GameplayAbility)
-		{
-			if (!GameplayAbility->GetInputBufferingEnabled() && !Spec.IsActive())
-			{
-				// Activate non-buffered abilities normally
-				TryActivateAbility(Spec.Handle);
+				DispatchInputEvents(Spec);
 			}
 			else
 			{
-				// Generate some input data
-				TSharedPtr<FBufferedAbilityInputData> InputData =
-					GameplayAbility->GenerateInputData(Spec.Handle, AbilityActorInfo.Get());
-
-				if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
-				{
-					// If we can activate the ability make the data available and activate the ability normally
-					MostRecentInputData = InputData;
-					TryActivateAbility(Spec.Handle);
-				}
-				else if (bEnableInputBuffering)
-				{
-					BufferInput({InputID, InputData, GetWorld()->GetRealTimeSeconds()});
-				}
+				TryActivateAbility(Spec.Handle);
+				bAbilityTriggered = true;
 			}
 		}
+		else
+		{
+			// Generate some input data for buffered abilities
+			TSharedPtr<FBufferedAbilityInputData> InputData =
+                GameplayAbility->GenerateInputData(Spec.Handle, AbilityActorInfo.Get());
+
+			if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
+			{
+				MostRecentInputData = InputData;
+				TryActivateAbility(Spec.Handle);
+				bAbilityTriggered = true;
+				break;
+			}
+			else
+			{
+				// Add our data to the buffer list
+				BufferedInput.Data.Add(Spec.Handle, InputData);
+			}
+		}
+	}
+
+	if (!bAbilityTriggered)
+	{
+		// If no ability was triggered, store all of our data in the input buffer
+		BufferInput(MoveTemp(BufferedInput));
 	}
 }
 
@@ -122,11 +128,10 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		return;
 	}
 
-	bool bFoundBlockedInput = false;
-
-	while (!InputBuffer.IsEmpty() && !bFoundBlockedInput)
+	while (!InputBuffer.IsEmpty())
 	{			
 		FBufferedInput* Input = InputBuffer.Peek();
+		const int32 InputID = Input->InputID;
 
 		if (GetWorld()->GetRealTimeSeconds() - Input->InputTime > InputBufferingTime)
 		{
@@ -134,42 +139,53 @@ void UTHAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			RemoveFrontInput();
 			continue;
 		}
-		
-		ABILITYLIST_SCOPE_LOCK();
+
+		bool bAbilityTriggered = false;
+
 		for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 		{
-			// Mostly follow the normal input logic here
-			if (Spec.InputID != Input->InputID || !Spec.Ability)
+			if (Spec.InputID != InputID)
 			{
-				continue;	
+				continue;
 			}
 			
-			Spec.InputPressed = true;
-			if (!Spec.IsActive())
-			{
-				UTHGameplayAbility* GameplayAbility = Cast<UTHGameplayAbility>(Spec.Ability);
-				
-				if (!GameplayAbility || !GameplayAbility->GetInputBufferingEnabled())
-				{
-					// This should only occur is an ability is changing it's input buffer enabled status
-					UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
-                           "buffer of %s but does not have input buffering enabled"),
-                           *GameplayAbility->GetName(), *GetNameSafe(this))
-					RemoveFrontInput();
-					continue;
-				}
+			UTHGameplayAbility* GameplayAbility = Cast<UTHGameplayAbility>(Spec.Ability);
 
-				if (GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
+			if (!GameplayAbility || !GameplayAbility->GetInputBufferingEnabled())
+			{
+				// If we have an ability that shouldn't be buffered, warn and remove it from the input buffer
+				// This should only occur if an ability is changing it's input buffer enabled status
+				UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
+                       "buffer of %s but is not a THGameplayAbility or does not have input buffering enabled"),
+                       *GameplayAbility->GetName(), *GetNameSafe(this))
+				continue;
+			}
+		
+			if (!Spec.IsActive() && GameplayAbility->CanActivateAbility(Spec.Handle, AbilityActorInfo.Get()))
+			{
+				// Ready the input and activate the ability
+				TSharedPtr<FBufferedAbilityInputData>* InputFound = Input->Data.Find(Spec.Handle);
+
+				if (InputFound)
 				{
-					// Ready the input and activate the ability!
-					MostRecentInputData = Input->Data;
+					MostRecentInputData = *InputFound;
 					TryActivateAbility(Spec.Handle);
 					RemoveFrontInput();
+					bAbilityTriggered = true;
+					break;
+				}
+				else
+				{
+					UE_LOG(LogThresholdGeneral, Warning, TEXT("GameplayAbility %s is in the input "
+				       "buffer of %s but does not have any generated input data"),
+				       *GameplayAbility->GetName(), *GetNameSafe(this))
 				}
 			}
+		}
 
-			// If we can't activate the first ability in the buffer, then we should stop
-			bFoundBlockedInput = true;
+		if (!bAbilityTriggered)
+		{
+			// If no abilities were triggered then the buffer is blocked and we should exit
 			break;
 		}
 	}
@@ -224,6 +240,7 @@ void UTHAbilitySystemComponent::BufferInput(FBufferedInput&& Input)
 					
 	// Push it back to our input buffer
 	InputBuffer.Enqueue(Input);
+	UpdateShouldTick();
 }
 
 void UTHAbilitySystemComponent::RemoveFrontInput()
@@ -235,5 +252,21 @@ void UTHAbilitySystemComponent::RemoveFrontInput()
 
 	CurrentInputBufferSize--;
 	InputBuffer.Pop();
+	UpdateShouldTick();
 }
+
+void UTHAbilitySystemComponent::DispatchInputEvents(FGameplayAbilitySpec& Spec)
+{
+	if (Spec.Ability->bReplicateInputDirectly && IsOwnerActorAuthoritative() == false)
+	{
+		ServerSetInputPressed(Spec.Handle);
+	}
+
+	AbilitySpecInputPressed(Spec);
+
+	// TODO: What is this prediction key? We might need to generate a new one, since this isn't necessarily running on activation
+	// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
+	InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+}
+
 

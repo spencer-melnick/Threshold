@@ -472,7 +472,7 @@ void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
 		switch (MoveType)
 		{
 		case EWeaponMoveType::Primary:
-			if (!ActiveWeaponMove->bHasPrimaryFollowup)
+			if (ActiveWeaponMove->PrimaryFollowupIndex < 0)
 			{
 				return;
 			}
@@ -480,7 +480,7 @@ void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
 			break;
 
 		case EWeaponMoveType::Secondary:
-			if (!ActiveWeaponMove->bHasSecondaryFollowup)
+			if (ActiveWeaponMove->SecondaryFollowupIndex < 0)
 			{
 				return;
 			}
