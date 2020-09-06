@@ -33,11 +33,12 @@ void UAnimNotifyState_LooseTag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAni
 
 	const bool bPredictedElsewhere = AbilitySystemComponent->AbilityActorInfo->IsNetAuthority() && !AbilitySystemComponent->AbilityActorInfo->IsLocallyControlled();
 
-	/* if (!bExtendTagOnServer || !bPredictedElsewhere)
+	if (!bExtendTagOnServer || !bPredictedElsewhere)
 	{
-		AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTags);
+		// Remove all tags to prevent glitching
+		AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTags, 999);
 	}
-	else */
+	else
 	{
 		// Extend the tag on the server
 		const FGameplayTagContainer AppliedTagsCopy = AppliedTags;
@@ -46,7 +47,7 @@ void UAnimNotifyState_LooseTag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAni
 		{
 			if (IsValid(AbilitySystemComponent))
 			{
-				AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTagsCopy);
+				AbilitySystemComponent->RemoveLooseGameplayTags(AppliedTagsCopy, 999);
 			}
 		});
 		const float TagExtensionTime = IConsoleManager::Get().FindConsoleVariable(TEXT("th.TagExtensionTime"))->GetFloat();
