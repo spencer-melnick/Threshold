@@ -396,7 +396,7 @@ void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 
 			// If the tag is removed, stop the weapon trace
 			EquippedWeapon->StopWeaponTrace();
 		}
-		else
+		else if (NewCount == 1)
 		{
 			// If the tag is applied, start the weapon trace
 			EquippedWeapon->StartWeaponTrace();
@@ -407,8 +407,11 @@ void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 
 void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
 {
 	check(EventData);
-	
-	StartHitSlowdown();
+
+	if (bEnableHitSlowdown)
+	{
+		StartHitSlowdown();
+	}
 }
 
 
