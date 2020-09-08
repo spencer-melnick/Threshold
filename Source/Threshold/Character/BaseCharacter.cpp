@@ -8,6 +8,7 @@
 #include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
+#include "Threshold/Abilities/AttributeSets/BaseAttributeSet.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Combat/Weapons/BaseWeapon.h"
 
@@ -17,6 +18,7 @@
 // Component name constants
 
 FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"));
+FName ABaseCharacter::BaseAttributeSetName(TEXT("BaseAttributeSet"));
 
 
 
@@ -38,7 +40,10 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 	// Don't replicate gameplay effects - suggested for AI controlled characters
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Minimal;
 
-	// Disable montage position replication so we can locally predict slowdown
+	// Create the default attribute set - it will be automatically registered by our ability system component
+	BaseAttributeSet = CreateDefaultSubobject<UBaseAttributeSet>(BaseAttributeSetName);
+
+	// Disable montage position replication since we don't want fine grain control
 	AbilitySystemComponent->SetMontageRepAnimPositionMethod(ERepAnimPositionMethod::CurrentSectionId);
 	
 	// Drive our rotation using the movement component instead of directly reading the control rotation

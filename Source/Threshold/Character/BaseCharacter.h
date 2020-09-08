@@ -19,6 +19,7 @@ class USkeletalMeshSocket;
 class UCurveFloat;
 class UTHGameplayAbility;
 class UTHAbilitySystemComponent;
+class UBaseAttributeSet;
 class ABaseWeapon;
 
 
@@ -155,6 +156,7 @@ public:
 	// Component name constants - useful for overriding in derived classes
 
 	static FName AbilitySystemComponentName;
+	static FName BaseAttributeSetName;
 
 
 
@@ -215,6 +217,13 @@ private:
 
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UTHAbilitySystemComponent* AbilitySystemComponent = nullptr;
+
+
+
+	// Attribute sets
+
+	UPROPERTY()
+	UBaseAttributeSet* BaseAttributeSet = nullptr;
 
 
 	
