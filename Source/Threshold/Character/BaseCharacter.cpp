@@ -80,6 +80,12 @@ void ABaseCharacter::BeginPlay()
 			ABaseWeapon* NewWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(StartingWeaponClass.Get()));
 			EquipWeapon(NewWeapon);
 		}
+
+		if (StartingAttributeValues)
+		{
+			// Load our starting attribute values
+			BaseAttributeSet->InitFromMetaDataTable(StartingAttributeValues);
+		}
 	}
 
 	// Register gameplay tag callbacks

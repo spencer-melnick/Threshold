@@ -1,8 +1,7 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "WeaponAttack.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
+#include "Threshold/Abilities/Tasks/AT_PlayMontageAndWaitForEvent.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Combat/Weapons/BaseWeapon.h"
@@ -40,9 +39,10 @@ void UWeaponAttack::ActivateAbility(
 	}
 
 	// Trigger the animation
-	UAbilityTask_PlayMontageAndWait* MontageTask =
-        UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
+	UAT_PlayMontageAndWaitForEvent* MontageTask =
+        UAT_PlayMontageAndWaitForEvent::PlayMontageAndWaitForEvent(this, NAME_None, AttackMontage, HitEventTags);
 	MontageTask->OnCompleted.AddDynamic(this, &UWeaponAttack::OnAnimationFinished);
+	MontageTask->EventReceived.AddDynamic(this, &UWeaponAttack::OnEventReceived);
 	MontageTask->ReadyForActivation();
 }
 
@@ -65,7 +65,21 @@ bool UWeaponAttack::CanActivateAbility(
 
 // Task callbacks
 
-void UWeaponAttack::OnAnimationFinished()
+void UWeaponAttack::OnAnimationFinished(FGameplayTag EventTag, FGameplayEventData EventData)
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
+
+void UWeaponAttack::OnEventReceived(FGameplayTag EventTag, FGameplayEventData EventData)
+{
+	if (HasAuthority(&CurrentActivationInfo) && DamageEffect)
+	{
+		// Only apply damage on the server
+		FGameplayEffectSpecHandle DamageEffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect);
+		DamageEffectSpecHandle.Data->SetSetByCallerMagnitude(BaseDamageTag, BaseDamageAmount);
+		
+		// ReSharper disable once CppExpressionWithoutSideEffects
+		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, DamageEffectSpecHandle, EventData.TargetData);
+	}
+}
+
