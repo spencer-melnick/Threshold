@@ -38,7 +38,8 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		// More damage logic?
 
 		// Apply the damage as a health change
-		SetHealth(FMath::Clamp(GetHealth() - LocalDamage, 0.f, GetMaxHealth()));
+		const float NewHealth = FMath::Clamp(GetHealth() - LocalDamage, 0.f, GetMaxHealth());
+		SetHealth(NewHealth);
 	}
 	else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{

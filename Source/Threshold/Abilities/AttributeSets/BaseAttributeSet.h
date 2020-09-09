@@ -54,7 +54,7 @@ public:
 
 	// Meta attributes
 
-	UPROPERTY(BlueprintReadOnly, Category="Damage", meta=(HideFromLevelInfos))
+	UPROPERTY(BlueprintReadOnly, Category="Damage", meta=(HideInDetailsView))
 	FGameplayAttributeData Damage;
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, Damage)
 
