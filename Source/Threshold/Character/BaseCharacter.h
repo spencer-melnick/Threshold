@@ -19,6 +19,7 @@ class USkeletalMeshSocket;
 class UCurveFloat;
 class UTHGameplayAbility;
 class UTHAbilitySystemComponent;
+class UBaseAttributeSet;
 class ABaseWeapon;
 
 
@@ -139,6 +140,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
 	FGameplayTag HitEventTag;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FGameplayTag DeathTag;
+
 	// After this amount of time we stop evaluating hit slowdown
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	bool bEnableHitSlowdown = false;
@@ -149,12 +153,16 @@ public:
 	// After this amount of time we stop evaluating hit slowdown
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	float MaxHitSlowdownTime = 0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Attributes")
+	UDataTable* StartingAttributeValues;
 	
 
 
 	// Component name constants - useful for overriding in derived classes
 
 	static FName AbilitySystemComponentName;
+	static FName BaseAttributeSetName;
 
 
 
@@ -172,6 +180,18 @@ protected:
 
 	virtual void OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData);
+	virtual void OnHealthChanged(const FOnAttributeChangeData& ChangeData);
+	virtual void OnDeath();
+
+
+
+	// Blueprint functions
+
+	UFUNCTION(BlueprintImplementableEvent, Category="BaseCharacter", meta=(DisplayName="On Health Changed"))
+	void OnHealthChanged_Blueprint(float OldHeatlh, float NewHealth);
+
+	UFUNCTION(BlueprintImplementableEvent, Category="BaseCharacter", meta=(DisplayName="On Death"))
+    void OnDeath_Blueprint();
 
 	
 	
@@ -215,6 +235,13 @@ private:
 
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UTHAbilitySystemComponent* AbilitySystemComponent = nullptr;
+
+
+
+	// Attribute sets
+
+	UPROPERTY()
+	UBaseAttributeSet* BaseAttributeSet = nullptr;
 
 
 	
