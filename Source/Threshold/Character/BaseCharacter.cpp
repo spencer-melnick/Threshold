@@ -8,6 +8,7 @@
 #include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/THGameplayAbility.h"
+#include "Threshold/Abilities/AttributeSets/BaseAttributeSet.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Combat/Weapons/BaseWeapon.h"
 
@@ -17,6 +18,7 @@
 // Component name constants
 
 FName ABaseCharacter::AbilitySystemComponentName(TEXT("AbilitySystemComponent"));
+FName ABaseCharacter::BaseAttributeSetName(TEXT("BaseAttributeSet"));
 
 
 
@@ -38,7 +40,10 @@ ABaseCharacter::ABaseCharacter(const FObjectInitializer& ObjectInitializer)
 	// Don't replicate gameplay effects - suggested for AI controlled characters
 	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Minimal;
 
-	// Disable montage position replication so we can locally predict slowdown
+	// Create the default attribute set - it will be automatically registered by our ability system component
+	BaseAttributeSet = CreateDefaultSubobject<UBaseAttributeSet>(BaseAttributeSetName);
+
+	// Disable montage position replication since we don't want fine grain control
 	AbilitySystemComponent->SetMontageRepAnimPositionMethod(ERepAnimPositionMethod::CurrentSectionId);
 	
 	// Drive our rotation using the movement component instead of directly reading the control rotation
@@ -75,6 +80,12 @@ void ABaseCharacter::BeginPlay()
 			ABaseWeapon* NewWeapon = Cast<ABaseWeapon>(GetWorld()->SpawnActor(StartingWeaponClass.Get()));
 			EquipWeapon(NewWeapon);
 		}
+
+		if (StartingAttributeValues)
+		{
+			// Load our starting attribute values
+			BaseAttributeSet->InitFromMetaDataTable(StartingAttributeValues);
+		}
 	}
 
 	// Register gameplay tag callbacks
@@ -82,6 +93,8 @@ void ABaseCharacter::BeginPlay()
 		this, &ABaseCharacter::OnDamagingTagChanged_Internal);
 	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(HitEventTag.GetSingleTagContainer(),
 		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &ABaseCharacter::OnHitGameplayEvent_Internal));
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(BaseAttributeSet->GetHealthAttribute()).AddUObject(
+		this, &ABaseCharacter::OnHealthChanged);
 }
 
 void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -413,6 +426,29 @@ void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGamepla
 		StartHitSlowdown();
 	}
 }
+
+void ABaseCharacter::OnHealthChanged(const FOnAttributeChangeData& ChangeData)
+{
+	OnHealthChanged_Blueprint(ChangeData.OldValue, ChangeData.NewValue);
+	
+	if (ChangeData.OldValue > 0.f && ChangeData.NewValue <= 0.f && !AbilitySystemComponent->HasMatchingGameplayTag(DeathTag))
+	{
+		// Since health is replicated, we can just apply the tag locally
+		AbilitySystemComponent->AddLooseGameplayTag(DeathTag);
+
+		OnDeath();
+	}
+}
+
+void ABaseCharacter::OnDeath()
+{
+	// Do something
+	UE_LOG(LogThresholdGeneral, Display, TEXT("%s died"), *GetNameSafe(this))
+
+	// Call our optional Blueprint function
+	OnDeath_Blueprint();
+}
+
 
 
 
