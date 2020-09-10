@@ -61,19 +61,3 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
-
-
-
-// Base character overrides
-
-void APlayerCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
-{
-	Super::OnHitGameplayEvent(GameplayTag, EventData);
-
-	if (EventData->Instigator == this)
-	{
-		UE_LOG(LogThresholdGeneral, Display, TEXT("%s hit %s locally"), *GetNameSafe(this),
-			*GetNameSafe(EventData->Target))
-	}
-}
-

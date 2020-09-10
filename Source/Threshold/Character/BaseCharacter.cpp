@@ -91,8 +91,6 @@ void ABaseCharacter::BeginPlay()
 	// Register gameplay tag callbacks
 	AbilitySystemComponent->RegisterGameplayTagEvent(DamagingTag, EGameplayTagEventType::NewOrRemoved).AddUObject(
 		this, &ABaseCharacter::OnDamagingTagChanged_Internal);
-	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(HitEventTag.GetSingleTagContainer(),
-		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &ABaseCharacter::OnHitGameplayEvent_Internal));
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(BaseAttributeSet->GetHealthAttribute()).AddUObject(
 		this, &ABaseCharacter::OnHealthChanged);
 }
@@ -112,8 +110,6 @@ void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ABaseCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	EvaluateHitSlowdown(DeltaSeconds);
 }
 
 
@@ -362,42 +358,6 @@ bool ABaseCharacter::GetIsDodging() const
 
 
 
-// Helper functions
-
-void ABaseCharacter::StartHitSlowdown()
-{
-	bHitSlowdownActive = true;
-	AccumulatedHitSlowdownTime = 0.f;
-}
-
-void ABaseCharacter::EvaluateHitSlowdown(float DeltaTime)
-{
-	if (!bHitSlowdownActive)
-	{
-		return;
-	}
-
-	// Accumulate time using simple delta time
-	AccumulatedHitSlowdownTime += DeltaTime;
-
-	if (AccumulatedHitSlowdownTime >= MaxHitSlowdownTime)
-	{
-		// Stop the slowdown when the accumulated time exceeds our maximum
-		bHitSlowdownActive = false;
-		GetMesh()->GlobalAnimRateScale = 1.f;
-		return;
-	}
-
-	if (HitSlowdownCurve)
-	{
-		// Scale our animation rate by the curve value 
-		GetMesh()->GlobalAnimRateScale = HitSlowdownCurve->GetFloatValue(AccumulatedHitSlowdownTime);
-	}
-}
-
-
-
-
 // Gameplay tag responses
 
 void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
@@ -414,16 +374,6 @@ void ABaseCharacter::OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 
 			// If the tag is applied, start the weapon trace
 			EquippedWeapon->StartWeaponTrace();
 		}
-	}
-}
-
-void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
-{
-	check(EventData);
-
-	if (bEnableHitSlowdown)
-	{
-		StartHitSlowdown();
 	}
 }
 
