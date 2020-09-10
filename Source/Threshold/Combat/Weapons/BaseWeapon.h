@@ -75,8 +75,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
 	TEnumAsByte<ECollisionChannel> TraceChannel;
 
+	// Tag of the event sent to the hit target (i.e. the actor who was hit with the weapon)
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
-	FGameplayTag HitEventTag;
+	FGameplayTag HitTargetEventTag;
+
+	// Tag of the event sent to the hit source (i.e. the actor who was swinging the weapon)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon")
+	FGameplayTag HitSourceEventTag;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Weapon", meta=(Categories="GameplayCue"))
 	FGameplayTag HitCueTag;

@@ -38,12 +38,6 @@ public:
 
 
 
-	// Base character overrides
-
-	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData) override;
-
-
-
 	// Accessors
 	
 	USpringArmComponent* GetSpringArmComponent() const
