@@ -140,6 +140,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
 	FGameplayTag HitEventTag;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	FGameplayTag DeathTag;
+
 	// After this amount of time we stop evaluating hit slowdown
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	bool bEnableHitSlowdown = false;
@@ -177,6 +180,18 @@ protected:
 
 	virtual void OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData);
+	virtual void OnHealthChanged(const FOnAttributeChangeData& ChangeData);
+	virtual void OnDeath();
+
+
+
+	// Blueprint functions
+
+	UFUNCTION(BlueprintImplementableEvent, Category="BaseCharacter", meta=(DisplayName="On Health Changed"))
+	void OnHealthChanged_Blueprint(float OldHeatlh, float NewHealth);
+
+	UFUNCTION(BlueprintImplementableEvent, Category="BaseCharacter", meta=(DisplayName="On Death"))
+    void OnDeath_Blueprint();
 
 	
 	

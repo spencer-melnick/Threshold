@@ -93,6 +93,8 @@ void ABaseCharacter::BeginPlay()
 		this, &ABaseCharacter::OnDamagingTagChanged_Internal);
 	AbilitySystemComponent->AddGameplayEventTagContainerDelegate(HitEventTag.GetSingleTagContainer(),
 		FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &ABaseCharacter::OnHitGameplayEvent_Internal));
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(BaseAttributeSet->GetHealthAttribute()).AddUObject(
+		this, &ABaseCharacter::OnHealthChanged);
 }
 
 void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -424,6 +426,29 @@ void ABaseCharacter::OnHitGameplayEvent(FGameplayTag GameplayTag, const FGamepla
 		StartHitSlowdown();
 	}
 }
+
+void ABaseCharacter::OnHealthChanged(const FOnAttributeChangeData& ChangeData)
+{
+	OnHealthChanged_Blueprint(ChangeData.OldValue, ChangeData.NewValue);
+	
+	if (ChangeData.OldValue > 0.f && ChangeData.NewValue <= 0.f && !AbilitySystemComponent->HasMatchingGameplayTag(DeathTag))
+	{
+		// Since health is replicated, we can just apply the tag locally
+		AbilitySystemComponent->AddLooseGameplayTag(DeathTag);
+
+		OnDeath();
+	}
+}
+
+void ABaseCharacter::OnDeath()
+{
+	// Do something
+	UE_LOG(LogThresholdGeneral, Display, TEXT("%s died"), *GetNameSafe(this))
+
+	// Call our optional Blueprint function
+	OnDeath_Blueprint();
+}
+
 
 
 
