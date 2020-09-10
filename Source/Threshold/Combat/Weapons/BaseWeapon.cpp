@@ -166,9 +166,15 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 		// Track the damaged actors to prevent firing too many times
 		DamagedCharacters.Add(HitCharacter);
 
-		// Create a new gameplay event from our data
-		FGameplayEventData EventData = UAbilityFunctionLibrary::CreateGameplayEvent(OwningCharacter, HitCharacter, HitEventTag);
-		EventData.TargetData.Add(new FWeaponHitTargetData(HitResult, HitVelocity));
+		// Send a gameplay event to our source actor
+		FGameplayEventData SourceEventData = UAbilityFunctionLibrary::CreateGameplayEvent(OwningCharacter, HitCharacter, HitSourceEventTag);
+		SourceEventData.TargetData.Add(new FWeaponHitTargetData(HitResult, HitVelocity));
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwningCharacter, HitSourceEventTag, SourceEventData);
+
+		// Send a gameplay event to our target actor
+		FGameplayEventData TargetEventData = UAbilityFunctionLibrary::CreateGameplayEvent(OwningCharacter, HitCharacter, HitTargetEventTag);
+		TargetEventData.TargetData.Add(new FWeaponHitTargetData(HitResult, HitVelocity));
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwningCharacter, HitTargetEventTag, TargetEventData);
 
 		// Create a new gameplay cue from our data
 		FGameplayCueParameters CueParameters = UAbilityFunctionLibrary::CreateGameplayCue(OwningCharacter, this, HitCharacter);
@@ -176,10 +182,6 @@ void ABaseWeapon::HandleHitResults(TArray<FHitResult>& HitResults, FVector HitVe
 		CueParameters.EffectContext.AddHitResult(HitResult);
 		CueParameters.Location = HitResult.Location;
 		CueParameters.Normal = -HitVelocity.GetSafeNormal();
-
-		// Send events to both characters
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwningCharacter, HitEventTag, EventData);
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(HitCharacter, HitEventTag, EventData);
 
 		// Dispatch a local gameplay cue
 		AbilitySystemComponent->ExecuteGameplayCueLocal(HitCueTag, CueParameters);

@@ -136,19 +136,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FName WeaponSocketName = NAME_None;
 
-	// This is the tag for weapon hit events
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Combat")
-	FGameplayTag HitEventTag;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
 	FGameplayTag DeathTag;
-
-	// After this amount of time we stop evaluating hit slowdown
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
-	bool bEnableHitSlowdown = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
-	UCurveFloat* HitSlowdownCurve = nullptr;
 
 	// After this amount of time we stop evaluating hit slowdown
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
@@ -166,20 +155,10 @@ public:
 
 
 
-
-
 protected:
-	// Helper functions
-
-	void StartHitSlowdown();
-	void EvaluateHitSlowdown(float DeltaTime);
-	
-
-	
 	// Gameplay tag responses
 
 	virtual void OnDamagingTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
-	virtual void OnHitGameplayEvent(FGameplayTag GameplayTag, const FGameplayEventData* EventData);
 	virtual void OnHealthChanged(const FOnAttributeChangeData& ChangeData);
 	virtual void OnDeath();
 
@@ -217,11 +196,6 @@ private:
 	{
 		OnDamagingTagChanged(CallbackTag, NewCount);
 	}
-
-	void OnHitGameplayEvent_Internal(FGameplayTag GameplayTag, const FGameplayEventData* EventData)
-	{
-		OnHitGameplayEvent(GameplayTag, EventData);
-	}
 	
 
 	
@@ -248,8 +222,6 @@ private:
 	// Private members
 	
 	bool bWasGrantedStartingAbilities = false;
-	bool bHitSlowdownActive = false;
-	float AccumulatedHitSlowdownTime = 0.f;
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> WeaponAbilitySpecHandles;
 };

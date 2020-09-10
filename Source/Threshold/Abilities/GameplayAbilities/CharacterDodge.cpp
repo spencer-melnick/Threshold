@@ -45,6 +45,7 @@ void UCharacterDodge::ActivateAbility(
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AbilitySystemComponent)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
 	}
 
 	if (IsLocallyControlled() || IsPredictingClient())
