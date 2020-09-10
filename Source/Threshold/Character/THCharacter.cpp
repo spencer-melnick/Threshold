@@ -1,4 +1,4 @@
-// Copyright © 2020 Spencer Melnick
+// Copyright (c) 2020 Spencer Melnick
 
 
 #include "THCharacter.h"
@@ -7,17 +7,25 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystemComponent.h"
 
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/Movement/THCharacterMovement.h"
 #include "Threshold/Controllers/THPlayerController.h"
 #include "Threshold/Character/Animation/THCharacterAnim.h"
 #include "Threshold/Global/THConfig.h"
-#include "Threshold/Combat/WeaponMoveset.h"
+#include "Threshold/Combat/Weapons/WeaponMoveset.h"
 #include "Threshold/Combat/DamageTypes.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
-#include "Threshold/Character/Movement/THMotionSources.h"
+#include "Threshold/Abilities/THGameplayAbility.h"
+
+
+// FName constants
 
 FName ATHCharacter::DodgeMotionName = TEXT("DodgeMotion");
+FName ATHCharacter::AbilitySystemComponentName = TEXT("AbilitySystemComponent");
+
+
 
 // Sets default values
 ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
@@ -39,6 +47,13 @@ ATHCharacter::ATHCharacter(const FObjectInitializer& ObjectInitializer)
 
 	// Disable controller rotation for capsule so it can be set manually as needed
 	bUseControllerRotationPitch = false;
+
+	// Attach an ability system component and set it to replicated
+	AbilitySystemComponent = CreateDefaultSubobject<UTHAbilitySystemComponent>(AbilitySystemComponentName);
+	AbilitySystemComponent->SetIsReplicated(true);
+
+	// Set mixed mode for player controlled characters!
+	AbilitySystemComponent->ReplicationMode = EGameplayEffectReplicationMode::Mixed;
 }
 
 
@@ -102,6 +117,17 @@ void ATHCharacter::PostInitializeComponents()
 	}
 }
 
+void ATHCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+}
+
+
 float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 	AController* EventInstigator, AActor* DamageCauser)
 {
@@ -136,25 +162,7 @@ float ATHCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 
 void ATHCharacter::Dodge(FVector DodgeVector)
 {
-	// Only dodge if you can actually move
-	if (!GetCanDodge() || CustomCharacterMovement == nullptr || DodgePositionCurve == nullptr)
-	{
-		return;
-	}
 
-	// Set our dodge vector
-	DodgeDirection = DodgeVector.GetSafeNormal2D();
-
-	// Create a new root motion
-	FRootMotionSource_PositionCurve* DodgeMotion = new FRootMotionSource_PositionCurve();
-	DodgeMotion->Direction = DodgeDirection;
-	DodgeMotion->Scale = DodgeDistance;
-	DodgeMotion->Duration = DodgeDuration;
-	DodgeMotion->PositionOverTime = DodgePositionCurve;
-	DodgeMotion->InstanceName = DodgeMotionName;
-
-	// Apply our root motion and track the ID
-	CustomCharacterMovement->ApplyRootMotionSource(DodgeMotion);
 }
 
 
@@ -287,7 +295,8 @@ bool ATHCharacter::GetCanWalk() const
 
 bool ATHCharacter::GetCanDodge() const
 {
-	return (GetCharacterIsAlive() && GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
+	return false;
+	// return (GetCharacterIsAlive() && GetCanWalk() && !GetIsDodging() && !CustomCharacterMovement->IsFalling());
 }
 
 bool ATHCharacter::GetCanAttack() const
@@ -369,6 +378,8 @@ void ATHCharacter::BeginPlay()
 
 	// Register ourself with the combatant subsystem
 	GetWorld()->GetSubsystem<UCombatantSubsystem>()->RegisterCombatant(this);
+
+	GrantDefaultAbilities();
 }
 
 void ATHCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -378,6 +389,16 @@ void ATHCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	// Unregister self from the combatant system
 	GetWorld()->GetSubsystem<UCombatantSubsystem>()->UnregisterCombatant(this);
 }
+
+void ATHCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent,
+		FGameplayAbilityInputBinds("Confirm", "Cancel", "EAbilityInputType",
+			static_cast<int32>(EAbilityInputType::Cancel), static_cast<int32>(EAbilityInputType::Confirm)));
+}
+
 
 
 void ATHCharacter::OnAttackingActor(AActor* OtherActor, FHitResult HitResult, FVector HitVelocity)
@@ -451,7 +472,7 @@ void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
 		switch (MoveType)
 		{
 		case EWeaponMoveType::Primary:
-			if (!ActiveWeaponMove->bHasPrimaryFollowup)
+			if (ActiveWeaponMove->PrimaryFollowupIndex < 0)
 			{
 				return;
 			}
@@ -459,7 +480,7 @@ void ATHCharacter::PerformNextAttack(EWeaponMoveType MoveType)
 			break;
 
 		case EWeaponMoveType::Secondary:
-			if (!ActiveWeaponMove->bHasSecondaryFollowup)
+			if (ActiveWeaponMove->SecondaryFollowupIndex < 0)
 			{
 				return;
 			}
@@ -601,6 +622,25 @@ void ATHCharacter::SweepWeaponCollision(float DeltaTime)
 	// Update our weapon positions using move to avoid copying
 	LastWeaponSweepPositions = MoveTemp(NewWeaponSweepPositions);
 }
+
+void ATHCharacter::GrantDefaultAbilities()
+{
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent || bWasGrantedStaringAbilities)
+	{
+		return;
+	}
+
+	for (TSubclassOf<UTHGameplayAbility>& AbilityClass : StartingAbilities)
+	{
+		const UTHGameplayAbility* AbilityDefaultObject = AbilityClass.GetDefaultObject();
+		
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(
+			AbilityClass, 1, static_cast<int32>(AbilityDefaultObject->DefaultInputBinding), this));
+	}
+
+	bWasGrantedStaringAbilities = true;
+}
+
 
 
 

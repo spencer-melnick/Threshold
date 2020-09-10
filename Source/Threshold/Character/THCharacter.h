@@ -1,4 +1,4 @@
-// Copyright � 2020 Spencer Melnick
+// Copyright (c) 2020 Spencer Melnick
 
 #pragma once
 
@@ -25,7 +25,10 @@ enum class ECharacterLifeState : int8
 };
 
 
-
+/**
+ * This is the old base character class. It is now deprecated, but kept for reference while I move some functionality
+ * over to the new base character class. DO NOT USE!
+ */
 UCLASS()
 class THRESHOLD_API ATHCharacter : public ACharacter, public ICombatant
 {
@@ -42,6 +45,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void PostInitializeComponents() override;
+
+	virtual void PossessedBy(AController* NewController) override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
@@ -156,6 +161,7 @@ public:
 	// Constants
 
 	static FName DodgeMotionName;
+	static FName AbilitySystemComponentName;
 	
 
 	// How quickly the character can rotate
@@ -228,6 +234,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Effects")
 	float HitShakeAmplitude = 10.f;
 
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Abilities")
+	TArray<TSubclassOf<class UTHGameplayAbility>> StartingAbilities;
+	
 	
 	
 	// Default components
@@ -240,6 +250,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	class UCameraComponent* ThirdPersonCamera;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	class UTHAbilitySystemComponent* AbilitySystemComponent;
+	
 	
 
 protected:
@@ -247,6 +260,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	// Called whenever a new actor overlaps the weapon
 	UFUNCTION()
@@ -282,6 +297,8 @@ private:
 	// appropriate responses
 	void SweepWeaponCollision(float DeltaTime);
 
+	void GrantDefaultAbilities();
+
 
 
 	// Delegates
@@ -310,6 +327,7 @@ private:
 	FVector DodgeDirection;
 	float CurrentHealth = 0.f;
 	ECharacterLifeState LifeState = ECharacterLifeState::Alive;
+	bool bWasGrantedStaringAbilities = false;
 
 
 	// Attack information

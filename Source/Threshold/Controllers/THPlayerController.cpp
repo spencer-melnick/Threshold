@@ -1,8 +1,8 @@
-// Copyright � 2020 Spencer Melnick
+// Copyright (c) 2020 Spencer Melnick
 
 
 #include "THPlayerController.h"
-
+#include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
@@ -11,7 +11,6 @@
 
 
 ATHPlayerController::ATHPlayerController()
-	: InputBuffer(InputBufferSize + 1)
 {
 	// Tick every update
 	PrimaryActorTick.bCanEverTick = true;
@@ -19,17 +18,6 @@ ATHPlayerController::ATHPlayerController()
 	// Change default camera manager
 	PlayerCameraManagerClass = ATHPlayerCameraManager::StaticClass();
 }
-
-ATHPlayerController::ATHPlayerController(FVTableHelper& Helper)
-	: Super(Helper), InputBuffer(InputBufferSize + 1)
-{
-	// Tick every update
-	PrimaryActorTick.bCanEverTick = true;
-
-	// Change default camera manager
-	PlayerCameraManagerClass = ATHPlayerCameraManager::StaticClass();
-}
-
 
 
 // Engine overrides
@@ -42,9 +30,6 @@ void ATHPlayerController::BeginPlay()
 		TargetIndicatorActor = GetWorld()->SpawnActor(TargetIndicatorClass);
 		TargetIndicatorActor->SetActorHiddenInGame(true);
 	}
-
-	// Try to cast the camera manager
-	ThresholdCameraManager = Cast<ATHPlayerCameraManager>(PlayerCameraManager);
 }
 
 
@@ -61,10 +46,6 @@ void ATHPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveForward", this, &ATHPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ATHPlayerController::MoveRight);
 
-	InputComponent->BindAction("PrimaryAttack", EInputEvent::IE_Released, this, &ATHPlayerController::PrimaryAttack);
-
-	InputComponent->BindAction("Dodge", EInputEvent::IE_Pressed, this, &ATHPlayerController::Dodge);
-
 	InputComponent->BindAxis("LookUp", this, &ATHPlayerController::LookUp);
     InputComponent->BindAxis("Turn", this, &ATHPlayerController::Turn);
 
@@ -75,36 +56,7 @@ void ATHPlayerController::SetupInputComponent()
 
 void ATHPlayerController::Tick(float DeltaTime)
 {
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-
 	RotateTowardsTarget(DeltaTime);
-
-	// Check the most recently buffered input
-	while (!InputBuffer.IsEmpty())
-	{
-		const FBufferedInput* MostRecentInput = InputBuffer.Peek();
-
-		// Check if the most recent input has expired
-		if (GetWorld()->GetRealTimeSeconds() - MostRecentInput->BufferedTime > ActionBufferTime)
-		{
-			// Remove the most recent input and check the next one
-			InputBuffer.Dequeue();
-			continue;
-		}
-
-		// Try to consume the input
-		if (TryConsumePlayerInput(MostRecentInput))
-		{
-			InputBuffer.Dequeue();
-			continue;
-		}
-
-		break;
-	}
 
 	// Try to unfollow our target if it's no longer targetable
 	if (LockonTarget != nullptr && !LockonTarget->GetCanBeTargeted())
@@ -112,6 +64,18 @@ void ATHPlayerController::Tick(float DeltaTime)
 		SetTarget(nullptr);
 	}
 }
+
+void ATHPlayerController::AcknowledgePossession(APawn* P)
+{
+	Super::AcknowledgePossession(P);
+
+	ABaseCharacter* PossessedCharacter = Cast<ABaseCharacter>(P);
+	if (PossessedCharacter)
+	{
+		PossessedCharacter->GetAbilitySystemComponent()->InitAbilityActorInfo(PossessedCharacter, PossessedCharacter);
+	}
+}
+
 
 
 
@@ -122,21 +86,23 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	TArray<FTarget> Targets;
 
 	// Check for possessed character
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
-	if (PossessedCharacter == nullptr || PossessedCharacter->Team == nullptr)
+	ABaseCharacter* PossessedCharacter = GetBaseCharacter();
+	
+	if (!PossessedCharacter)
 	{
 		return Targets;
 	}
 
+	const TSubclassOf<UTeam> TeamClass = PossessedCharacter->GetTeam();
 	int32 ViewportWidth, ViewportHeight;
 	GetViewportSize(ViewportWidth, ViewportHeight);
-	FVector2D ViewportSize(static_cast<float>(ViewportWidth), static_cast<float>(ViewportHeight));
+	const FVector2D ViewportSize(static_cast<float>(ViewportWidth), static_cast<float>(ViewportHeight));
 	
 	// Iterate through all actors
 	for (TScriptInterface<ICombatant> Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
 	{
 		// Only check actors belonging to the appropriate teams
-		if (!Combatant->GetCanBeTargetedBy(PossessedCharacter->Team))
+		if (!Combatant->GetCanBeTargetedBy(TeamClass))
 		{
 			continue;
 		}
@@ -146,7 +112,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 
 		// Limit targets by distance to possessed character
 		Target.Distance = FVector::Distance(Combatant->GetTargetLocation(),
-			PossessedCharacter->GetHeadPosition());
+			PossessedCharacter->GetWorldLookLocation());
 
 		if (Target.Distance > MaxTargetDistance)
 		{
@@ -196,7 +162,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 		CurrentTarget.TargetActor = &(*LockonTarget);
 		CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
 		CurrentTarget.Distance = FVector::Distance(LockonTarget->GetTargetLocation(),
-			GetTHCharacter()->GetHeadPosition());
+			GetCharacter()->GetActorLocation());
 
 		PotentialTargets.Add(CurrentTarget);
 	}
@@ -219,10 +185,12 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 
 void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 {
-	if (LockonTarget != nullptr)
+	const ABaseCharacter* PossessedCharacter = GetBaseCharacter();
+	
+	if (LockonTarget && PossessedCharacter)
 	{
 		// Calculate pitch and yaw based on distance to target
-		FVector LookVector = LockonTarget->GetTargetLocation() - GetTHCharacter()->GetHeadPosition();
+		FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetWorldLookLocation();
 
 		// Rotate towards lockon target
 		FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
@@ -257,7 +225,7 @@ bool ATHPlayerController::GetCameraIsDirectlyControlled()
 
 void ATHPlayerController::MoveForward(float Scale)
 {
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	ACharacter* PossessedCharacter = GetCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -270,7 +238,7 @@ void ATHPlayerController::MoveForward(float Scale)
 
 void ATHPlayerController::MoveRight(float Scale)
 {
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
+	ACharacter* PossessedCharacter = GetCharacter();
 	if (PossessedCharacter == nullptr)
 	{
 		return;
@@ -280,72 +248,6 @@ void ATHPlayerController::MoveRight(float Scale)
 	FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
 	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
-
-void ATHPlayerController::Dodge()
-{
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-
-	// Calculate dodge vector
-	FVector DodgeVector = PossessedCharacter->GetLastMovementInputVector();
-
-	// If velocity is small or zero, use backwards direction
-	if (DodgeVector.SizeSquared() < (SMALL_NUMBER * SMALL_NUMBER))
-	{
-		// Rotate the backward vector by the controller look
-		FRotator NewRotation = FRotator(0.f, ControlRotation.Yaw, 0.f);		
-		DodgeVector = NewRotation.RotateVector(FVector::BackwardVector);
-	}
-	else
-	{
-		// Normalize non-backwards dodge vector
-		DodgeVector.Normalize();
-	}
-
-	if (PossessedCharacter->GetCanDodge())
-	{
-		PossessedCharacter->Dodge(DodgeVector);
-	}
-	else
-	{
-		// Record our input in the input buffer
-		FBufferedInput NewInput;
-		NewInput.ActionType = FBufferedInput::EInputAction::Dodge;
-		NewInput.RecordedInputVector = DodgeVector;
-
-		QueuePlayerInput(NewInput);
-	}
-}
-
-
-
-
-// Actions
-
-void ATHPlayerController::PrimaryAttack()
-{
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-
-	if (PossessedCharacter->GetCanAttack())
-	{
-		PossessedCharacter->PrimaryAttack();
-	}
-	else
-	{
-		FBufferedInput NewInput;
-		NewInput.ActionType = FBufferedInput::EInputAction::PrimaryAttack;
-		
-		QueuePlayerInput(NewInput);
-	}
-}
-
 
 
 
@@ -451,59 +353,15 @@ void ATHPlayerController::SetTarget(ICombatant* NewTarget)
 
 void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
 {
-	if (ThresholdCameraManager == nullptr || ThresholdCameraManager->GetHitShakeModifier() == nullptr)
+	ATHPlayerCameraManager* THCameraManager = GetTHPlayerCameraManager();
+	
+	if (THCameraManager == nullptr || THCameraManager->GetHitShakeModifier() == nullptr)
 	{
 		return;
 	}
 
-	ThresholdCameraManager->ApplyHitShake(Direction, Amplitude, HitShakeDuration, HitShakeCurve);
+	THCameraManager->ApplyHitShake(Direction, Amplitude, HitShakeDuration, HitShakeCurve);
 }
-
-
-
-
-
-// Helper functions
-
-void ATHPlayerController::QueuePlayerInput(FBufferedInput NewInput)
-{
-	NewInput.BufferedTime = GetWorld()->GetRealTimeSeconds();
-
-	if (InputBuffer.IsFull())
-	{
-		InputBuffer.Dequeue();
-	}
-
-	InputBuffer.Enqueue(NewInput);
-}
-
-bool ATHPlayerController::TryConsumePlayerInput(const FBufferedInput* ConsumedInput)
-{
-	ATHCharacter* PossessedCharacter = GetTHCharacter();
-	
-	switch (ConsumedInput->ActionType)
-	{
-	case FBufferedInput::EInputAction::Dodge:
-		if (PossessedCharacter->GetCanDodge())
-		{
-			PossessedCharacter->Dodge(ConsumedInput->RecordedInputVector);
-			return true;
-		}
-		return false;
-	
-	case FBufferedInput::EInputAction::PrimaryAttack:
-		if (PossessedCharacter->GetCanAttack())
-		{
-			PossessedCharacter->PrimaryAttack();
-			return true;
-		}
-		return false;
-
-	default:
-		return false;
-	}
-}
-
 
 
 
@@ -514,6 +372,3 @@ bool ATHPlayerController::FTarget::operator==(const FTarget& OtherTarget) const
 {
 	return TargetActor == OtherTarget.TargetActor;
 }
-
-
-
