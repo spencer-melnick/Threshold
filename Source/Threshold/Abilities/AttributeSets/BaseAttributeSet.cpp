@@ -16,7 +16,8 @@ void UBaseAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 
 	if (Attribute == GetMaxHealthAttribute())
 	{
-		// Limit health in some way by the new max health
+		// Limit health by the new max health
+		LimitAttributeOnMaxChange(Health, GetHealthAttribute(), NewValue);
 	}
 }
 
@@ -76,4 +77,29 @@ void UBaseAttributeSet::OnRep_Defense(const FGameplayAttributeData& OldDefense)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UBaseAttributeSet, Defense, OldDefense)
 }
+
+
+
+
+// Helper functions
+
+void UBaseAttributeSet::LimitAttributeOnMaxChange(FGameplayAttributeData& AttributeData, FGameplayAttribute AttributeProperty, float NewMax) const
+{
+	UAbilitySystemComponent* AbilitySystemComponent = GetOwningAbilitySystemComponent();
+
+	if (!AbilitySystemComponent)
+	{
+		return;
+	}
+	
+	const float CurrentValue = AttributeData.GetCurrentValue();
+	
+	if (CurrentValue > NewMax)
+	{
+		// Subtract from our current value so it's limited by the new max
+		const float DeltaValue = CurrentValue - NewMax;
+		AbilitySystemComponent->ApplyModToAttributeUnsafe(AttributeProperty, EGameplayModOp::Additive, DeltaValue);
+	}
+}
+
 

@@ -61,6 +61,12 @@ public:
 
 	
 protected:
+	// Helper functions
+
+	void LimitAttributeOnMaxChange(FGameplayAttributeData& AttributeData, FGameplayAttribute AttributeProperty, float NewMax) const;
+	
+	
+	
 	// Boilerplate OnRep functions
 
 	UFUNCTION()
