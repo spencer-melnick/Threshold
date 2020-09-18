@@ -8,18 +8,13 @@
 
 void UCombatantSubsystem::RegisterCombatant(ICombatant* NewCombatant)
 {
-    Combatants.AddUnique(TScriptInterface<ICombatant>(Cast<UObject>(NewCombatant)));
+    Combatants.AddUnique(TWeakInterfacePtr<ICombatant>(*NewCombatant));
 }
 
 void UCombatantSubsystem::UnregisterCombatant(ICombatant* RemovedCombatant)
 {
-    Combatants.RemoveAll([RemovedCombatant](TScriptInterface<ICombatant> Combatant)
+    Combatants.RemoveAll([RemovedCombatant](const TWeakInterfacePtr<ICombatant> Combatant)
     {
-        return Combatant == RemovedCombatant;
+        return &(*Combatant) == RemovedCombatant || !Combatant.IsValid();
     });
-}
-
-const TArray<TScriptInterface<ICombatant>>& UCombatantSubsystem::GetCombatants() const
-{
-    return Combatants;   
 }
