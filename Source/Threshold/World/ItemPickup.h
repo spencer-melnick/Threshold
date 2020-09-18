@@ -24,14 +24,17 @@ public:
 	AItemPickup();
 
 
+	// Engine overrides
+
+	void BeginPlay() override;
+	void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+
 	// Interactive object overrides
 
 	virtual bool CanInteract(ABaseCharacter* Character) const override;
-	virtual void OnClientInteract(ABaseCharacter* Character, FPredictionKey& PredictionKey) override;
-	virtual void OnClientInteractionRejected(ABaseCharacter* Character, FPredictionKey& PredictionKey) override;
-	virtual void OnClientInteractionConfirmed(ABaseCharacter* Character, FPredictionKey& PredictionKey) override;
-	virtual void OnServerInteraction(ABaseCharacter* Character) override;
-
+	virtual FVector GetInteractLocation() const override;
+	virtual void OnServerInteract(ABaseCharacter* Character) override;
 
 	
 	// Component names
@@ -39,15 +42,8 @@ public:
 	static FName MeshComponentName;
 
 
-protected:
-	// Helper functions
 
-	void HideObject();
-	void ShowObject();
-	
-	
-	// Array tracking client side interactions that haven't been confirmed yet
-	TArray<int16> PendingPredictionKeys;
+	// Editor properties
 
-	bool bConfirmedServerInteraction = false;
+	
 };

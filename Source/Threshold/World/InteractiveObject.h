@@ -30,16 +30,8 @@ class IInteractiveObject
 
 public:
 	virtual bool CanInteract(ABaseCharacter* Instigator) const { return true; }
-	
-	// Called when the client tries to predictively interact with this actor
-	virtual void OnClientInteract(ABaseCharacter* Character, FPredictionKey& PredictionKey) = 0;
-
-	// Called when a predictive interaction was rejected
-	virtual void OnClientInteractionRejected(ABaseCharacter* Character, FPredictionKey& PredictionKey) = 0;
-
-	// Called when the client has been notified that their interaction was confirmed by the server
-	virtual void OnClientInteractionConfirmed(ABaseCharacter* Character, FPredictionKey& PredictionKey) = 0;
+	virtual FVector GetInteractLocation() const = 0;
 
 	// Called when the server actually runs the interaction
-	virtual void OnServerInteraction(ABaseCharacter* Character) = 0;
+	virtual void OnServerInteract(ABaseCharacter* Character) = 0;
 };
