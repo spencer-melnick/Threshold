@@ -17,7 +17,8 @@ FName AItemPickup::MeshComponentName(TEXT("MeshComponent"));
 
 AItemPickup::AItemPickup()
 {
-	RootComponent = CreateDefaultSubobject<UStaticMeshComponent>(MeshComponentName);
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(MeshComponentName);
+	RootComponent = MeshComponent;
 }
 
 
@@ -52,6 +53,16 @@ bool AItemPickup::CanInteract(ABaseCharacter* Character) const
 FVector AItemPickup::GetInteractLocation() const
 {
 	return GetActorLocation();
+}
+
+void AItemPickup::AttachInteractionIndicator(AActor* Indicator)
+{
+	if (!Indicator)
+	{
+		return;
+	}
+
+	Indicator->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
 
 
