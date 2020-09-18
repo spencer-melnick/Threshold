@@ -4,10 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UObject/WeakInterfacePtr.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "THPlayerController.generated.h"
 
+
+
+// Forward declarations
+
+class ICombatant;
 
 
 /**
@@ -47,7 +53,13 @@ public:
 	void LookUp(float Scale);
 	void Turn(float Scale);
 	void ToggleTarget();
-	void SetTarget(class ICombatant* NewTarget);
+	void SetTarget(TWeakInterfacePtr<ICombatant> NewTarget);
+	
+	void SetTarget(ICombatant* NewTarget)
+	{
+		SetTarget(TWeakInterfacePtr<ICombatant>(*NewTarget));
+	}
+	
 	void NextTarget();
 	void PreviousTarget();
 
@@ -103,7 +115,7 @@ public:
 	// Holds information about potential lockon targets
 	struct FTarget
 	{
-		class ICombatant* TargetActor;
+		TWeakInterfacePtr<ICombatant> Combatant;
 		FVector2D ScreenPosition;
 		float Distance;
 
@@ -137,6 +149,5 @@ private:
 
 	// Camera control members
 
-	UPROPERTY()
-	TScriptInterface<ICombatant> LockonTarget = nullptr;
+	TWeakInterfacePtr<ICombatant> LockonTarget;
 };

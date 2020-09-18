@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Spencer Melnick
 
+// ReSharper disable CppMemberFunctionMayBeConst
 
 #include "THPlayerController.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
@@ -59,7 +60,7 @@ void ATHPlayerController::Tick(float DeltaTime)
 	RotateTowardsTarget(DeltaTime);
 
 	// Try to unfollow our target if it's no longer targetable
-	if (LockonTarget != nullptr && !LockonTarget->GetCanBeTargeted())
+	if (LockonTarget.IsValid() && !LockonTarget->GetCanBeTargeted())
 	{
 		SetTarget(nullptr);
 	}
@@ -108,7 +109,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 		}
 
 		FTarget Target;
-		Target.TargetActor = &*Combatant;
+		Target.Combatant = Combatant;
 
 		// Limit targets by distance to possessed character
 		Target.Distance = FVector::Distance(Combatant->GetTargetLocation(),
@@ -151,7 +152,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 	TArray<FTarget> PotentialTargets = GetLockonTargets();
 	FTarget* FoundTarget = PotentialTargets.FindByPredicate([this](const FTarget& Target)
 	{
-		return (&*LockonTarget) == Target.TargetActor;
+		return LockonTarget == Target.Combatant;
 	});
 
 	FTarget CurrentTarget;
@@ -159,7 +160,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 	if (FoundTarget == nullptr)
 	{
 		// Add current target to full list
-		CurrentTarget.TargetActor = &(*LockonTarget);
+		CurrentTarget.Combatant = LockonTarget;
 		CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
 		CurrentTarget.Distance = FVector::Distance(LockonTarget->GetTargetLocation(),
 			GetCharacter()->GetActorLocation());
@@ -187,14 +188,14 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 {
 	const ABaseCharacter* PossessedCharacter = GetBaseCharacter();
 	
-	if (LockonTarget && PossessedCharacter)
+	if (LockonTarget.IsValid() && PossessedCharacter)
 	{
 		// Calculate pitch and yaw based on distance to target
-		FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetWorldLookLocation();
+		const FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetWorldLookLocation();
 
 		// Rotate towards lockon target
-		FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
-		FRotator NewRotation = FMath::RInterpTo(GetControlRotation(), DesiredRotation, DeltaTime, LockonRotationSpeed);
+		const FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
+		const FRotator NewRotation = FMath::RInterpTo(GetControlRotation(), DesiredRotation, DeltaTime, LockonRotationSpeed);
 		SetControlRotation(NewRotation);
 	}
 }
@@ -207,7 +208,7 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 
 bool ATHPlayerController::GetCameraIsDirectlyControlled()
 {
-	if (LockonTarget != nullptr)
+	if (LockonTarget.IsValid())
 	{
 		return false;
 	}
@@ -231,8 +232,8 @@ void ATHPlayerController::MoveForward(float Scale)
 		return;
 	}
 
-	FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
+	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
+	const FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
 	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
 
@@ -244,8 +245,8 @@ void ATHPlayerController::MoveRight(float Scale)
 		return;
 	}
 	
-	FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
+	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
+	const FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
 	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
 
@@ -275,9 +276,9 @@ void ATHPlayerController::Turn(float Scale)
 
 void ATHPlayerController::ToggleTarget()
 {
-	if (LockonTarget != nullptr)
+	if (LockonTarget.IsValid())
 	{
-		SetTarget(nullptr);
+		SetTarget(TWeakInterfacePtr<ICombatant>());
 		return;
 	}
 	
@@ -285,14 +286,14 @@ void ATHPlayerController::ToggleTarget()
 
 	if (PotentialTargets.Num() != 0)
 	{
-		SetTarget(PotentialTargets[0].TargetActor);
+		SetTarget(PotentialTargets[0].Combatant);
 	}
 }
 
 void ATHPlayerController::NextTarget()
 {
 	// Skip if the player isn't locked on to a target
-	if (LockonTarget == nullptr)
+	if (!LockonTarget.IsValid())
 	{
 		return;
 	}
@@ -302,13 +303,13 @@ void ATHPlayerController::NextTarget()
 	TArray<FTarget> PotentialTargets = GetSortedLockonTargets(CurrentTargetIndex);
 	CurrentTargetIndex = (CurrentTargetIndex + 1) % PotentialTargets.Num();
 	
-	SetTarget(PotentialTargets[CurrentTargetIndex].TargetActor);
+	SetTarget(PotentialTargets[CurrentTargetIndex].Combatant);
 }
 
 void ATHPlayerController::PreviousTarget()
 {
 	// Skip if the player isn't locked on to a target
-	if (LockonTarget == nullptr)
+	if (!LockonTarget.IsValid())
 	{
 		return;
 	}
@@ -325,15 +326,15 @@ void ATHPlayerController::PreviousTarget()
 		CurrentTargetIndex--;
 	}
 	
-	SetTarget(PotentialTargets[CurrentTargetIndex].TargetActor);
+	SetTarget(PotentialTargets[CurrentTargetIndex].Combatant);
 }
 
 
-void ATHPlayerController::SetTarget(ICombatant* NewTarget)
+void ATHPlayerController::SetTarget(TWeakInterfacePtr<ICombatant> NewTarget)
 {
-	LockonTarget = Cast<UObject>(NewTarget);
+	LockonTarget = NewTarget;
 
-	if (LockonTarget == nullptr)
+	if (!LockonTarget.IsValid())
 	{
 		// Detach the target indicator and hide it
 		TargetIndicatorActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -370,5 +371,5 @@ void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
 
 bool ATHPlayerController::FTarget::operator==(const FTarget& OtherTarget) const
 {
-	return TargetActor == OtherTarget.TargetActor;
+	return Combatant == OtherTarget.Combatant;
 }
