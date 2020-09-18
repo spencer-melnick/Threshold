@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayPrediction.h"
 #include "InteractiveObject.generated.h"
 
 
@@ -31,6 +30,7 @@ class IInteractiveObject
 public:
 	virtual bool CanInteract(ABaseCharacter* Instigator) const { return true; }
 	virtual FVector GetInteractLocation() const = 0;
+	virtual void AttachInteractionIndicator(AActor* Indicator);
 
 	// Called when the server actually runs the interaction
 	virtual void OnServerInteract(ABaseCharacter* Character) = 0;

@@ -34,6 +34,7 @@ public:
 
 	virtual bool CanInteract(ABaseCharacter* Character) const override;
 	virtual FVector GetInteractLocation() const override;
+	virtual void AttachInteractionIndicator(AActor* Indicator) override;
 	virtual void OnServerInteract(ABaseCharacter* Character) override;
 
 	
@@ -45,5 +46,8 @@ public:
 
 	// Editor properties
 
-	
+
+private:
+	UPROPERTY(Category=ItemPickup, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	UMeshComponent* MeshComponent;
 };

@@ -14,6 +14,7 @@
 // Forward declarations
 
 class ICombatant;
+class IInteractiveObject;
 
 
 /**
@@ -103,6 +104,7 @@ public:
 	// The actor class for the target indicator
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Targeting")
 	TSubclassOf<AActor> TargetIndicatorClass;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	class UCurveFloat* HitShakeCurve = nullptr;
@@ -110,6 +112,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	float HitShakeDuration = 0.2f;
 	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
+	float MaxInteractionDistance = 100.f;
+	
+	// Actor class for interaction indicator
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Interaction")
+	TSubclassOf<AActor> InteractionIndicatorClass;
 
 	
 	// Holds information about potential lockon targets
@@ -133,6 +142,9 @@ protected:
 	TArray<FTarget> GetSortedLockonTargets(int32& CurrentTargetIndex);
 	void RotateTowardsTarget(float DeltaTime);
 
+	void CheckInteractiveObjects();
+	void SetCurrentInteractiveObject(TWeakInterfacePtr<IInteractiveObject> NewObject);
+
 
 	
 	// Virtual functions
@@ -145,9 +157,17 @@ private:
 	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;
 
+	UPROPERTY()
+	AActor* InteractionIndicatorActor = nullptr;
 
 
 	// Camera control members
 
 	TWeakInterfacePtr<ICombatant> LockonTarget;
+
+
+
+	// Interaction control
+
+	TWeakInterfacePtr<IInteractiveObject> CurrentInteractiveObject;
 };
