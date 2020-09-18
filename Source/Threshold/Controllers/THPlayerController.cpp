@@ -99,10 +99,10 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	const FVector2D ViewportSize(static_cast<float>(ViewportWidth), static_cast<float>(ViewportHeight));
 	
 	// Iterate through all actors
-	for (TScriptInterface<ICombatant> Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
+	for (const TWeakInterfacePtr<ICombatant>& Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
 	{
-		// Only check actors belonging to the appropriate teams
-		if (!Combatant->GetCanBeTargetedBy(TeamClass))
+		// Only check valid actors belonging to the appropriate teams
+		if (!Combatant.IsValid() || !Combatant->GetCanBeTargetedBy(TeamClass))
 		{
 			continue;
 		}
