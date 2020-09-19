@@ -83,6 +83,11 @@ public:
 	{
 		return Cast<ATHPlayerCameraManager>(PlayerCameraManager);
 	}
+
+	TWeakInterfacePtr<IInteractiveObject> GetCurrentInteractiveObject() const
+	{
+		return CurrentInteractiveObject;
+	}
 	
 
 	
