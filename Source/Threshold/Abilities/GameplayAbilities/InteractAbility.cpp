@@ -6,6 +6,7 @@
 #include "Threshold/Abilities/TargetDataTypes.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
+#include "Threshold/Abilities/AbilityFunctionLibrary.h"
 #include "Threshold/Controllers/THPlayerController.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/World/InteractiveObject.h"
@@ -83,29 +84,10 @@ void UInteractAbility::ActivateAbility(
 
 void UInteractAbility::OnClientDataReceived(const FGameplayAbilityTargetDataHandle& Data)
 {
-	// TODO: Add simple function for converting a generic target data handle into the target data with checks
 	// TODO: Check that interactive object is within a reasonable range
-	
-	if (!Data.IsValid(0) || Data.Num() != 1)
-	{
-		// Check to see that we actually got the right amount of valid data
-		UE_LOG(LogThresholdGeneral, Error, TEXT("UInteractAbility received wrong amount of target data from client; expected 1 got %d"), Data.Num());
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
 
-	const FGameplayAbilityTargetData* TargetData = Data.Get(0);
-
-	if (TargetData->GetScriptStruct() != FSingleObjectTargetData::StaticStruct())
-	{
-		// Check if the data type is actually correct before attempting to cast
-		UE_LOG(LogThresholdGeneral, Error, TEXT("UInteractAbility received incorrect data type from client"));
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-	
-	const FSingleObjectTargetData* ObjectData = static_cast<const FSingleObjectTargetData*>(TargetData);
-	if (!ObjectData->Object.IsValid() || !ObjectData->Object->Implements<UInteractiveObject>())
+	const FSingleObjectTargetData* ObjectData = UAbilityFunctionLibrary::ConvertTargetData<FSingleObjectTargetData>(Data);
+	if (!ObjectData || !ObjectData->Object.IsValid() || !ObjectData->Object->Implements<UInteractiveObject>())
 	{
 		UE_LOG(LogThresholdGeneral, Error, TEXT("UInteractAbility received an invalid target object"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
