@@ -42,20 +42,13 @@ void UInteractAbility::ActivateAbility(
 	if (IsForRemoteClient())
 	{
 		// Wait for the target data on the server
-		
 		UAT_ServerWaitForClientTargetData* DataTask = UAT_ServerWaitForClientTargetData::ServerWaitForClientTargetData(this, NAME_None, true);
 		DataTask->ValidData.AddDynamic(this, &UInteractAbility::OnClientDataReceived);
 		DataTask->ReadyForActivation();
 	}
 	else
 	{
-		// Try to get the current object from the player controller
-		TWeakInterfacePtr<IInteractiveObject> TargetObject;
-		const ATHPlayerController* PlayerController = Cast<ATHPlayerController>(ActorInfo->PlayerController);
-		if (PlayerController)
-		{			
-			TargetObject = PlayerController->GetCurrentInteractiveObject();
-		}
+		const TWeakInterfacePtr<IInteractiveObject> TargetObject = GetTargetObject(ActorInfo);
 
 		if (!TargetObject.IsValid())
 		{
@@ -67,7 +60,6 @@ void UInteractAbility::ActivateAbility(
 		if (IsPredictingClient())
 		{
 			// Send target object data on the predicting client
-			
 			FSingleObjectTargetData* ObjectData = new FSingleObjectTargetData();
 			ObjectData->Object = TargetObject.GetObject();
 			FGameplayAbilityTargetDataHandle TargetDataHandle;
@@ -82,10 +74,25 @@ void UInteractAbility::ActivateAbility(
 	}
 }
 
+bool UInteractAbility::CanActivateAbility(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags,
+	FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	// Check if there is a target object before triggering interaction
+	return GetTargetObject(ActorInfo).IsValid();
+}
+
+
 void UInteractAbility::OnClientDataReceived(const FGameplayAbilityTargetDataHandle& Data)
 {
-	// TODO: Check that interactive object is within a reasonable range
-
 	const FSingleObjectTargetData* ObjectData = UAbilityFunctionLibrary::ConvertTargetData<FSingleObjectTargetData>(Data);
 	if (!ObjectData || !ObjectData->Object.IsValid() || !ObjectData->Object->Implements<UInteractiveObject>())
 	{
@@ -94,10 +101,62 @@ void UInteractAbility::OnClientDataReceived(const FGameplayAbilityTargetDataHand
 		return;
 	}
 
-	// Trigger the actual interaction
 	const TWeakInterfacePtr<IInteractiveObject> InteractiveObject(*Cast<IInteractiveObject>(ObjectData->Object));
+
+	// Check if the object is in a reasonable range from the character
+	if (!CheckInteractionRange(InteractiveObject))
+	{
+		if (CurrentActorInfo)
+		{
+			UE_LOG(LogThresholdGeneral, Warning, TEXT("UInteractAbility received a target object out of range from %s"),
+				*GetNameSafe(CurrentActorInfo->PlayerController.Get()));
+		}
+
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+		return;
+	}
+
+	// Trigger the interaction
 	TriggerInteraction(InteractiveObject);
 }
+
+TWeakInterfacePtr<IInteractiveObject> UInteractAbility::GetTargetObject(const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	// Try to get the current object from the player controller
+	const ATHPlayerController* PlayerController = Cast<ATHPlayerController>(ActorInfo->PlayerController);
+	
+	if (PlayerController)
+	{			
+		return PlayerController->GetCurrentInteractiveObject();
+	}
+
+	return TWeakInterfacePtr<IInteractiveObject>();
+}
+
+bool UInteractAbility::CheckInteractionRange(const TWeakInterfacePtr<IInteractiveObject>& InteractiveObject) const
+{
+	if (!CurrentActorInfo)
+	{
+		return false;
+	}
+	
+	const ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(CurrentActorInfo->AvatarActor);
+	const ATHPlayerController* PlayerController = Cast<ATHPlayerController>(CurrentActorInfo->PlayerController);
+
+	if (!BaseCharacter || !PlayerController)
+	{
+		return false;
+	}
+
+	// Use the squared range to speed up computation a little
+	const float StartingRange = PlayerController->MaxInteractionDistance;
+	const float AdditionalRange = IConsoleManager::Get().FindConsoleVariable(TEXT("th.AdditionalInteractionRange"))->GetFloat();
+	const float SquaredRange = FMath::Square(StartingRange + AdditionalRange);
+
+    return (FVector::DistSquared(BaseCharacter->GetActorLocation(), InteractiveObject->GetInteractLocation()) < SquaredRange);
+}
+
+
 
 void UInteractAbility::TriggerInteraction(TWeakInterfacePtr<IInteractiveObject> Object)
 {
