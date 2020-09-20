@@ -86,8 +86,16 @@ bool UInteractAbility::CanActivateAbility(
 		return false;
 	}
 
-	// Check if there is a target object before triggering interaction
-	return GetTargetObject(ActorInfo).IsValid();
+	if (IsLocallyControlled())
+	{
+		// For owner check if there is a target object before triggering interaction
+		return GetTargetObject(ActorInfo).IsValid();
+	}
+	else
+	{
+		// On the server, assume we can interact and check the target later
+		return true;
+	}
 }
 
 
