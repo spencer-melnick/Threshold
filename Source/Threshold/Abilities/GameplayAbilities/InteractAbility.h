@@ -35,6 +35,13 @@ public:
 		const FGameplayAbilityActivationInfo ActivationInfo,
 		const FGameplayEventData* TriggerEventData) override;
 
+	virtual bool CanActivateAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayTagContainer* SourceTags,
+		const FGameplayTagContainer* TargetTags,
+		FGameplayTagContainer* OptionalRelevantTags) const override;
+
 
 protected:
 	// Ability task callbacks
@@ -42,6 +49,12 @@ protected:
 	UFUNCTION()
 	void OnClientDataReceived(const FGameplayAbilityTargetDataHandle& Data);
 
+
+	// Helpers
+
+	TWeakInterfacePtr<IInteractiveObject> GetTargetObject(const FGameplayAbilityActorInfo* ActorInfo) const;
+	bool CheckInteractionRange(const TWeakInterfacePtr<IInteractiveObject>& InteractiveObject) const;
+	
 
 	// Ability execution
 
