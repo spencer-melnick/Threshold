@@ -27,18 +27,21 @@ ATHPlayerController::ATHPlayerController()
 
 void ATHPlayerController::BeginPlay()
 {
-	// Spawn a target indicator actor
-	if (TargetIndicatorClass != nullptr)
+	if (IsLocalController())
 	{
-		TargetIndicatorActor = GetWorld()->SpawnActor(TargetIndicatorClass);
-		TargetIndicatorActor->SetActorHiddenInGame(true);
-	}
+		// Spawn a target indicator actor
+		if (TargetIndicatorClass != nullptr)
+		{
+			TargetIndicatorActor = GetWorld()->SpawnActor(TargetIndicatorClass);
+			TargetIndicatorActor->SetActorHiddenInGame(true);
+		}
 
-	// Spawn an interaction indicator actor
-	if (InteractionIndicatorClass)
-	{
-		InteractionIndicatorActor = GetWorld()->SpawnActor(InteractionIndicatorClass);
-		InteractionIndicatorActor->SetActorHiddenInGame(true);
+		// Spawn an interaction indicator actor
+		if (InteractionIndicatorClass)
+		{
+			InteractionIndicatorActor = GetWorld()->SpawnActor(InteractionIndicatorClass);
+			InteractionIndicatorActor->SetActorHiddenInGame(true);
+		}
 	}
 }
 
@@ -66,15 +69,18 @@ void ATHPlayerController::SetupInputComponent()
 
 void ATHPlayerController::Tick(float DeltaTime)
 {
-	RotateTowardsTarget(DeltaTime);
-
-	// Try to unfollow our target if it's no longer targetable
-	if (LockonTarget.IsValid() && !LockonTarget->GetCanBeTargeted())
+	if (IsLocalController())
 	{
-		SetTarget(nullptr);
-	}
+		RotateTowardsTarget(DeltaTime);
 
-	CheckInteractiveObjects();
+		// Try to unfollow our target if it's no longer targetable
+		if (LockonTarget.IsValid() && !LockonTarget->GetCanBeTargeted())
+		{
+			SetTarget(nullptr);
+		}
+
+		CheckInteractiveObjects();
+	}
 }
 
 void ATHPlayerController::AcknowledgePossession(APawn* P)
