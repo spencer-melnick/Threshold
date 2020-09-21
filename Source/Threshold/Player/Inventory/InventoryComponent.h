@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "InventoryItem.h"
 #include "Components/ActorComponent.h"
 #include "InventoryComponent.generated.h"
 
@@ -18,12 +20,12 @@ struct FInventorySlot
 
 	FInventorySlot() = default;
 
-	FInventorySlot(UClass* InClass, int32 InSize)
-		: ItemClass(InClass), StackSize(InSize)
+	FInventorySlot(TScriptInterface<IInventoryItem> InObject, int32 InSize)
+		: ItemObject(InObject), StackSize(InSize)
 	{};
 
 	UPROPERTY()
-	UClass* ItemClass = nullptr;
+	TScriptInterface<IInventoryItem> ItemObject;
 
 	UPROPERTY()
 	int32 StackSize = 0;
@@ -62,17 +64,17 @@ public:
 	// Adds the item to the inventory. Returns the count of the items added - will be zero if the item cannot be added
 	// due to storage behavior such as a unique item with duplicates already in the inventory, a full item stack, or a
 	// full inventory
-	int32 AddInventoryItem(UClass* ItemClass, int32 Count = 1);
+	int32 AddInventoryItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count = 1);
 
 	// Returns the first inventory slot matching this item class
-	FInventorySlot* FindFirstItemSlot(UClass* ItemClass);
+	FInventorySlot* FindFirstItemSlot(TScriptInterface<IInventoryItem> ItemObject);
 
 	// Returns all inventory slots matching this item class
-	TArray<FInventorySlot*> FindAllItemSlots(UClass* ItemClass);
+	TArray<FInventorySlot*> FindAllItemSlots(TScriptInterface<IInventoryItem> ItemObject);
 
 	// Removes the item from the inventory based on class. Returns the count of items removed from the inventory - will
 	// be zero if no items were removed
-	int32 RemoveInventoryItem(UClass* ItemClass, int32 Count = 1);
+	int32 RemoveInventoryItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count = 1);
 	
 
 	
@@ -94,16 +96,16 @@ protected:
 	// Helper functions
 
 	// Add an item with checks for uniqueness
-	int32 AddUniqueItem(UClass* ItemClass);
+	int32 AddUniqueItem(TScriptInterface<IInventoryItem> ItemObject);
 
 	// Add an item with checks for inventory size
-	int32 AddNewItem(UClass* ItemClass, int32 Count = 1, int32 MaxStackSize = 1);
+	int32 AddNewItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count = 1, int32 MaxStackSize = 1);
 
 	// Add an item with checks for existing stacks
-	int32 AddStackItem(UClass* ItemClass, int32 Count, int32 MaxStackSize);
+	int32 AddStackItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize);
 
 	// Add to stack with checks for uniqueness
-	int32 AddUniqueStackItem(UClass* ItemClass, int32 Count, int32 MaxStackSize);
+	int32 AddUniqueStackItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize);
 	
 
 	
