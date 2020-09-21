@@ -3,6 +3,7 @@
 #include "AbilityFunctionLibrary.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
+#include "Threshold/Threshold.h"
 
 FGameplayEventData UAbilityFunctionLibrary::CreateGameplayEvent(AActor* Instigator, AActor* Target, FGameplayTag EventTag)
 {
@@ -64,4 +65,3 @@ FGameplayCueParameters UAbilityFunctionLibrary::CreateGameplayCue(AActor* Instig
 
 	return CueParameters;
 }
-

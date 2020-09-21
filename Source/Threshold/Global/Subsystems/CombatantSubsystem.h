@@ -4,23 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "UObject/WeakInterfacePtr.h"
 #include "CombatantSubsystem.generated.h"
 
 
+// Forward declarations
 
+class ICombatant;
+
+
+
+/**
+ * Simple subsystem to track combatants
+ */
 UCLASS()
 class UCombatantSubsystem : public UWorldSubsystem
 {
     GENERATED_BODY()
 
 public:
-    void RegisterCombatant(class ICombatant* NewCombatant);
-    
-    void UnregisterCombatant(class ICombatant* RemovedCombatant);
-
-    const TArray<TScriptInterface<class ICombatant>>& GetCombatants() const;
+    void RegisterCombatant(ICombatant* NewCombatant);
+    void UnregisterCombatant(ICombatant* RemovedCombatant);
+    const TArray<TWeakInterfacePtr<ICombatant>>& GetCombatants() const
+    {
+	    return Combatants;
+    };
 
 private:
-    UPROPERTY()
-    TArray<TScriptInterface<class ICombatant>> Combatants;
+    TArray<TWeakInterfacePtr<ICombatant>> Combatants;
 };
