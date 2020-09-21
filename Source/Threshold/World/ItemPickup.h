@@ -46,6 +46,15 @@ public:
 
 	// Editor properties
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
+	FName InventoryItemName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
+	int32 Count = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
+	bool bSinglePickup = true;
+
 
 private:
 	UPROPERTY(Category=ItemPickup, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
