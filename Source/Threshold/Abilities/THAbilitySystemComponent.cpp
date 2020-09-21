@@ -65,6 +65,7 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 	BufferedInput.InputID = InputID;
 
 	bool bAbilityTriggered = false;
+	bool bAnyAbilityBuffered = false;
 	
 	ABILITYLIST_SCOPE_LOCK();
 	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
@@ -107,11 +108,12 @@ void UTHAbilitySystemComponent::AbilityLocalInputPressed(int32 InputID)
 			{
 				// Add our data to the buffer list
 				BufferedInput.Data.Add(Spec.Handle, InputData);
+				bAnyAbilityBuffered = true;
 			}
 		}
 	}
 
-	if (!bAbilityTriggered)
+	if (!bAbilityTriggered && bAnyAbilityBuffered)
 	{
 		// If no ability was triggered, store all of our data in the input buffer
 		BufferInput(MoveTemp(BufferedInput));
