@@ -3,6 +3,7 @@
 #include "CharacterDodge.h"
 #include "GameFramework/Character.h"
 #include "Threshold/Threshold.h"
+#include "Threshold/Abilities/AbilityFunctionLibrary.h"
 #include "Threshold/Abilities/Tasks/AbilityTask_ApplyRootMotionPositionCurve.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
 #include "Threshold/Abilities/AbilityInputTypes.h"
@@ -150,25 +151,13 @@ void UCharacterDodge::ApplyDodgeMotionTask(const FVector Direction)
 
 void UCharacterDodge::OnClientDataReceived(const FGameplayAbilityTargetDataHandle& Data)
 {
-	if (!Data.IsValid(0) || Data.Num() != 1)
+	const FAbilityDirectionalData* DirectionalData = UAbilityFunctionLibrary::ConvertTargetData<FAbilityDirectionalData>(Data);
+	
+	if (!DirectionalData)
 	{
-		// Check to see that we actually got the right amount of valid data
-		UE_LOG(LogTemp, Error, TEXT("UCharacterDodge received wrong amount of target data from client; expected 1 got %d"), Data.Num());
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
-	}
-
-	const FGameplayAbilityTargetData* TargetData = Data.Get(0);
-
-	if (TargetData->GetScriptStruct() != FAbilityDirectionalData::StaticStruct())
-	{
-		// Check if the data type is actually correct before attempting to cast
-		UE_LOG(LogTemp, Error, TEXT("UCharacterDodge received incorrect data type from client"));
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-		return;
 	}
 	
-	const FAbilityDirectionalData* DirectionalData = static_cast<const FAbilityDirectionalData*>(TargetData);
 	ApplyDodgeMotionTask(DirectionalData->Direction);
 }
 

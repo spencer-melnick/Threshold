@@ -29,4 +29,13 @@ bool FIntegralTargetData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOu
 	return true;
 }
 
+bool FSingleObjectTargetData::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+	Ar << Object;
+
+	bOutSuccess = true;
+	return true;
+}
+
+
 
