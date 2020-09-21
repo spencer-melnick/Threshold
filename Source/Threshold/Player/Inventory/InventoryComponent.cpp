@@ -44,52 +44,48 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 // Inventory accessors
 
-int32 UInventoryComponent::AddInventoryItem(UClass* ItemClass, int32 Count)
+int32 UInventoryComponent::AddInventoryItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count)
 {
-	if (!ItemClass || !ItemClass->ImplementsInterface(UInventoryItem::StaticClass()))
+	if (!ItemObject)
 	{
 		UE_LOG(LogThresholdGeneral, Warning, TEXT("Cannot add %s to %s - not a valid InventoryItem"),
-			*GetNameSafe(ItemClass), *GetNameSafe(this))
+			*GetNameSafe(ItemObject.GetObject()), *GetNameSafe(this))
 		return 0;
 	}
 
-	const UObject* ItemObject = ItemClass->GetDefaultObject(true);
-	const IInventoryItem* InventoryItem = Cast<IInventoryItem>(ItemObject);
-	check(ItemObject && InventoryItem);
-
-	switch (InventoryItem->GetStorageBehavior())
+	switch (ItemObject->GetStorageBehavior())
 	{
 		case EInventoryStorageBehavior::Unique:
-			return AddUniqueItem(ItemClass);
+			return AddUniqueItem(ItemObject);
 
 		case EInventoryStorageBehavior::Duplicate:
-			return AddNewItem(ItemClass);
+			return AddNewItem(ItemObject);
 
 		case EInventoryStorageBehavior::Stack:
-			return AddStackItem(ItemClass, Count, InventoryItem->GetMaxStackSize());
+			return AddStackItem(ItemObject, Count, ItemObject->GetMaxStackSize());
 		
 		case EInventoryStorageBehavior::StackUnique:
-			return AddUniqueStackItem(ItemClass, Count, InventoryItem->GetMaxStackSize());
+			return AddUniqueStackItem(ItemObject, Count, ItemObject->GetMaxStackSize());
 	}
 
 	return 0;
 }
 
-FInventorySlot* UInventoryComponent::FindFirstItemSlot(UClass* ItemClass)
+FInventorySlot* UInventoryComponent::FindFirstItemSlot(TScriptInterface<IInventoryItem> ItemObject)
 {
-	return Inventory.FindByPredicate([ItemClass](const FInventorySlot& InventorySlot) -> bool
+	return Inventory.FindByPredicate([ItemObject](const FInventorySlot& InventorySlot) -> bool
 	{
-		return InventorySlot.ItemClass == ItemClass;
+		return InventorySlot.ItemObject == ItemObject;
 	});
 }
 
-TArray<FInventorySlot*> UInventoryComponent::FindAllItemSlots(UClass* ItemClass)
+TArray<FInventorySlot*> UInventoryComponent::FindAllItemSlots(TScriptInterface<IInventoryItem> ItemObject)
 {
 	TArray<FInventorySlot*> FoundSlots;
 
 	for (FInventorySlot& InventorySlot : Inventory)
 	{
-		if (InventorySlot.ItemClass == ItemClass)
+		if (InventorySlot.ItemObject == ItemObject)
 		{
 			FoundSlots.Add(&InventorySlot);
 		}
@@ -98,17 +94,14 @@ TArray<FInventorySlot*> UInventoryComponent::FindAllItemSlots(UClass* ItemClass)
 	return FoundSlots;
 }
 
-int32 UInventoryComponent::RemoveInventoryItem(UClass* ItemClass, int32 Count)
+int32 UInventoryComponent::RemoveInventoryItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count)
 {
 	int32 RemovedCount = 0;
-	const UObject* ItemObject = ItemClass->GetDefaultObject(true);
-	const IInventoryItem* InventoryItem = Cast<IInventoryItem>(ItemObject);
-	check(ItemObject && InventoryItem);
 
 	if (Count <= 1)
 	{
 		// If we're only removing one of an item just get the first slot
-		FInventorySlot* ExistingSlot = FindFirstItemSlot(ItemClass);
+		FInventorySlot* ExistingSlot = FindFirstItemSlot(ItemObject);
 
 		if (!ExistingSlot)
 		{
@@ -122,7 +115,7 @@ int32 UInventoryComponent::RemoveInventoryItem(UClass* ItemClass, int32 Count)
 	else
 	{
 		// If we're removing multiples, we need all slots with the item
-		TArray<FInventorySlot*> ExistingSlots = FindAllItemSlots(ItemClass);
+		TArray<FInventorySlot*> ExistingSlots = FindAllItemSlots(ItemObject);
 
 		for (FInventorySlot* ExistingSlot : ExistingSlots)
 		{
@@ -165,7 +158,7 @@ void UInventoryComponent::OnRep_Inventory()
 
 	for (FInventorySlot& InventorySlot : Inventory)
 	{
-		if (!InventorySlot.ItemClass || InventorySlot.ItemClass->ImplementsInterface(UInventoryItem::StaticClass()))
+		if (!InventorySlot.ItemObject)
 		{
 			bFoundBadSlot = true;
 			break;
@@ -184,9 +177,9 @@ void UInventoryComponent::OnRep_Inventory()
 
 // Helper functions
 
-int32 UInventoryComponent::AddUniqueItem(UClass* ItemClass)
+int32 UInventoryComponent::AddUniqueItem(TScriptInterface<IInventoryItem> ItemObject)
 {
-	FInventorySlot* ExistingSlot = FindFirstItemSlot(ItemClass);
+	FInventorySlot* ExistingSlot = FindFirstItemSlot(ItemObject);
 
 	if (ExistingSlot)
 	{
@@ -195,10 +188,10 @@ int32 UInventoryComponent::AddUniqueItem(UClass* ItemClass)
 	}
 
 	// We can drop into duplicate item behavior if there is no existing item
-	return AddNewItem(ItemClass);
+	return AddNewItem(ItemObject);
 }
 
-int32 UInventoryComponent::AddNewItem(UClass* ItemClass, int32 Count, int32 MaxStackSize)
+int32 UInventoryComponent::AddNewItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize)
 {	
 	if (Inventory.Num() >= MaxInventorySize)
 	{
@@ -215,13 +208,13 @@ int32 UInventoryComponent::AddNewItem(UClass* ItemClass, int32 Count, int32 MaxS
 	}
 
 	// Add the item in a new slot
-	Inventory.Emplace(ItemClass, CountAdded);
+	Inventory.Emplace(ItemObject, CountAdded);
 	return CountAdded;
 }
 
-int32 UInventoryComponent::AddStackItem(UClass* ItemClass, int32 Count, int32 MaxStackSize)
+int32 UInventoryComponent::AddStackItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize)
 {
-	TArray<FInventorySlot*> ExistingSlots = FindAllItemSlots(ItemClass);
+	TArray<FInventorySlot*> ExistingSlots = FindAllItemSlots(ItemObject);
 	int32 TotalCountAdded = 0;
 
 	for (FInventorySlot* ExistingSlot : ExistingSlots)
@@ -239,7 +232,7 @@ int32 UInventoryComponent::AddStackItem(UClass* ItemClass, int32 Count, int32 Ma
 	while (TotalCountAdded < Count)
 	{
 		// Keep adding new stacks until we've added the entire count
-		const int32 NewStackCount = AddNewItem(ItemClass, Count - TotalCountAdded, MaxStackSize);
+		const int32 NewStackCount = AddNewItem(ItemObject, Count - TotalCountAdded, MaxStackSize);
 		
 		if (NewStackCount == 0)
 		{
@@ -254,9 +247,9 @@ int32 UInventoryComponent::AddStackItem(UClass* ItemClass, int32 Count, int32 Ma
 	return TotalCountAdded;
 }
 
-int32 UInventoryComponent::AddUniqueStackItem(UClass* ItemClass, int32 Count, int32 MaxStackSize)
+int32 UInventoryComponent::AddUniqueStackItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize)
 {
-	FInventorySlot* ExistingSlot = FindFirstItemSlot(ItemClass);
+	FInventorySlot* ExistingSlot = FindFirstItemSlot(ItemObject);
 
 	if (ExistingSlot)
 	{
@@ -266,7 +259,7 @@ int32 UInventoryComponent::AddUniqueStackItem(UClass* ItemClass, int32 Count, in
 
 	// Add a new stack slot and return it's size
 	const int32 NewStackSize = FMath::Min(Count, MaxStackSize);
-	Inventory.Emplace(ItemClass, NewStackSize);
+	Inventory.Emplace(ItemObject, NewStackSize);
 	return NewStackSize;
 }
 
