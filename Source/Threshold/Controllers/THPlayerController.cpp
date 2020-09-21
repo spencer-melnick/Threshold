@@ -1,11 +1,14 @@
 // Copyright (c) 2020 Spencer Melnick
 
+// ReSharper disable CppMemberFunctionMayBeConst
 
 #include "THPlayerController.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
+#include "Threshold/Global/Subsystems/InteractionSubsystem.h"
+#include "Threshold/World/InteractiveObject.h"
 #include "EngineUtils.h"
 
 
@@ -24,11 +27,21 @@ ATHPlayerController::ATHPlayerController()
 
 void ATHPlayerController::BeginPlay()
 {
-	// Spawn a target indicator actor
-	if (TargetIndicatorClass != nullptr)
+	if (IsLocalController())
 	{
-		TargetIndicatorActor = GetWorld()->SpawnActor(TargetIndicatorClass);
-		TargetIndicatorActor->SetActorHiddenInGame(true);
+		// Spawn a target indicator actor
+		if (TargetIndicatorClass != nullptr)
+		{
+			TargetIndicatorActor = GetWorld()->SpawnActor(TargetIndicatorClass);
+			TargetIndicatorActor->SetActorHiddenInGame(true);
+		}
+
+		// Spawn an interaction indicator actor
+		if (InteractionIndicatorClass)
+		{
+			InteractionIndicatorActor = GetWorld()->SpawnActor(InteractionIndicatorClass);
+			InteractionIndicatorActor->SetActorHiddenInGame(true);
+		}
 	}
 }
 
@@ -56,12 +69,17 @@ void ATHPlayerController::SetupInputComponent()
 
 void ATHPlayerController::Tick(float DeltaTime)
 {
-	RotateTowardsTarget(DeltaTime);
-
-	// Try to unfollow our target if it's no longer targetable
-	if (LockonTarget != nullptr && !LockonTarget->GetCanBeTargeted())
+	if (IsLocalController())
 	{
-		SetTarget(nullptr);
+		RotateTowardsTarget(DeltaTime);
+
+		// Try to unfollow our target if it's no longer targetable
+		if (LockonTarget.IsValid() && !LockonTarget->GetCanBeTargeted())
+		{
+			SetTarget(nullptr);
+		}
+
+		CheckInteractiveObjects();
 	}
 }
 
@@ -99,16 +117,16 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetLockonTargets()
 	const FVector2D ViewportSize(static_cast<float>(ViewportWidth), static_cast<float>(ViewportHeight));
 	
 	// Iterate through all actors
-	for (TScriptInterface<ICombatant> Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
+	for (const TWeakInterfacePtr<ICombatant>& Combatant : GetWorld()->GetSubsystem<UCombatantSubsystem>()->GetCombatants())
 	{
-		// Only check actors belonging to the appropriate teams
-		if (!Combatant->GetCanBeTargetedBy(TeamClass))
+		// Only check valid actors belonging to the appropriate teams
+		if (!Combatant.IsValid() || !Combatant->GetCanBeTargetedBy(TeamClass))
 		{
 			continue;
 		}
 
 		FTarget Target;
-		Target.TargetActor = &*Combatant;
+		Target.Combatant = Combatant;
 
 		// Limit targets by distance to possessed character
 		Target.Distance = FVector::Distance(Combatant->GetTargetLocation(),
@@ -151,7 +169,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 	TArray<FTarget> PotentialTargets = GetLockonTargets();
 	FTarget* FoundTarget = PotentialTargets.FindByPredicate([this](const FTarget& Target)
 	{
-		return (&*LockonTarget) == Target.TargetActor;
+		return LockonTarget == Target.Combatant;
 	});
 
 	FTarget CurrentTarget;
@@ -159,7 +177,7 @@ TArray<ATHPlayerController::FTarget> ATHPlayerController::GetSortedLockonTargets
 	if (FoundTarget == nullptr)
 	{
 		// Add current target to full list
-		CurrentTarget.TargetActor = &(*LockonTarget);
+		CurrentTarget.Combatant = LockonTarget;
 		CurrentTarget.ScreenPosition = FVector2D::ZeroVector;
 		CurrentTarget.Distance = FVector::Distance(LockonTarget->GetTargetLocation(),
 			GetCharacter()->GetActorLocation());
@@ -187,15 +205,88 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 {
 	const ABaseCharacter* PossessedCharacter = GetBaseCharacter();
 	
-	if (LockonTarget && PossessedCharacter)
+	if (LockonTarget.IsValid() && PossessedCharacter)
 	{
 		// Calculate pitch and yaw based on distance to target
-		FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetWorldLookLocation();
+		const FVector LookVector = LockonTarget->GetTargetLocation() - PossessedCharacter->GetWorldLookLocation();
 
 		// Rotate towards lockon target
-		FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
-		FRotator NewRotation = FMath::RInterpTo(GetControlRotation(), DesiredRotation, DeltaTime, LockonRotationSpeed);
+		const FRotator DesiredRotation = LookVector.Rotation() + LockonOffsetRotation;
+		const FRotator NewRotation = FMath::RInterpTo(GetControlRotation(), DesiredRotation, DeltaTime, LockonRotationSpeed);
 		SetControlRotation(NewRotation);
+	}
+}
+
+void ATHPlayerController::CheckInteractiveObjects()
+{
+	UInteractionSubsystem* InteractionSubsystem = GetWorld()->GetSubsystem<UInteractionSubsystem>();
+	ABaseCharacter* BaseCharacter = GetBaseCharacter();
+
+	if (!InteractionSubsystem || !BaseCharacter)
+	{
+		// Quick check for our character and interaction subsystem
+		return;
+	}
+
+	float ClosestDistanceSquared = 0.f;
+	TWeakInterfacePtr<IInteractiveObject> ClosestObject;
+
+	for (const TWeakInterfacePtr<IInteractiveObject>& InteractiveObject : InteractionSubsystem->GetObjects())
+	{
+		if (!InteractiveObject.IsValid() || !InteractiveObject->CanInteract(GetBaseCharacter()))
+		{
+			// Skip invalid objects (we need to check since these are weak pointers) and objects with interaction disabled
+			continue;
+		}
+
+		// Use squared distance to speed up calculations a little bit
+		const float DistanceSquared = (BaseCharacter->GetActorLocation() - InteractiveObject->GetInteractLocation()).SizeSquared();
+
+		// We are always the closest if no other object has been found yet
+		const bool bInRange = DistanceSquared < (MaxInteractionDistance * MaxInteractionDistance);
+		const bool bIsClosest = !ClosestObject.IsValid() || DistanceSquared < ClosestDistanceSquared;
+
+		if (bInRange && bIsClosest)
+		{
+			ClosestDistanceSquared = DistanceSquared;
+			ClosestObject = InteractiveObject;
+		}
+	}
+
+	if (ClosestObject != CurrentInteractiveObject)
+	{
+		// If we changed what the closest interactive object is (even if the new closest interactive object is null)
+		SetCurrentInteractiveObject(ClosestObject);
+	}
+}
+
+void ATHPlayerController::SetCurrentInteractiveObject(TWeakInterfacePtr<IInteractiveObject> NewObject)
+{
+	if (NewObject == CurrentInteractiveObject)
+	{
+		// Early exit if the new interactive object didn't change
+		return;
+	}
+
+	CurrentInteractiveObject = NewObject;
+
+	if (!InteractionIndicatorActor)
+	{
+		// If we don't have an indicator, skip the indicator logic
+		return;
+	}
+
+	if (CurrentInteractiveObject.IsValid())
+	{
+		// If our new interface is valid, attach it to our interactive object and show it
+		CurrentInteractiveObject->AttachInteractionIndicator(InteractionIndicatorActor);
+		InteractionIndicatorActor->SetActorHiddenInGame(false);
+	}
+	else
+	{
+		// Otherwise detach the indicator and hide it
+		InteractionIndicatorActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		InteractionIndicatorActor->SetActorHiddenInGame(true);
 	}
 }
 
@@ -207,7 +298,7 @@ void ATHPlayerController::RotateTowardsTarget(float DeltaTime)
 
 bool ATHPlayerController::GetCameraIsDirectlyControlled()
 {
-	if (LockonTarget != nullptr)
+	if (LockonTarget.IsValid())
 	{
 		return false;
 	}
@@ -231,8 +322,8 @@ void ATHPlayerController::MoveForward(float Scale)
 		return;
 	}
 
-	FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
+	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
+	const FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
 	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
 
@@ -244,8 +335,8 @@ void ATHPlayerController::MoveRight(float Scale)
 		return;
 	}
 	
-	FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
+	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
+	const FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
 	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
 }
 
@@ -275,9 +366,9 @@ void ATHPlayerController::Turn(float Scale)
 
 void ATHPlayerController::ToggleTarget()
 {
-	if (LockonTarget != nullptr)
+	if (LockonTarget.IsValid())
 	{
-		SetTarget(nullptr);
+		SetTarget(TWeakInterfacePtr<ICombatant>());
 		return;
 	}
 	
@@ -285,14 +376,14 @@ void ATHPlayerController::ToggleTarget()
 
 	if (PotentialTargets.Num() != 0)
 	{
-		SetTarget(PotentialTargets[0].TargetActor);
+		SetTarget(PotentialTargets[0].Combatant);
 	}
 }
 
 void ATHPlayerController::NextTarget()
 {
 	// Skip if the player isn't locked on to a target
-	if (LockonTarget == nullptr)
+	if (!LockonTarget.IsValid())
 	{
 		return;
 	}
@@ -302,13 +393,13 @@ void ATHPlayerController::NextTarget()
 	TArray<FTarget> PotentialTargets = GetSortedLockonTargets(CurrentTargetIndex);
 	CurrentTargetIndex = (CurrentTargetIndex + 1) % PotentialTargets.Num();
 	
-	SetTarget(PotentialTargets[CurrentTargetIndex].TargetActor);
+	SetTarget(PotentialTargets[CurrentTargetIndex].Combatant);
 }
 
 void ATHPlayerController::PreviousTarget()
 {
 	// Skip if the player isn't locked on to a target
-	if (LockonTarget == nullptr)
+	if (!LockonTarget.IsValid())
 	{
 		return;
 	}
@@ -325,15 +416,15 @@ void ATHPlayerController::PreviousTarget()
 		CurrentTargetIndex--;
 	}
 	
-	SetTarget(PotentialTargets[CurrentTargetIndex].TargetActor);
+	SetTarget(PotentialTargets[CurrentTargetIndex].Combatant);
 }
 
 
-void ATHPlayerController::SetTarget(ICombatant* NewTarget)
+void ATHPlayerController::SetTarget(TWeakInterfacePtr<ICombatant> NewTarget)
 {
-	LockonTarget = Cast<UObject>(NewTarget);
+	LockonTarget = NewTarget;
 
-	if (LockonTarget == nullptr)
+	if (!LockonTarget.IsValid())
 	{
 		// Detach the target indicator and hide it
 		TargetIndicatorActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -370,5 +461,5 @@ void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
 
 bool ATHPlayerController::FTarget::operator==(const FTarget& OtherTarget) const
 {
-	return TargetActor == OtherTarget.TargetActor;
+	return Combatant == OtherTarget.Combatant;
 }

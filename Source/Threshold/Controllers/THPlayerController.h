@@ -4,10 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "UObject/WeakInterfacePtr.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "THPlayerController.generated.h"
 
+
+
+// Forward declarations
+
+class ICombatant;
+class IInteractiveObject;
 
 
 /**
@@ -47,7 +54,13 @@ public:
 	void LookUp(float Scale);
 	void Turn(float Scale);
 	void ToggleTarget();
-	void SetTarget(class ICombatant* NewTarget);
+	void SetTarget(TWeakInterfacePtr<ICombatant> NewTarget);
+	
+	void SetTarget(ICombatant* NewTarget)
+	{
+		SetTarget(TWeakInterfacePtr<ICombatant>(*NewTarget));
+	}
+	
 	void NextTarget();
 	void PreviousTarget();
 
@@ -70,6 +83,11 @@ public:
 	{
 		return Cast<ATHPlayerCameraManager>(PlayerCameraManager);
 	}
+
+	TWeakInterfacePtr<IInteractiveObject> GetCurrentInteractiveObject() const
+	{
+		return CurrentInteractiveObject;
+	}
 	
 
 	
@@ -91,6 +109,7 @@ public:
 	// The actor class for the target indicator
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Targeting")
 	TSubclassOf<AActor> TargetIndicatorClass;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	class UCurveFloat* HitShakeCurve = nullptr;
@@ -99,11 +118,18 @@ public:
 	float HitShakeDuration = 0.2f;
 	
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Interaction")
+	float MaxInteractionDistance = 100.f;
+	
+	// Actor class for interaction indicator
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Interaction")
+	TSubclassOf<AActor> InteractionIndicatorClass;
+
 	
 	// Holds information about potential lockon targets
 	struct FTarget
 	{
-		class ICombatant* TargetActor;
+		TWeakInterfacePtr<ICombatant> Combatant;
 		FVector2D ScreenPosition;
 		float Distance;
 
@@ -121,6 +147,9 @@ protected:
 	TArray<FTarget> GetSortedLockonTargets(int32& CurrentTargetIndex);
 	void RotateTowardsTarget(float DeltaTime);
 
+	void CheckInteractiveObjects();
+	void SetCurrentInteractiveObject(TWeakInterfacePtr<IInteractiveObject> NewObject);
+
 
 	
 	// Virtual functions
@@ -133,10 +162,17 @@ private:
 	UPROPERTY()
 	AActor* TargetIndicatorActor = nullptr;
 
+	UPROPERTY()
+	AActor* InteractionIndicatorActor = nullptr;
 
 
 	// Camera control members
 
-	UPROPERTY()
-	TScriptInterface<ICombatant> LockonTarget = nullptr;
+	TWeakInterfacePtr<ICombatant> LockonTarget;
+
+
+
+	// Interaction control
+
+	TWeakInterfacePtr<IInteractiveObject> CurrentInteractiveObject;
 };

@@ -111,6 +111,32 @@ struct FIntegralTargetData : public FGameplayAbilityTargetData
 
 
 
+/**
+ * Target data that holds a single target - may not be an actor, but any UObject type
+ */
+USTRUCT()
+struct FSingleObjectTargetData : public FGameplayAbilityTargetData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TWeakObjectPtr<UObject> Object;
+
+	virtual UScriptStruct* GetScriptStruct() const override
+	{
+		return FSingleObjectTargetData::StaticStruct();
+	}
+
+	virtual FString ToString() const override
+	{
+		return TEXT("FSingleObjectTargetData");
+	}
+
+	bool NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess);
+};
+
+
+
 
 // Type traits to allow for proper network serialization
 
@@ -140,4 +166,13 @@ struct TStructOpsTypeTraits<FIntegralTargetData> : public TStructOpsTypeTraitsBa
 	{
 		WithNetSerializer = true
     };
+};
+
+template<>
+struct TStructOpsTypeTraits<FSingleObjectTargetData> : public TStructOpsTypeTraitsBase2<FSingleObjectTargetData>
+{
+	enum
+	{
+		WithNetSerializer = true
+	};
 };
