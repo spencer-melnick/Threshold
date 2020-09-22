@@ -27,10 +27,6 @@ public:
 	virtual TSoftClassPtr<AActor> GetPreviewActorClass() const override { return PreviewActorClass; };
 
 
-	// Engine overrides
-
-	virtual bool IsNameStableForNetworking() const override { return true; }
-
 private:
 	EInventoryStorageBehavior StorageBehavior;
 	int32 MaxStackSize;

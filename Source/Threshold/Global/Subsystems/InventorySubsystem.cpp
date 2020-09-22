@@ -52,7 +52,7 @@ void UInventorySubsystem::LoadTableItems()
 			const FInventoryItemRow* RowData = reinterpret_cast<FInventoryItemRow*>(Row.Value);
 			const FName RowName = Row.Key;
 
-			if (InventoryTableItems.Contains(RowName))
+			if (InventoryTableItems.Contains(RowName.ToString()))
 			{
 				// Skip objects with the same name
 				UE_LOG(LogThresholdGeneral, Warning, TEXT("Duplicate inventory item %s found in table %s - skipping"),
@@ -68,7 +68,7 @@ void UInventorySubsystem::LoadTableItems()
 			NewItem->PreviewActorClass = RowData->PreviewActorClass;
 
 			// Add the item to the list
-			InventoryTableItems.Add(RowName, NewItem);
+			InventoryTableItems.Add(RowName.ToString(), TStrongObjectPtr<UInventoryTableItem>(NewItem));
 		}
 	}
 

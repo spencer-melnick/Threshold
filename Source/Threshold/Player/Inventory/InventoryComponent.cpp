@@ -3,7 +3,9 @@
 #include "InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "InventoryItem.h"
+#include "Engine/GameEngine.h"
 #include "Threshold/Threshold.h"
+#include "Threshold/Global/Subsystems/InventorySubsystem.h"
 
 
 // FInventorySlot
@@ -16,6 +18,37 @@ int32 FInventorySlot::AddToStack(int32 Count, int32 MaxStackSize)
 
 	// Return the amount we actually added
 	return StackSize - StartingStackSize;
+}
+
+bool FInventorySlot::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
+{
+	uint32 ItemNameHash;
+	
+	Ar << StackSize;
+	Ar << ItemNameHash;
+
+	// Try to get the inventory subsystem directly from the game engine
+	// This is a bit unsafe, but it should always be valid when the game is running
+	UGameEngine* Engine = Cast<UGameEngine>(GEngine);
+	UInventorySubsystem* InventorySubsystem = nullptr;
+
+	if (Engine)
+	{
+		InventorySubsystem = Engine->GameInstance->GetSubsystem<UInventorySubsystem>();
+	}
+
+	if (!InventorySubsystem)
+	{
+		bOutSuccess = false;
+		UE_LOG(LogThresholdGeneral, Error, TEXT("GameEngine is not valid - You cannot net serialize inventory slots outside of play mode"))
+		return false;
+	}
+
+
+	if (Ar.IsLoading())
+	{
+		InventorySubsystem->GetItemByName()
+	}
 }
 
 

@@ -11,16 +11,20 @@
 UENUM()
 enum class EInventoryStorageBehavior : uint8
 {
-	Unique,			// Only one of this item can be present in the player's inventory at a time
+					// Only one of this item can be present in the player's inventory at a time
+	Unique,
 	
-	Duplicate,		// Multiples of this item can be present in the player's inventory, but they will not appear as a stack
+					// Multiples of this item can be present in the player's inventory, but they will not appear as a stack
 					// Useful for items that the player can have multiples of, but may have unique properties, such as
 					// different stat bonuses, effect amounts, etc.
+	Duplicate,		
 
-	Stack,			// Multiples of this item will be added to the inventory as a stack.
+					// Multiples of this item will be added to the inventory as a stack.
 					// Useful for generic items that the player will have a lot of (crafting components, simple potions, etc.)
+	Stack,			
 
-	StackUnique		// Same as stack, but only one stack can be present in the player's inventory
+					// Same as stack, but only one stack can be present in the player's inventory
+	StackUnique		
 };
 
 

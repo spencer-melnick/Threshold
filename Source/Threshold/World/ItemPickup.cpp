@@ -81,7 +81,7 @@ void AItemPickup::OnServerInteract(ABaseCharacter* Character)
 	const TScriptInterface<IInventoryItem> InventoryItem(Cast<UObject>(InventorySubsystem->GetItemByName(InventoryItemName)));
 	if (!InventoryItem)
 	{
-		UE_LOG(LogThresholdGeneral, Warning, TEXT("%s is not a valid item name"), *InventoryItemName.ToString())
+		UE_LOG(LogThresholdGeneral, Warning, TEXT("%s is not a valid item name"), *InventoryItemName)
 		return;
 	}
 
