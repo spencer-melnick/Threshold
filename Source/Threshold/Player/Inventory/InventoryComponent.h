@@ -20,8 +20,8 @@ struct FInventorySlot
 
 	FInventorySlot() = default;
 
-	FInventorySlot(TScriptInterface<IInventoryItem> InObject, int32 InSize, UObject* InOuter)
-		: ItemObject(InObject), StackSize(InSize), Outer(InOuter)
+	FInventorySlot(TScriptInterface<IInventoryItem> InObject, int32 InSize)
+		: ItemObject(InObject), StackSize(InSize)
 	{};
 
 	UPROPERTY()
@@ -30,8 +30,9 @@ struct FInventorySlot
 	UPROPERTY()
 	int32 StackSize = 0;
 
+	// Used for replicating table items via the inventory subsystem
 	UPROPERTY()
-	UObject* Outer;
+	uint32 ItemId = 0;
 
 
 	

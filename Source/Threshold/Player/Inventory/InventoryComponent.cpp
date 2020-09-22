@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Global/Subsystems/InventorySubsystem.h"
+#include "Threshold/Player/Inventory/Items/InventoryTableItem.h"
 
 
 // FInventorySlot
@@ -22,35 +23,57 @@ int32 FInventorySlot::AddToStack(int32 Count, int32 MaxStackSize)
 
 bool FInventorySlot::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 {
-	uint32 ItemId;
+	bool bIncludeId = false;
+	UClass* ItemClass = nullptr;
 
 	if (Ar.IsSaving())
 	{
-		// Generate the hash of our item name
-		ItemId = UInventorySubsystem::HashName(ItemObject.GetObject()->GetFName());
-	}
-	
-	Ar << StackSize;
-	Ar << ItemId;
-	Ar << Outer;
-
-	if (Ar.IsLoading())
-	{
-		UInventorySubsystem* InventorySubsystem = nullptr;
-
-		if (Outer)
+		// Check for a valid object
+		if (!ItemObject)
 		{
-			InventorySubsystem = UGameplayStatics::GetGameInstance(Outer)->GetSubsystem<UInventorySubsystem>();
-		}
-
-		if (!InventorySubsystem)
-		{
+			UE_LOG(LogThresholdGeneral, Error, TEXT("Cannot net serialize inventory slot with no valid object"))
 			bOutSuccess = false;
-			UE_LOG(LogThresholdGeneral, Error, TEXT("GameEngine is not valid - You cannot net serialize inventory slots outside of play mode"))
 			return false;
 		}
 
-		ItemObject = InventorySubsystem->GetItemById(ItemId);
+		// Get our item class
+		ItemClass = ItemObject.GetObject()->GetClass();
+
+		if (ItemClass == UInventoryTableItem::StaticClass())
+		{
+			// Generate the hash of our item name
+			bIncludeId = true;
+			ItemId = UInventorySubsystem::HashName(ItemObject.GetObject()->GetFName());
+		}
+	}
+
+	// (De)serialize the stack size and item class
+	Ar << StackSize;
+	Ar << ItemClass;
+
+	if (Ar.IsLoading())
+	{
+		if (!ItemClass || !ItemClass->ImplementsInterface(UInventoryItem::StaticClass()))
+		{
+			UE_LOG(LogThresholdGeneral, Error, TEXT("Invalid object class when net deserializing inventory slot"))
+			bOutSuccess = false;
+			return false;
+		}
+
+		// Create the item object from the CDO
+		ItemObject = TScriptInterface<IInventoryItem>(ItemClass->GetDefaultObject());
+
+		if (ItemClass == UInventoryTableItem::StaticClass())
+		{
+			// If the item class is a table item, we should also receive the ID
+			bIncludeId = true;
+		}
+	}
+
+	if (bIncludeId)
+	{
+		// If we generated or are expecting an item ID, (de)serialize it here
+		Ar << ItemId;
 	}
 
 	bOutSuccess = true;
@@ -191,23 +214,21 @@ int32 UInventoryComponent::RemoveInventoryItem(TScriptInterface<IInventoryItem> 
 
 void UInventoryComponent::OnRep_Inventory()
 {
-	// Verify that all inventory items are valid objects
-
-	bool bFoundBadSlot = false;
-
 	for (FInventorySlot& InventorySlot : Inventory)
 	{
 		if (!InventorySlot.ItemObject)
 		{
-			bFoundBadSlot = true;
-			break;
+			continue;
 		}
-	}
 
-	if (bFoundBadSlot)
-	{
-		UE_LOG(LogThresholdGeneral, Error, TEXT("Received bad item class on inventory replication"))
-		// TODO: Exit here!
+		if (InventorySlot.ItemObject.GetObject()->GetClass() == UInventoryTableItem::StaticClass())
+		{
+			UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
+			UInventorySubsystem* InventorySubsystem = GameInstance->GetSubsystem<UInventorySubsystem>();
+
+			// Load the item from the inventory subsystem
+			InventorySlot.ItemObject = InventorySubsystem->GetItemById(InventorySlot.ItemId);
+		}
 	}
 }
 
@@ -247,7 +268,7 @@ int32 UInventoryComponent::AddNewItem(TScriptInterface<IInventoryItem> ItemObjec
 	}
 
 	// Add the item in a new slot
-	Inventory.Emplace(ItemObject, CountAdded, this);
+	Inventory.Emplace(ItemObject, CountAdded);
 	return CountAdded;
 }
 
@@ -298,7 +319,7 @@ int32 UInventoryComponent::AddUniqueStackItem(TScriptInterface<IInventoryItem> I
 
 	// Add a new stack slot and return it's size
 	const int32 NewStackSize = FMath::Min(Count, MaxStackSize);
-	Inventory.Emplace(ItemObject, NewStackSize, this);
+	Inventory.Emplace(ItemObject, NewStackSize);
 	return NewStackSize;
 }
 
