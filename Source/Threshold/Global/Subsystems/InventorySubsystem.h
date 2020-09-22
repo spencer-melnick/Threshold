@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Threshold/Player/Inventory/InventoryItem.h"
 #include "UObject/StrongObjectPtr.h"
 
 #include "InventorySubsystem.generated.h"
@@ -13,38 +14,6 @@
 
 class UInventoryTableItem;
 
-
-/**
- * Custom map function that allows hashing FNames via their string equivalent, since normal FName hashing does
- * not match across the network or different platforms.
- */
-template <typename ValueType>
-struct TItemSubsystemKeyFuncs : public BaseKeyFuncs<TPair<FString, ValueType>, FString>
-{
-private:
-	typedef BaseKeyFuncs<TPair<FString, ValueType>, FString> Super;
-
-public:
-	typedef typename Super::ElementInitType ElementInitType;
-	typedef typename Super::KeyInitType KeyInitType;
-
-	static KeyInitType GetSetKey(ElementInitType Element)
-	{
-		return Element.Key;
-	}
-
-	static bool Matches(KeyInitType A, KeyInitType B)
-	{
-		return A == B;
-	}
-
-	static uint32 GetKeyHash(KeyInitType Key)
-	{
-		// Convert the string to a UTF8 string so that endianness doesn't matter
-		const FTCHARToUTF8 KeyUtf8(*Key);
-		return CityHash32(KeyUtf8.Get(), KeyUtf8.Length());
-	}
-};
 
 
 /**
@@ -61,21 +30,9 @@ public:
 
 	// Accessors
 
-	UInventoryTableItem* GetItemByName(FString ItemName)
-	{
-		TStrongObjectPtr<UInventoryTableItem>* FindResult = InventoryTableItems.Find(ItemName);
-		if (!FindResult)
-		{
-			return nullptr;
-		}
-
-		return FindResult->Get();
-	}
-
-	UInventoryTableItem* GetItemByHash(uint32 Hash)
-	{
-		TStrongObjectPtr<UInventoryTableItem>* FindResult = InventoryTableItems.FindByHash(Hash, );
-	}
+	TScriptInterface<IInventoryItem> GetItemByName(FName Name);
+	TScriptInterface<IInventoryItem> GetItemById(uint32 Id);
+	static uint32 HashName(FName Name);
 
 
 protected:
@@ -88,5 +45,6 @@ private:
 	UPROPERTY(Config)
 	TArray<FString> InventoryTablePaths;
 
-	TMap<FString, TStrongObjectPtr<UInventoryTableItem>, FDefaultSetAllocator, TItemSubsystemKeyFuncs<TStrongObjectPtr<UInventoryTableItem>>> InventoryTableItems;
+	UPROPERTY()
+	TMap<uint32, TScriptInterface<IInventoryItem>> InventoryTableItems;
 };

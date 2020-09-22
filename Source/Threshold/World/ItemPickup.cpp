@@ -78,10 +78,10 @@ void AItemPickup::OnServerInteract(ABaseCharacter* Character)
 	// Load the item from the inventory subsystem
 	UInventorySubsystem* InventorySubsystem = GetGameInstance()->GetSubsystem<UInventorySubsystem>();
 	check(InventorySubsystem);
-	const TScriptInterface<IInventoryItem> InventoryItem(Cast<UObject>(InventorySubsystem->GetItemByName(InventoryItemName)));
+	const TScriptInterface<IInventoryItem> InventoryItem = InventorySubsystem->GetItemByName(InventoryItemName);
 	if (!InventoryItem)
 	{
-		UE_LOG(LogThresholdGeneral, Warning, TEXT("%s is not a valid item name"), *InventoryItemName)
+		UE_LOG(LogThresholdGeneral, Warning, TEXT("%s is not a valid item name"), *InventoryItemName.ToString())
 		return;
 	}
 
