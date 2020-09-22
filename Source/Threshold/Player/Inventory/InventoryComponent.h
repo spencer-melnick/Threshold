@@ -36,6 +36,21 @@ struct FInventorySlot
 	
 	// Add count number of items to the stack. Returns the actual number added, limited by the stack size
 	int32 AddToStack(int32 Count, int32 MaxStackSize);
+
+
+	// Network replication
+	
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+};
+
+// Enable network serialization of inventory slots
+template<>
+struct TStructOpsTypeTraits<FInventorySlot> : public TStructOpsTypeTraitsBase2<FInventorySlot>
+{
+	enum
+	{
+		WithNetSerializer = true
+    };
 };
 
 
