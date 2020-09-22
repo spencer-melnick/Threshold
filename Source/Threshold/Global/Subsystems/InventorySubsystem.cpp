@@ -16,6 +16,35 @@ void UInventorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 
 
+// Accessors
+
+TScriptInterface<IInventoryItem> UInventorySubsystem::GetItemByName(FName Name)
+{
+	return GetItemById(HashName(Name));
+}
+
+
+TScriptInterface<IInventoryItem> UInventorySubsystem::GetItemById(uint32 Id)
+{
+	TScriptInterface<IInventoryItem>* InventoryItem = InventoryTableItems.Find(Id);
+
+	if (!InventoryItem)
+	{
+		return TScriptInterface<IInventoryItem>();
+	}
+
+	return *InventoryItem;
+}
+
+uint32 UInventorySubsystem::HashName(FName Name)
+{
+	// Convert the name to a UTF8 string so that endianness doesn't matter
+	const FTCHARToUTF8 StringUtf8(*Name.ToString());
+	return CityHash32(StringUtf8.Get(), StringUtf8.Length());
+}
+
+
+
 // Helper functions
 
 void UInventorySubsystem::LoadTableItems()
@@ -51,8 +80,9 @@ void UInventorySubsystem::LoadTableItems()
 		{
 			const FInventoryItemRow* RowData = reinterpret_cast<FInventoryItemRow*>(Row.Value);
 			const FName RowName = Row.Key;
+			const uint32 ItemId = HashName(RowName);
 
-			if (InventoryTableItems.Contains(RowName.ToString()))
+			if (InventoryTableItems.Contains(ItemId))
 			{
 				// Skip objects with the same name
 				UE_LOG(LogThresholdGeneral, Warning, TEXT("Duplicate inventory item %s found in table %s - skipping"),
@@ -68,10 +98,9 @@ void UInventorySubsystem::LoadTableItems()
 			NewItem->PreviewActorClass = RowData->PreviewActorClass;
 
 			// Add the item to the list
-			InventoryTableItems.Add(RowName.ToString(), TStrongObjectPtr<UInventoryTableItem>(NewItem));
+			InventoryTableItems.Add(ItemId, TScriptInterface<IInventoryItem>(Cast<UObject>(NewItem)));
 		}
 	}
 
 	UE_LOG(LogThresholdGeneral, Display, TEXT("Loaded %d inventory items from tables"), InventoryTableItems.Num())
 }
-

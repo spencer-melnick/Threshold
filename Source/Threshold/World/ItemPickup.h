@@ -47,7 +47,7 @@ public:
 	// Editor properties
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
-	FString InventoryItemName;
+	FName InventoryItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	int32 Count = 1;

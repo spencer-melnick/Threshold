@@ -20,8 +20,8 @@ struct FInventorySlot
 
 	FInventorySlot() = default;
 
-	FInventorySlot(TScriptInterface<IInventoryItem> InObject, int32 InSize)
-		: ItemObject(InObject), StackSize(InSize)
+	FInventorySlot(TScriptInterface<IInventoryItem> InObject, int32 InSize, UObject* InOuter)
+		: ItemObject(InObject), StackSize(InSize), Outer(InOuter)
 	{};
 
 	UPROPERTY()
@@ -29,6 +29,9 @@ struct FInventorySlot
 
 	UPROPERTY()
 	int32 StackSize = 0;
+
+	UPROPERTY()
+	UObject* Outer;
 
 
 	
