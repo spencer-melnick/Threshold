@@ -32,6 +32,8 @@ AItemPickup::AItemPickup()
 
 void AItemPickup::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	GetWorld()->GetSubsystem<UInteractionSubsystem>()->RegisterObject(this);
 }
 
