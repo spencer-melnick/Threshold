@@ -13,7 +13,7 @@
 /**
  * Struct that provides a simple handle for an inventory item. Stores information such as the stack size
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FInventorySlot
 {
 	GENERATED_BODY()
@@ -24,10 +24,10 @@ struct FInventorySlot
 		: ItemObject(InObject), StackSize(InSize)
 	{};
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TScriptInterface<IInventoryItem> ItemObject;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 StackSize = 0;
 
 	// Used for replicating table items via the inventory subsystem
@@ -129,6 +129,6 @@ protected:
 
 	
 private:
-	UPROPERTY(ReplicatedUsing = OnRep_Inventory)
+	UPROPERTY(ReplicatedUsing = OnRep_Inventory, VisibleAnywhere)
 	TArray<FInventorySlot> Inventory;
 };
