@@ -49,6 +49,8 @@ struct FInventoryTableItem : public FInventoryItem
 	virtual bool CanHaveDuplicates() const override;
 	virtual bool CanStack() const override;
 	virtual FGameplayTagContainer GetGameplayTags() override;
+	virtual TSoftClassPtr<AActor> GetPreviewActorClass() override;
+	virtual bool IsValid() const override { return GetRow() != nullptr; }
 
 
 	// Network overrides
