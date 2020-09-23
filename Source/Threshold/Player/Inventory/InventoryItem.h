@@ -33,6 +33,8 @@ struct FInventoryItem
 	// Returns the class of the actor used to preview this item in the inventory viewport
 	virtual TSoftClassPtr<AActor> GetPreviewActorClass() { return TSoftClassPtr<AActor>(); }
 
+	virtual bool IsValid() const { return true; }
+
 
 	// Copying logic
 

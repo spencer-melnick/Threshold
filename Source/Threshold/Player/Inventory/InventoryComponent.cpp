@@ -18,7 +18,7 @@ UInventoryComponent::UInventoryComponent()
 
 int32 UInventoryComponent::AddInventoryItem(FInventoryItem* Item)
 {
-	if (!Item)
+	if (!Item || !Item->IsValid())
 	{
 		return 0;
 	}

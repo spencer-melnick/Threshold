@@ -44,6 +44,18 @@ FGameplayTagContainer FInventoryTableItem::GetGameplayTags()
 	return Row->GameplayTags;
 }
 
+TSoftClassPtr<AActor> FInventoryTableItem::GetPreviewActorClass()
+{
+	const FInventoryTableRow* Row = GetRow();
+	if (!Row)
+	{
+		return Super::GetPreviewActorClass();
+	}
+
+	return Row->PreviewActorClass;
+}
+
+
 
 // Network overrides
 
