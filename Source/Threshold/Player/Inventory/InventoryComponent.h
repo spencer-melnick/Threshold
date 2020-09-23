@@ -17,7 +17,7 @@ struct FFastInventoryArray : public FFastArraySerializer
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TArray<FInventoryItemHandle> Items;
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
@@ -52,7 +52,7 @@ public:
 	// Adds the item to the inventory. Returns the count of the items added - will be zero if the item cannot be added
 	// due to storage behavior such as a unique item with duplicates already in the inventory, a full item stack, or a
 	// full inventory
-	// int32 AddInventoryItem(FInventoryItemHandle ItemHandle);
+	int32 AddInventoryItem(FInventoryItem* Item);
 	
 
 	

@@ -2,7 +2,23 @@
 
 #include "InventoryItem.h"
 
-#include "AITypes.h"
+
+
+// FInventoryItem
+
+FInventoryItem* FInventoryItem::Copy() const
+{
+	const UScriptStruct* ScriptStruct = GetScriptStruct();
+	check(ScriptStruct);
+
+	// Allocate a new struct of the correct size and copy our data
+	FInventoryItem* ItemCopy = static_cast<FInventoryItem*>(FMemory::Malloc(ScriptStruct->GetStructureSize()));
+	FMemory::Memcpy(ItemCopy, this, ScriptStruct->GetStructureSize());
+	return ItemCopy;
+}
+
+
+
 
 // FInventoryItemHandle
 
@@ -64,9 +80,10 @@ bool FInventoryItemHandle::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bO
 }
 
 
-// FSimpleUniqueInventoryItem
 
-bool FSimpleUniqueInventoryItem::operator==(const FInventoryItem& Other) const
+// FSimpleInventoryItem
+
+bool FSimpleInventoryItem::operator==(const FInventoryItem& Other) const
 {
 	if (!Super::operator==(Other))
 	{
@@ -75,13 +92,13 @@ bool FSimpleUniqueInventoryItem::operator==(const FInventoryItem& Other) const
 	}
 
 	// Compare gameplay tags
-	const FSimpleUniqueInventoryItem& OtherUnique = static_cast<const FSimpleUniqueInventoryItem&>(Other);
+	const FSimpleInventoryItem& OtherUnique = static_cast<const FSimpleInventoryItem&>(Other);
 	return GameplayTags == OtherUnique.GameplayTags;
 }
 
-bool FSimpleUniqueInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+
+bool FSimpleInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 {
 	// Serialize our gameplay tags
 	return GameplayTags.NetSerialize(Ar, Map, bOutSuccess);
 }
-
