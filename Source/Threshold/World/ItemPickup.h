@@ -10,6 +10,7 @@
 // Forward declarations
 
 class UMeshComponent;
+class UInventoryItemHelper;
 
 
 /**
@@ -46,14 +47,8 @@ public:
 
 	// Editor properties
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
-	FName InventoryItemName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
-	int32 Count = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
-	bool bSinglePickup = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item", Instanced)
+	UInventoryItemHelper* ItemHelper;
 
 
 private:

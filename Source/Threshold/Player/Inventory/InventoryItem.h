@@ -34,15 +34,34 @@ struct FInventoryItem
 	virtual TSoftClassPtr<AActor> GetPreviewActorClass() { return TSoftClassPtr<AActor>(); }
 
 
+	// Copying logic
+
+	// Allocates a new copy of an inventory object - you will need to destroy this yourself!
+	virtual FInventoryItem* Copy() const;
+
+	
 	
 	// Network logic
 	
 	virtual UScriptStruct* GetScriptStruct() const { return nullptr; }
-
 	virtual bool operator==(const FInventoryItem& Other) const
 	{
 		return GetScriptStruct() && GetScriptStruct() == Other.GetScriptStruct();
 	}
+};
+
+
+
+/**
+ * Object that allows easy creation of custom inventory items in the editor
+ */
+UCLASS(Abstract, EditInlineNew)
+class UInventoryItemHelper : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	virtual FInventoryItem* GetItem() { return nullptr; }
 };
 
 
@@ -57,6 +76,7 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 
 	FInventoryItemHandle() {};
 	FInventoryItemHandle(FInventoryItem* Item) : ItemPointer(Item) {};
+	FInventoryItemHandle(FInventoryItem& Item) : ItemPointer(Item.Copy()) {};
 	FInventoryItemHandle(FInventoryItemHandle&& Other) : ItemPointer(MoveTemp(Other.ItemPointer)) {};
 	FInventoryItemHandle(const FInventoryItemHandle& Other) : ItemPointer(Other.ItemPointer) {};
 
@@ -66,7 +86,8 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 	TSharedPtr<FInventoryItem> ItemPointer;
 
 	TWeakPtr<FInventoryItem> Get() const { return ItemPointer; }
-	FInventoryItem& operator->() const { return *ItemPointer; }
+	FInventoryItem& operator*() const { return *ItemPointer; } 
+	FInventoryItem* operator->() const { return ItemPointer.Get(); }
 	bool operator==(const FInventoryItemHandle& Other) const { return ItemPointer.IsValid() && Other.ItemPointer.IsValid() && *ItemPointer == *Other.ItemPointer; }
 	bool operator!=(const FInventoryItemHandle& Other) const { return !(FInventoryItemHandle::operator==(Other)); }
 
@@ -79,13 +100,20 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
  * Simple example item
  */
 USTRUCT(BlueprintType)
-struct FSimpleUniqueInventoryItem : public FInventoryItem
+struct FSimpleInventoryItem : public FInventoryItem
 {
 	GENERATED_BODY()
 
 
 	// Inventory item overrides
 
+	virtual bool CanHaveDuplicates() const override { return bCanHaveDuplicates; }
+	virtual bool CanStack() const override { return bCanStack; }
+	virtual FGameplayTagContainer GetGameplayTags() override { return GameplayTags; }
+
+
+	// Network overrides
+	
 	virtual UScriptStruct* GetScriptStruct() const override { return StaticStruct(); }
 	virtual bool operator==(const FInventoryItem& Other) const override;
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
@@ -93,10 +121,34 @@ struct FSimpleUniqueInventoryItem : public FInventoryItem
 
 	
 	// Editor properties
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanHaveDuplicates = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bCanStack = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTagContainer GameplayTags;
 };
+
+
+
+/**
+ * Helper for example item
+ */
+UCLASS(BlueprintType)
+class USimpleInventoryItemHelper : public UInventoryItemHelper
+{
+	GENERATED_BODY()
+	
+public:
+	virtual FInventoryItem* GetItem() override { return &Item; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FSimpleInventoryItem Item;
+};
+
 
 
 // Enable network serialization on our structs
@@ -106,14 +158,14 @@ struct TStructOpsTypeTraits< FInventoryItemHandle > : public TStructOpsTypeTrait
 	enum 
 	{
 		WithNetSerializer = true,
-   };
+	};
 };
 
 template<>
-struct TStructOpsTypeTraits< FSimpleUniqueInventoryItem > : public TStructOpsTypeTraitsBase2< FSimpleUniqueInventoryItem >
+struct TStructOpsTypeTraits< FSimpleInventoryItem > : public TStructOpsTypeTraitsBase2< FSimpleInventoryItem >
 {
 	enum 
 	{
 		WithNetSerializer = true,
-   };
+	};
 };
