@@ -9,52 +9,21 @@
 #include "InventoryComponent.generated.h"
 
 
-
 /**
- * Struct that provides a simple handle for an inventory item. Stores information such as the stack size
+ * Struct that wraps our array for fast net array serialization
  */
-USTRUCT(BlueprintType)
-struct FInventorySlot
+USTRUCT()
+struct FFastInventoryArray : public FFastArraySerializer
 {
 	GENERATED_BODY()
 
-	FInventorySlot() = default;
-
-	FInventorySlot(TScriptInterface<IInventoryItem> InObject, int32 InSize)
-		: ItemObject(InObject), StackSize(InSize)
-	{};
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TScriptInterface<IInventoryItem> ItemObject;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 StackSize = 0;
-
-	// Used for replicating table items via the inventory subsystem
 	UPROPERTY()
-	uint32 ItemId = 0;
+	TArray<FInventoryItemHandle> Items;
 
-
-	
-	// Inventory slot helpers
-	
-	// Add count number of items to the stack. Returns the actual number added, limited by the stack size
-	int32 AddToStack(int32 Count, int32 MaxStackSize);
-
-
-	// Network replication
-	
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-};
-
-// Enable network serialization of inventory slots
-template<>
-struct TStructOpsTypeTraits<FInventorySlot> : public TStructOpsTypeTraitsBase2<FInventorySlot>
-{
-	enum
+	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 	{
-		WithNetSerializer = true
-    };
+		return FFastArraySerializer::FastArrayDeltaSerialize<FInventoryItemHandle, FFastInventoryArray>( Items, DeltaParams, *this );
+	}
 };
 
 
@@ -83,17 +52,7 @@ public:
 	// Adds the item to the inventory. Returns the count of the items added - will be zero if the item cannot be added
 	// due to storage behavior such as a unique item with duplicates already in the inventory, a full item stack, or a
 	// full inventory
-	int32 AddInventoryItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count = 1);
-
-	// Returns the first inventory slot matching this item class
-	FInventorySlot* FindFirstItemSlot(TScriptInterface<IInventoryItem> ItemObject);
-
-	// Returns all inventory slots matching this item class
-	TArray<FInventorySlot*> FindAllItemSlots(TScriptInterface<IInventoryItem> ItemObject);
-
-	// Removes the item from the inventory based on class. Returns the count of items removed from the inventory - will
-	// be zero if no items were removed
-	int32 RemoveInventoryItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count = 1);
+	// int32 AddInventoryItem(FInventoryItemHandle ItemHandle);
 	
 
 	
@@ -110,25 +69,23 @@ protected:
 	UFUNCTION()
 	void OnRep_Inventory();
 	
-	
-	
-	// Helper functions
 
-	// Add an item with checks for uniqueness
-	int32 AddUniqueItem(TScriptInterface<IInventoryItem> ItemObject);
-
-	// Add an item with checks for inventory size
-	int32 AddNewItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count = 1, int32 MaxStackSize = 1);
-
-	// Add an item with checks for existing stacks
-	int32 AddStackItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize);
-
-	// Add to stack with checks for uniqueness
-	int32 AddUniqueStackItem(TScriptInterface<IInventoryItem> ItemObject, int32 Count, int32 MaxStackSize);
 	
 
 	
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_Inventory, VisibleAnywhere)
-	TArray<FInventorySlot> Inventory;
+	FFastInventoryArray InventoryArray;
+};
+
+
+// Enable fast array serialization
+
+template<>
+struct TStructOpsTypeTraits< FFastInventoryArray > : public TStructOpsTypeTraitsBase2< FFastInventoryArray >
+{
+	enum 
+	{
+		WithNetDeltaSerializer = true,
+   };
 };

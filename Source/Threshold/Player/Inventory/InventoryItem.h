@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
+// ReSharper disable CppSpecialFunctionWithoutNoexceptSpecification
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,50 +9,111 @@
 
 
 
-UENUM()
-enum class EInventoryStorageBehavior : uint8
+/**
+ * Base interface for all inventory items.
+ */
+USTRUCT()
+struct FInventoryItem
 {
-					// Only one of this item can be present in the player's inventory at a time
-	Unique,
+	GENERATED_BODY()
+
+	virtual ~FInventoryItem() = default;
+
 	
-					// Multiples of this item can be present in the player's inventory, but they will not appear as a stack
-					// Useful for items that the player can have multiples of, but may have unique properties, such as
-					// different stat bonuses, effect amounts, etc.
-	Duplicate,		
+	// Simple properties
+	
+	// True if owner of this item can have multiples of this item
+	virtual bool CanHaveDuplicates() const { return true; }
 
-					// Multiples of this item will be added to the inventory as a stack.
-					// Useful for generic items that the player will have a lot of (crafting components, simple potions, etc.)
-	Stack,			
+	// True if this item can be stacked
+	virtual bool CanStack() const { return false; }
+	
+	virtual FGameplayTagContainer GetGameplayTags() { return FGameplayTagContainer::EmptyContainer; }
 
-					// Same as stack, but only one stack can be present in the player's inventory
-	StackUnique		
+	// Returns the class of the actor used to preview this item in the inventory viewport
+	virtual TSoftClassPtr<AActor> GetPreviewActorClass() { return TSoftClassPtr<AActor>(); }
+
+
+	
+	// Network logic
+	
+	virtual UScriptStruct* GetScriptStruct() const { return nullptr; }
+
+	virtual bool operator==(const FInventoryItem& Other) const
+	{
+		return GetScriptStruct() && GetScriptStruct() == Other.GetScriptStruct();
+	}
 };
 
 
 
 /**
- * Base interface for any item that can be stored in the player's inventory. This is not the physical representation
- * of the inventory item (it should not have any components, nor should it be an actor), but the data only.
- * Additionally, no data should be stored as the inventory items themselves will not be replicated, only the CDOs
- * (defaults can be edited in Blueprints, as these will be saved in the CDOs)
- */
-UINTERFACE()
-class UInventoryItem : public UInterface
+* Wrapper for inventory items that handles network serialization
+*/
+USTRUCT(BlueprintType)
+struct FInventoryItemHandle : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
+
+	FInventoryItemHandle() {};
+	FInventoryItemHandle(FInventoryItem* Item) : ItemPointer(Item) {};
+	FInventoryItemHandle(FInventoryItemHandle&& Other) : ItemPointer(MoveTemp(Other.ItemPointer)) {};
+	FInventoryItemHandle(const FInventoryItemHandle& Other) : ItemPointer(Other.ItemPointer) {};
+
+	FInventoryItemHandle& operator=(FInventoryItemHandle&& Other) { ItemPointer = MoveTemp(Other.ItemPointer); return *this; }
+	FInventoryItemHandle& operator=(const FInventoryItemHandle& Other) { ItemPointer = Other.ItemPointer; return *this; }
+
+	TSharedPtr<FInventoryItem> ItemPointer;
+
+	TWeakPtr<FInventoryItem> Get() const { return ItemPointer; }
+	FInventoryItem& operator->() const { return *ItemPointer; }
+	bool operator==(const FInventoryItemHandle& Other) const { return ItemPointer.IsValid() && Other.ItemPointer.IsValid() && *ItemPointer == *Other.ItemPointer; }
+	bool operator!=(const FInventoryItemHandle& Other) const { return !(FInventoryItemHandle::operator==(Other)); }
+
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 };
 
-class IInventoryItem
+
+
+/**
+ * Simple example item
+ */
+USTRUCT(BlueprintType)
+struct FSimpleUniqueInventoryItem : public FInventoryItem
 {
 	GENERATED_BODY()
 
-public:
-	virtual EInventoryStorageBehavior GetStorageBehavior() const = 0;
 
-	virtual int32 GetMaxStackSize() const { return -1; }
+	// Inventory item overrides
 
-	virtual FGameplayTagContainer GetGameplayTags() const = 0;
+	virtual UScriptStruct* GetScriptStruct() const override { return StaticStruct(); }
+	virtual bool operator==(const FInventoryItem& Other) const override;
+	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+	
 
-	// Returns the class of the actor used to preview this item in the inventory viewport
-	virtual TSoftClassPtr<AActor> GetPreviewActorClass() const = 0;
+	
+	// Editor properties
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTagContainer GameplayTags;
+};
+
+
+// Enable network serialization on our structs
+template<>
+struct TStructOpsTypeTraits< FInventoryItemHandle > : public TStructOpsTypeTraitsBase2< FInventoryItemHandle >
+{
+	enum 
+	{
+		WithNetSerializer = true,
+   };
+};
+
+template<>
+struct TStructOpsTypeTraits< FSimpleUniqueInventoryItem > : public TStructOpsTypeTraitsBase2< FSimpleUniqueInventoryItem >
+{
+	enum 
+	{
+		WithNetSerializer = true,
+   };
 };
