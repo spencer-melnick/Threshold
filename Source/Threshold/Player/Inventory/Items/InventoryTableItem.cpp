@@ -150,4 +150,3 @@ bool FInventoryTableItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOu
 	bOutSuccess = true;
 	return true;
 }
-
