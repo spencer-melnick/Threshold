@@ -45,7 +45,7 @@ struct FInventoryItem
 	
 	// Network logic
 	
-	virtual UScriptStruct* GetScriptStruct() const { return nullptr; }
+	virtual UScriptStruct* GetScriptStruct() const { return StaticStruct(); }
 	virtual bool operator==(const FInventoryItem& Other) const
 	{
 		return GetScriptStruct() && GetScriptStruct() == Other.GetScriptStruct();
