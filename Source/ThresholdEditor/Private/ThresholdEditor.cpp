@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "ThresholdEditor.h"
+
+#include "Inventory/InventoryDetails.h"
 #include "Modules/ModuleManager.h"
 #include "Modules/ModuleInterface.h"
 
@@ -13,6 +15,9 @@ DEFINE_LOG_CATEGORY(LogThresholdEditor);
 void FThresholdEditorModule::StartupModule()
 {
 	UE_LOG(LogThresholdEditor, Display, TEXT("ThresholdEditor: Module Started"));
+
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyEditorModule.RegisterCustomPropertyTypeLayout("InventoryItemHandle", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FInventoryHandleDetails::MakeInstance));
 }
 
 void FThresholdEditorModule::ShutdownModule()
