@@ -13,5 +13,5 @@ public class Threshold : ModuleRules
             "GameplayAbilities", "GameplayTags", "GameplayTasks", "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay",
             "Niagara"
         });
-	}
+    }
 }

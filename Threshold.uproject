@@ -4,26 +4,23 @@
 	"Category": "",
 	"Description": "",
 	"Modules": [
-		{
-			"Name": "Threshold",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine"
-			]
-		}
+      {
+        "Name": "Threshold",
+        "Type": "Runtime",
+        "LoadingPhase": "Default",
+        "AdditionalDependencies": [
+          "Engine"
+        ]
+      },
+      {
+        "Name": "ThresholdEditor",
+        "Type": "Editor",
+        "LoadingPhase": "PostEngineInit"
+      }
 	],
 	"Plugins": [
 		{
-			"Name": "PythonScriptPlugin",
-			"Enabled": true
-		},
-		{
 			"Name": "GameplayAbilities",
-			"Enabled": true
-		},
-		{
-			"Name": "RiderLink",
 			"Enabled": true
 		}
 	]
