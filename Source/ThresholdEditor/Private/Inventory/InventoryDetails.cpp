@@ -14,6 +14,7 @@
 #include "UObject/StructOnScope.h"
 #include "Widgets/Input/STextComboBox.h"
 #include "Threshold/Player/Inventory/Items/InventoryTableItem.h"
+#include "UObject/UnrealType.h"
 
 
 FInventoryHandleDetails::FInventoryHandleDetails()
@@ -70,6 +71,7 @@ void FInventoryHandleDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMod
 		.OptionsSource(&TypeStrings)
 		.InitiallySelectedItem(GetTypeString(ItemHandle->GetScriptStruct()))
 		.OnSelectionChanged(this, &FInventoryHandleDetails::OnTypeSelection)
+		.Font(CustomizationUtils.GetRegularFont())
 	];
 }
 
@@ -88,6 +90,7 @@ void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPM
 
 	// Access the item handle from the property
 	Handle = static_cast<FInventoryItemHandle*>(DataPointer);
+	ChildPropertyHandle = PropertyHandle;
 
 	if (!Handle->ItemPointer.IsValid())
 	{
@@ -96,7 +99,12 @@ void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPM
 
 	// Add access to the internal struct
 	const TSharedRef<FStructOnScope> InternalStruct = MakeShared<FStructOnScope>((*Handle)->GetScriptStruct(), reinterpret_cast<uint8*>(Handle->ItemPointer.Get()));
-	ChildBuilder.AddExternalStructure(InternalStruct);
+	IDetailPropertyRow* StructProperty = ChildBuilder.AddExternalStructure(InternalStruct);
+
+	// Set up delegate to mark property as dirty when internal struct changes
+	FSimpleDelegate NotifyPropertyChangeDelegate;
+	NotifyPropertyChangeDelegate.BindSP(this, &FInventoryHandleDetails::NotifyPropertyChange);
+	StructProperty->GetPropertyHandle()->SetOnChildPropertyValueChanged(NotifyPropertyChangeDelegate);
 
 	// Reference the parent layout
 	ParentBuilder = &ChildBuilder.GetParentCategory().GetParentLayout();
@@ -105,6 +113,8 @@ void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPM
 void FInventoryHandleDetails::OnTypeSelection(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
 {
 	UScriptStruct* NewType = GetType(NewSelection);
+	NotifyPropertyChange();
+
 
 	if (!Handle || (*Handle)->GetScriptStruct() == NewType)
 	{
@@ -124,6 +134,15 @@ void FInventoryHandleDetails::OnTypeSelection(TSharedPtr<FString> NewSelection, 
 		ParentBuilder->ForceRefreshDetails();
 	}
 }
+
+void FInventoryHandleDetails::NotifyPropertyChange()
+{
+	if (ChildPropertyHandle)
+	{
+		ChildPropertyHandle->NotifyPostChange();
+	}
+}
+
 
 TSharedPtr<FString> FInventoryHandleDetails::GetTypeString(UScriptStruct* Type) const
 {

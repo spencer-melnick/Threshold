@@ -3,6 +3,9 @@
 #include "InventoryItem.h"
 
 
+#include "Chaos/ChaosPerfTest.h"
+#include "Threshold/Threshold.h"
+
 
 // FInventoryItem
 
@@ -79,6 +82,46 @@ bool FInventoryItemHandle::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bO
 	return false;
 }
 
+bool FInventoryItemHandle::Serialize(FArchive& Ar)
+{
+	TSoftObjectPtr<UScriptStruct> StructPath;
+	
+	if (Ar.IsSaving())
+	{
+		// Serialize the struct type
+		StructPath = ItemPointer->GetScriptStruct()->GetPathName();
+		Ar << StructPath;
+
+		// Try to serialize the underlying object
+		ItemPointer->GetScriptStruct()->SerializeItem(Ar, ItemPointer.Get(), nullptr);
+		return true;
+	}
+	else if (Ar.IsLoading())
+	{
+		Ar << StructPath;
+		UScriptStruct* ScriptStruct = StructPath.LoadSynchronous();
+
+		if (!ScriptStruct)
+		{
+			UE_LOG(LogThresholdGeneral, Error, TEXT("Could not deserialize inventory item handle - invalid struct type"))
+			return true;
+		}
+
+		// Create a new object
+		FInventoryItem* NewItem = static_cast<FInventoryItem*>(FMemory::Malloc(ScriptStruct->GetStructureSize()));
+		ItemPointer = TSharedPtr<FInventoryItem>(NewItem);
+		ScriptStruct->InitializeStruct(NewItem);
+
+		// Try to serialize the underlying object
+		ScriptStruct->SerializeItem(Ar, NewItem, nullptr);
+		return true;
+	}
+
+	return false;
+}
+
+
+
 
 
 // FSimpleInventoryItem
@@ -100,5 +143,8 @@ bool FSimpleInventoryItem::operator==(const FInventoryItem& Other) const
 bool FSimpleInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 {
 	// Serialize our gameplay tags
+	Ar << bCanStack;
+	Ar << bCanHaveDuplicates;
 	return GameplayTags.NetSerialize(Ar, Map, bOutSuccess);
 }
+

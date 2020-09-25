@@ -76,7 +76,7 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
 
-	FInventoryItemHandle() {};
+	FInventoryItemHandle() : ItemPointer(new FInventoryItem()) {};
 	FInventoryItemHandle(FInventoryItem* Item) : ItemPointer(Item) {};
 	FInventoryItemHandle(FInventoryItem& Item) : ItemPointer(Item.Copy()) {};
 	FInventoryItemHandle(FInventoryItemHandle&& Other) : ItemPointer(MoveTemp(Other.ItemPointer)) {};
@@ -94,6 +94,8 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 	bool operator!=(const FInventoryItemHandle& Other) const { return !(FInventoryItemHandle::operator==(Other)); }
 
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+
+	bool Serialize(FArchive& Ar);
 };
 
 
@@ -119,6 +121,11 @@ struct FSimpleInventoryItem : public FInventoryItem
 	virtual UScriptStruct* GetScriptStruct() const override { return StaticStruct(); }
 	virtual bool operator==(const FInventoryItem& Other) const override;
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+
+
+	// Serialization
+
+	bool Serialize(FArchive& Ar);
 	
 
 	
@@ -160,6 +167,7 @@ struct TStructOpsTypeTraits< FInventoryItemHandle > : public TStructOpsTypeTrait
 	enum 
 	{
 		WithNetSerializer = true,
+		WithSerializer = true,
 	};
 };
 

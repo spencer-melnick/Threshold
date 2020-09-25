@@ -28,6 +28,7 @@ public:
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	void OnTypeSelection(TSharedPtr<FString> NewType, ESelectInfo::Type SelectInfo);
+	void NotifyPropertyChange();
 
 	UScriptStruct* GetType(TSharedPtr<FString> TypeString) const;
 	TSharedPtr<FString> GetTypeString(UScriptStruct* Type) const;
@@ -39,4 +40,5 @@ protected:
 private:
 	FInventoryItemHandle* Handle = nullptr;
 	IDetailLayoutBuilder* ParentBuilder = nullptr;
+	TSharedPtr<IPropertyHandle> ChildPropertyHandle;
 };
