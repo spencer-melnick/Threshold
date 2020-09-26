@@ -111,7 +111,7 @@ bool FInventoryTableItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOu
 				UE_LOG(LogThresholdGeneral, Error, TEXT("Inventory table item received table %s with invalid struct type %s on net deserialize"),
                     *NewDataTable->GetPathName(), *GetNameSafe(NewDataTable->RowStruct))
 				bOutSuccess = false;
-				return false;
+				return true;
 			}
 
 			bChangedDataTable = true;
@@ -140,7 +140,7 @@ bool FInventoryTableItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOu
 				UE_LOG(LogThresholdGeneral, Error, TEXT("Inventory table item received table %s but could not find matching row name on net deserialize"),
                     *TableRowHandle.DataTable->GetPathName())
 				bOutSuccess = false;
-				return false;
+				return true;
 			}
 
 			TableRowHandle.RowName = FoundRowName;
