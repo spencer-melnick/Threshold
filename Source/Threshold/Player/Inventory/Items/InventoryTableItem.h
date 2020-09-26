@@ -23,6 +23,9 @@ struct FInventoryTableRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	bool bCanStack = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item", meta=(EditCondition="bCanStack"))
+	int32 MaxStackSize = 99;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
 	FGameplayTagContainer GameplayTags;
 
@@ -48,6 +51,7 @@ struct FInventoryTableItem : public FInventoryItem
 	FInventoryTableRow* GetRow() const { return TableRowHandle.GetRow<FInventoryTableRow>(TEXT("InventoryTableItem")); }
 	virtual bool CanHaveDuplicates() const override;
 	virtual bool CanStack() const override;
+	virtual int32 GetMaxStackSize() const override;
 	virtual FGameplayTagContainer GetGameplayTags() override;
 	virtual TSoftClassPtr<AActor> GetPreviewActorClass() override;
 	virtual bool IsValid() const override { return GetRow() != nullptr; }

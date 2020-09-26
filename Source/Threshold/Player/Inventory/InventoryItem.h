@@ -12,7 +12,7 @@
 /**
  * Base interface for all inventory items.
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FInventoryItem
 {
 	GENERATED_BODY()
@@ -33,6 +33,18 @@ struct FInventoryItem
 	// Returns the class of the actor used to preview this item in the inventory viewport
 	virtual TSoftClassPtr<AActor> GetPreviewActorClass() { return TSoftClassPtr<AActor>(); }
 
+	// Returns the amount actually added to the stack
+	virtual int32 AddToStack(int32 Count);
+
+	// Returns the amount removed from the stack
+	virtual int32 RemoveFromStack(int32 Count);
+
+	virtual int32 GetCount() const { return ItemCount; }
+
+	virtual int32 GetMaxStackSize() const { return 1; }
+
+	virtual bool IsEmpty() const { return GetCount() == 0; }
+
 	virtual bool IsValid() const { return true; }
 
 
@@ -50,6 +62,12 @@ struct FInventoryItem
 	{
 		return GetScriptStruct() && GetScriptStruct() == Other.GetScriptStruct();
 	}
+
+
+	// Member variables
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 ItemCount = 1;
 };
 
 
@@ -91,14 +109,18 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 		return *this;
 	}
 
-	TSharedPtr<FInventoryItem> ItemPointer;
 
+	// Operator overloads
+	
 	TWeakPtr<FInventoryItem> Get() const { return ItemPointer; }
 	FInventoryItem& operator*() const { return *ItemPointer; } 
 	FInventoryItem* operator->() const { return ItemPointer.Get(); }
 	bool operator==(const FInventoryItemHandle& Other) const { return ItemPointer.IsValid() && Other.ItemPointer.IsValid() && *ItemPointer == *Other.ItemPointer; }
 	bool operator!=(const FInventoryItemHandle& Other) const { return !(FInventoryItemHandle::operator==(Other)); }
 
+
+	// Serialization
+	
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 	bool Serialize(FArchive& Ar);
 
@@ -107,6 +129,11 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 		Handle.Serialize(Ar);
 		return Ar;
 	}
+
+
+	// Member variables
+	
+	TSharedPtr<FInventoryItem> ItemPointer;
 };
 
 
@@ -125,6 +152,7 @@ struct FSimpleInventoryItem : public FInventoryItem
 	virtual bool CanHaveDuplicates() const override { return bCanHaveDuplicates; }
 	virtual bool CanStack() const override { return bCanStack; }
 	virtual FGameplayTagContainer GetGameplayTags() override { return GameplayTags; }
+	virtual int32 GetMaxStackSize() const override { return bCanStack ? MaxStackSize : 1; }
 
 
 	// Network overrides
@@ -142,6 +170,9 @@ struct FSimpleInventoryItem : public FInventoryItem
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanStack = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="bCanStack"))
+	int32 MaxStackSize = 99;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTagContainer GameplayTags;
