@@ -20,6 +20,29 @@ FInventoryItem* FInventoryItem::Copy() const
 	return ItemCopy;
 }
 
+int32 FInventoryItem::AddToStack(int32 Count)
+{
+	// Limit addition by max stack size
+	const int32 NewCount = FMath::Min(ItemCount + Count, GetMaxStackSize());
+	const int32 CountAdded = NewCount - ItemCount;
+	ItemCount = NewCount;
+
+	// Return actual amount added
+	return CountAdded;
+}
+
+int32 FInventoryItem::RemoveFromStack(int32 Count)
+{
+	// Limit subtraction by 0
+	const int32 NewCount = FMath::Max(ItemCount - Count, 0);
+	const int32 CountRemoved = ItemCount - NewCount;
+	ItemCount = NewCount;
+
+	return CountRemoved;
+}
+
+
+
 
 
 
@@ -135,15 +158,32 @@ bool FSimpleInventoryItem::operator==(const FInventoryItem& Other) const
 
 	// Compare gameplay tags
 	const FSimpleInventoryItem& OtherUnique = static_cast<const FSimpleInventoryItem&>(Other);
-	return GameplayTags == OtherUnique.GameplayTags;
-}
 
+	if (bCanStack != OtherUnique.CanStack())
+	{
+		return false;
+	}
+
+	if (bCanHaveDuplicates != OtherUnique.CanHaveDuplicates())
+	{
+		return false;
+	}
+	
+	if (GameplayTags != OtherUnique.GameplayTags)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 bool FSimpleInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
 {
 	// Serialize our gameplay tags
+	Ar << ItemCount;
 	Ar << bCanStack;
 	Ar << bCanHaveDuplicates;
+	Ar << MaxStackSize;
 	return GameplayTags.NetSerialize(Ar, Map, bOutSuccess);
 }
 

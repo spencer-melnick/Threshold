@@ -32,6 +32,18 @@ bool FInventoryTableItem::CanStack() const
 	return Row->bCanStack;
 }
 
+int32 FInventoryTableItem::GetMaxStackSize() const
+{
+	const FInventoryTableRow* Row = GetRow();
+	if (!Row)
+	{
+		return Super::GetMaxStackSize();
+	}
+
+	return Row->bCanStack ? Row->MaxStackSize : 1;
+}
+
+
 FGameplayTagContainer FInventoryTableItem::GetGameplayTags()
 {
 	const FInventoryTableRow* Row = GetRow();
@@ -82,6 +94,7 @@ bool FInventoryTableItem::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOu
 		RowNameHash = HashInventoryRowName(TableRowHandle.RowName);
 	}
 
+	Ar << ItemCount;
 	Ar << DataTablePointer;
 	Ar << RowNameHash;
 
