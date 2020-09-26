@@ -80,10 +80,16 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 	FInventoryItemHandle(FInventoryItem* Item) : ItemPointer(Item) {};
 	FInventoryItemHandle(FInventoryItem& Item) : ItemPointer(Item.Copy()) {};
 	FInventoryItemHandle(FInventoryItemHandle&& Other) : ItemPointer(MoveTemp(Other.ItemPointer)) {};
-	FInventoryItemHandle(const FInventoryItemHandle& Other) : ItemPointer(Other.ItemPointer) {};
+	FInventoryItemHandle(const FInventoryItemHandle& Other) : ItemPointer(Other.ItemPointer->Copy()) {};
 
 	FInventoryItemHandle& operator=(FInventoryItemHandle&& Other) { ItemPointer = MoveTemp(Other.ItemPointer); return *this; }
-	FInventoryItemHandle& operator=(const FInventoryItemHandle& Other) { ItemPointer = Other.ItemPointer; return *this; }
+	FInventoryItemHandle& operator=(const FInventoryItemHandle& Other) {
+		if (Other.ItemPointer->IsValid())
+		{
+			ItemPointer = TSharedPtr<FInventoryItem>(Other.ItemPointer->Copy());
+		}
+		return *this;
+	}
 
 	TSharedPtr<FInventoryItem> ItemPointer;
 
@@ -94,8 +100,13 @@ struct FInventoryItemHandle : public FFastArraySerializerItem
 	bool operator!=(const FInventoryItemHandle& Other) const { return !(FInventoryItemHandle::operator==(Other)); }
 
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-
 	bool Serialize(FArchive& Ar);
+
+	friend FArchive& operator<<(FArchive& Ar, FInventoryItemHandle& Handle)
+	{
+		Handle.Serialize(Ar);
+		return Ar;
+	}
 };
 
 
@@ -121,11 +132,6 @@ struct FSimpleInventoryItem : public FInventoryItem
 	virtual UScriptStruct* GetScriptStruct() const override { return StaticStruct(); }
 	virtual bool operator==(const FInventoryItem& Other) const override;
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
-
-
-	// Serialization
-
-	bool Serialize(FArchive& Ar);
 	
 
 	

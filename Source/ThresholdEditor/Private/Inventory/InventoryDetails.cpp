@@ -14,7 +14,6 @@
 #include "UObject/StructOnScope.h"
 #include "Widgets/Input/STextComboBox.h"
 #include "Threshold/Player/Inventory/Items/InventoryTableItem.h"
-#include "UObject/UnrealType.h"
 
 
 FInventoryHandleDetails::FInventoryHandleDetails()
@@ -45,23 +44,18 @@ TSharedRef<IPropertyTypeCustomization> FInventoryHandleDetails::MakeInstance()
 	return MakeShareable(new FInventoryHandleDetails());
 }
 
-void FInventoryHandleDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
+void FInventoryHandleDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	if (!PropertyHandle->IsValidHandle())
-	{
-		return;
-	}
-	
-	const FText TypeText = FText::FromString(TEXT("Inventory Item Handle"));
-
-	void* DataPointer;
-	if (PropertyHandle->GetValueData(DataPointer) == FPropertyAccess::Fail)
-	{
-		return;
-	}
+	PropertyHandle = InPropertyHandle;	
+	const FText TypeText = FText::FromString(TEXT("Inventory Item"));
 
 	// Access the item handle from the property
-	FInventoryItemHandle& ItemHandle = *static_cast<FInventoryItemHandle*>(DataPointer);
+	FInventoryItemHandle* ItemHandle = GetItemHandle();
+
+	if (!ItemHandle)
+	{
+		return;
+	}
 
 	HeaderRow.NameContent()[
 		PropertyHandle->CreatePropertyNameWidget(TypeText)
@@ -69,36 +63,24 @@ void FInventoryHandleDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMod
 	.ValueContent()[
 		SNew(STextComboBox)
 		.OptionsSource(&TypeStrings)
-		.InitiallySelectedItem(GetTypeString(ItemHandle->GetScriptStruct()))
+		.InitiallySelectedItem(GetTypeString((*ItemHandle)->GetScriptStruct()))
 		.OnSelectionChanged(this, &FInventoryHandleDetails::OnTypeSelection)
 		.Font(CustomizationUtils.GetRegularFont())
 	];
 }
 
-void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	if (!PropertyHandle->IsValidHandle())
-	{
-		return;
-	}
-
-	void* DataPointer;
-	if (PropertyHandle->GetValueData(DataPointer) == FPropertyAccess::Fail)
-	{
-		return;
-	}
-
 	// Access the item handle from the property
-	Handle = static_cast<FInventoryItemHandle*>(DataPointer);
-	ChildPropertyHandle = PropertyHandle;
+	FInventoryItemHandle* ItemHandle = GetItemHandle();
 
-	if (!Handle->ItemPointer.IsValid())
+	if (!ItemHandle || !ItemHandle->ItemPointer.IsValid())
 	{
 		return;
 	}
 
 	// Add access to the internal struct
-	const TSharedRef<FStructOnScope> InternalStruct = MakeShared<FStructOnScope>((*Handle)->GetScriptStruct(), reinterpret_cast<uint8*>(Handle->ItemPointer.Get()));
+	const TSharedRef<FStructOnScope> InternalStruct = MakeShared<FStructOnScope>((*ItemHandle)->GetScriptStruct(), reinterpret_cast<uint8*>(ItemHandle->ItemPointer.Get()));
 	IDetailPropertyRow* StructProperty = ChildBuilder.AddExternalStructure(InternalStruct);
 
 	// Set up delegate to mark property as dirty when internal struct changes
@@ -113,33 +95,35 @@ void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPM
 void FInventoryHandleDetails::OnTypeSelection(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
 {
 	UScriptStruct* NewType = GetType(NewSelection);
-	NotifyPropertyChange();
+	FInventoryItemHandle* ItemHandle = GetItemHandle();
 
-
-	if (!Handle || (*Handle)->GetScriptStruct() == NewType)
+	if (!ItemHandle || (*ItemHandle)->GetScriptStruct() == NewType)
 	{
-		// If the handle is invalid, or it has the same type as before, skip
+		// If the handle has the same type as before, skip
 		return;
 	}
 
+	// Create a new item handle
 	FInventoryItem* NewItem = static_cast<FInventoryItem*>(FMemory::Malloc(NewType->GetStructureSize()));
 	NewType->InitializeStruct(NewItem);
-
-	// Assign the handle to the new struct
-	(*Handle).ItemPointer = TSharedPtr<FInventoryItem>(NewItem);
+	FInventoryItemHandle NewHandle(NewItem);
+	*ItemHandle = NewHandle;
 
 	// Refresh the layout
 	if (ParentBuilder)
 	{
 		ParentBuilder->ForceRefreshDetails();
 	}
+
+	PropertyHandle->SetValue(true);
+	NotifyPropertyChange();
 }
 
 void FInventoryHandleDetails::NotifyPropertyChange()
 {
-	if (ChildPropertyHandle)
+	if (PropertyHandle.IsValid())
 	{
-		ChildPropertyHandle->NotifyPostChange();
+		PropertyHandle->NotifyPostChange();
 	}
 }
 
@@ -170,4 +154,19 @@ UScriptStruct* FInventoryHandleDetails::GetType(TSharedPtr<FString> TypeString) 
 	return *Type;
 }
 
+FInventoryItemHandle* FInventoryHandleDetails::GetItemHandle() const
+{
+	if (!PropertyHandle.IsValid() || !PropertyHandle->IsValidHandle())
+	{
+		return nullptr;
+	}
+
+	void* DataPointer;
+	if (PropertyHandle->GetValueData(DataPointer) == FPropertyAccess::Fail)
+	{
+		return nullptr;
+	}
+
+	return static_cast<FInventoryItemHandle*>(DataPointer);
+}
 

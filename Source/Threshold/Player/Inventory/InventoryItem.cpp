@@ -79,29 +79,28 @@ bool FInventoryItemHandle::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bO
 
 	// Should be unreachable
 	bOutSuccess = false;
-	return false;
+	return true;
 }
 
 bool FInventoryItemHandle::Serialize(FArchive& Ar)
 {
-	TSoftObjectPtr<UScriptStruct> StructPath;
+	TCheckedObjPtr<UScriptStruct> ScriptStruct;
 	
 	if (Ar.IsSaving())
 	{
 		// Serialize the struct type
-		StructPath = ItemPointer->GetScriptStruct()->GetPathName();
-		Ar << StructPath;
+		ScriptStruct = ItemPointer->GetScriptStruct();
+		Ar << ScriptStruct;
 
 		// Try to serialize the underlying object
-		ItemPointer->GetScriptStruct()->SerializeItem(Ar, ItemPointer.Get(), nullptr);
+		ScriptStruct->SerializeItem(Ar, ItemPointer.Get(), nullptr);
 		return true;
 	}
 	else if (Ar.IsLoading())
 	{
-		Ar << StructPath;
-		UScriptStruct* ScriptStruct = StructPath.LoadSynchronous();
+		Ar << ScriptStruct;
 
-		if (!ScriptStruct)
+		if (!ScriptStruct.IsValid())
 		{
 			UE_LOG(LogThresholdGeneral, Error, TEXT("Could not deserialize inventory item handle - invalid struct type"))
 			return true;
@@ -117,7 +116,7 @@ bool FInventoryItemHandle::Serialize(FArchive& Ar)
 		return true;
 	}
 
-	return false;
+	return true;
 }
 
 

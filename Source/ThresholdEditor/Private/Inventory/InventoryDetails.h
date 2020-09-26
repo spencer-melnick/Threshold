@@ -25,8 +25,8 @@ public:
 	
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 	
-	virtual void CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-	virtual void CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> PropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	void OnTypeSelection(TSharedPtr<FString> NewType, ESelectInfo::Type SelectInfo);
 	void NotifyPropertyChange();
 
@@ -37,8 +37,9 @@ protected:
 	TArray<TSharedPtr<FString>> TypeStrings;
 	TMap<TSharedPtr<FString>, UScriptStruct*> TypeMappings;
 
+	FInventoryItemHandle* GetItemHandle() const;
+
 private:
-	FInventoryItemHandle* Handle = nullptr;
 	IDetailLayoutBuilder* ParentBuilder = nullptr;
-	TSharedPtr<IPropertyHandle> ChildPropertyHandle;
+	TSharedPtr<IPropertyHandle> PropertyHandle;
 };
