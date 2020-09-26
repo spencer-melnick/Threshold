@@ -52,9 +52,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item", Instanced)
 	UInventoryItemHelper* ItemHelper;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item")
-	FInventoryItemHandle ItemHandle;
-
 
 private:
 	UPROPERTY(Category=ItemPickup, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))

@@ -61,10 +61,13 @@ void FInventoryHandleDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMod
 		PropertyHandle->CreatePropertyNameWidget(TypeText)
 	]
 	.ValueContent()[
-		SNew(STextComboBox)
+		/* SNew(STextComboBox)
 		.OptionsSource(&TypeStrings)
 		.InitiallySelectedItem(GetTypeString((*ItemHandle)->GetScriptStruct()))
 		.OnSelectionChanged(this, &FInventoryHandleDetails::OnTypeSelection)
+		.Font(CustomizationUtils.GetRegularFont()) */
+		SNew(STextBlock)
+		.Text(FText::FromString((*ItemHandle)->GetScriptStruct()->GetName()))
 		.Font(CustomizationUtils.GetRegularFont())
 	];
 }
