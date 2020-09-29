@@ -9,6 +9,6 @@ public class ThresholdEditorTarget : TargetRules
 	{
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange(new string [] {"Threshold", "ThresholdEditor"});
+		ExtraModuleNames.AddRange(new string [] {"Threshold", "InventorySystem", "ThresholdEditor"});
 	}
 }

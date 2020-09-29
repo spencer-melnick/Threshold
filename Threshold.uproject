@@ -13,6 +13,14 @@
         ]
       },
       {
+        "Name": "InventorySystem",
+        "Type": "Runtime",
+        "LoadingPhase": "Default",
+        "AdditionalDependencies": [
+          "Engine"
+        ]
+      },
+      {
         "Name": "ThresholdEditor",
         "Type": "Editor",
         "LoadingPhase": "PostEngineInit"
