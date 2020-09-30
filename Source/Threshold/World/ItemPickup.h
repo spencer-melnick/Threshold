@@ -4,8 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InteractiveObject.h"
-#include "Threshold/Player/Inventory/InventoryItem.h"
-
+#include "InventoryItem.h"
 #include "ItemPickup.generated.h"
 
 
@@ -49,8 +48,8 @@ public:
 
 	// Editor properties
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item", Instanced)
-	UInventoryItemHelper* ItemHelper;
+	UPROPERTY(Category="ItemPickup", EditAnywhere, BlueprintReadWrite)
+	FInventoryItem InventoryItem;
 
 
 private:

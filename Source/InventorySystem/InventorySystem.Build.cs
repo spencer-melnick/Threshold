@@ -12,5 +12,8 @@ public class InventorySystem : ModuleRules
         {
             "GameplayTags", "Core", "CoreUObject", "Engine"
         });
+        
+        PublicIncludePaths.AddRange(new string[] {"InventorySystem/Public"} );
+        PrivateIncludePaths.AddRange(new string[] {"InventorySystem/Private"} );
     }
 }

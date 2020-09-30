@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "Threshold/Player/Inventory/InventoryOwner.h"
 #include "THPlayerState.generated.h"
 
 
@@ -18,7 +17,7 @@ class UInventoryComponent;
  * should be replicated to all clients.
  */
 UCLASS()
-class ATHPlayerState : public APlayerState, public IInventoryOwner
+class ATHPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 
@@ -30,15 +29,6 @@ public:
 
 	void BeginPlay() override;
 
-
-	// Inventory owner overrides
-
-	virtual UInventoryComponent* GetInventoryComponent() const override
-	{
-		return InventoryComponent;
-	}
-
-
 	// Component name constants
 
 	static FName InventoryComponentName;
@@ -47,7 +37,7 @@ public:
 private:
 	// Components
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="THPlayerState", meta=(AllowPrivateAccess="true"))
-	UInventoryComponent* InventoryComponent;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="THPlayerState", meta=(AllowPrivateAccess="true"))
+	// UInventoryComponent* InventoryComponent;
 	
 };

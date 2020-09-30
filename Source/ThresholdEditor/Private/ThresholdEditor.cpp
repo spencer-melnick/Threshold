@@ -17,7 +17,7 @@ void FThresholdEditorModule::StartupModule()
 	UE_LOG(LogThresholdEditor, Display, TEXT("ThresholdEditor: Module Started"));
 
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	PropertyEditorModule.RegisterCustomPropertyTypeLayout("InventoryItemHandle", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FInventoryHandleDetails::MakeInstance));
+	PropertyEditorModule.RegisterCustomPropertyTypeLayout("InventoryItem", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FInventoryItemDetails::MakeInstance));
 }
 
 void FThresholdEditorModule::ShutdownModule()

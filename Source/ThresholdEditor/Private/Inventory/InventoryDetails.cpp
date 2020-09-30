@@ -5,159 +5,62 @@
 #include "DetailLayoutBuilder.h"
 #include "PropertyHandle.h"
 #include "DetailWidgetRow.h"
-#include "UObject/SoftObjectPtr.h"
 #include "IDetailChildrenBuilder.h"
 #include "DetailCategoryBuilder.h"
-#include "UObject/Class.h"
-#include "Player/Inventory/InventoryItem.h"
-#include "Widgets/DeclarativeSyntaxSupport.h"
 #include "UObject/StructOnScope.h"
-#include "Widgets/Input/STextComboBox.h"
-#include "Threshold/Player/Inventory/Items/InventoryTableItem.h"
+#include "InventoryItem.h"
+#include "ItemTypes/ItemType.h"
+#include "DataTypes/ItemData.h"
 
 
-FInventoryHandleDetails::FInventoryHandleDetails()
+TSharedRef<IPropertyTypeCustomization> FInventoryItemDetails::MakeInstance()
 {
-	TArray<UScriptStruct*> ItemTypes = { FInventoryItem::StaticStruct(), FSimpleInventoryItem::StaticStruct(), FInventoryTableItem::StaticStruct() };
-
-	for (UScriptStruct* Type : ItemTypes)
-	{
-		TSharedPtr<FString> TypeString;
-
-		if (Type == FInventoryItem::StaticStruct())
-		{
-			TypeString = MakeShareable<FString>(new FString(TEXT("None")));
-		}
-		else
-		{
-			TypeString = MakeShareable<FString>(new FString(Type->GetName()));
-		}
-		
-		TypeStrings.Add(TypeString);
-		TypeMappings.Add(TypeString, Type);
-	}
+	return MakeShareable(new FInventoryItemDetails());
 }
 
-
-TSharedRef<IPropertyTypeCustomization> FInventoryHandleDetails::MakeInstance()
+void FInventoryItemDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	return MakeShareable(new FInventoryHandleDetails());
-}
-
-void FInventoryHandleDetails::CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils)
-{
-	PropertyHandle = InPropertyHandle;	
 	const FText TypeText = FText::FromString(TEXT("Inventory Item"));
 
-	// Access the item handle from the property
-	FInventoryItemHandle* ItemHandle = GetItemHandle();
-
-	if (!ItemHandle)
-	{
-		return;
-	}
-
 	HeaderRow.NameContent()[
-		PropertyHandle->CreatePropertyNameWidget(TypeText)
-	]
-	.ValueContent()[
-		/* SNew(STextComboBox)
-		.OptionsSource(&TypeStrings)
-		.InitiallySelectedItem(GetTypeString((*ItemHandle)->GetScriptStruct()))
-		.OnSelectionChanged(this, &FInventoryHandleDetails::OnTypeSelection)
-		.Font(CustomizationUtils.GetRegularFont()) */
-		SNew(STextBlock)
-		.Text(FText::FromString((*ItemHandle)->GetScriptStruct()->GetName()))
-		.Font(CustomizationUtils.GetRegularFont())
+		InPropertyHandle->CreatePropertyNameWidget(TypeText)
 	];
 }
 
-void FInventoryHandleDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
+void FInventoryItemDetails::CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, IDetailChildrenBuilder& InChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
-	// Access the item handle from the property
-	FInventoryItemHandle* ItemHandle = GetItemHandle();
+	// Store reference to property handle
+	PropertyHandle = InPropertyHandle;	
 
-	if (!ItemHandle || !ItemHandle->ItemPointer.IsValid())
+	// Reference the parent and child layout
+	ChildBuilder = &InChildBuilder;
+	ParentBuilder = &ChildBuilder->GetParentCategory().GetParentLayout();
+
+	// Update the struct display
+	UpdateDataStruct();
+
+	// Try to get the type property handle
+	TypePropertyHandle = PropertyHandle->GetChildHandle(TEXT("Type"));
+
+	if (!TypePropertyHandle)
 	{
 		return;
 	}
 
-	// Add access to the internal struct
-	const TSharedRef<FStructOnScope> InternalStruct = MakeShared<FStructOnScope>((*ItemHandle)->GetScriptStruct(), reinterpret_cast<uint8*>(ItemHandle->ItemPointer.Get()));
-	IDetailPropertyRow* StructProperty = ChildBuilder.AddExternalStructure(InternalStruct);
+	ChildBuilder->AddProperty(TypePropertyHandle.ToSharedRef());
 
-	// Set up delegate to mark property as dirty when internal struct changes
-	FSimpleDelegate NotifyPropertyChangeDelegate;
-	NotifyPropertyChangeDelegate.BindSP(this, &FInventoryHandleDetails::NotifyPropertyChange);
-	StructProperty->GetPropertyHandle()->SetOnChildPropertyValueChanged(NotifyPropertyChangeDelegate);
+	// Add a pre type change delegate
+	FSimpleDelegate PreTypeChangeDelegate;
+	PreTypeChangeDelegate.BindSP(this, &FInventoryItemDetails::PreTypeChange);
+	TypePropertyHandle->SetOnPropertyValuePreChange(PreTypeChangeDelegate);
 
-	// Reference the parent layout
-	ParentBuilder = &ChildBuilder.GetParentCategory().GetParentLayout();
+	// Add a post type change delegate
+	FSimpleDelegate TypeChangeDelegate;
+	TypeChangeDelegate.BindSP(this, &FInventoryItemDetails::TypeChange);
+	TypePropertyHandle->SetOnPropertyValueChanged(TypeChangeDelegate);
 }
 
-void FInventoryHandleDetails::OnTypeSelection(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
-{
-	UScriptStruct* NewType = GetType(NewSelection);
-	FInventoryItemHandle* ItemHandle = GetItemHandle();
-
-	if (!ItemHandle || (*ItemHandle)->GetScriptStruct() == NewType)
-	{
-		// If the handle has the same type as before, skip
-		return;
-	}
-
-	// Create a new item handle
-	FInventoryItem* NewItem = static_cast<FInventoryItem*>(FMemory::Malloc(NewType->GetStructureSize()));
-	NewType->InitializeStruct(NewItem);
-	FInventoryItemHandle NewHandle(NewItem);
-	*ItemHandle = NewHandle;
-
-	// Refresh the layout
-	if (ParentBuilder)
-	{
-		ParentBuilder->ForceRefreshDetails();
-	}
-
-	PropertyHandle->SetValue(true);
-	NotifyPropertyChange();
-}
-
-void FInventoryHandleDetails::NotifyPropertyChange()
-{
-	if (PropertyHandle.IsValid())
-	{
-		PropertyHandle->NotifyPostChange();
-	}
-}
-
-
-TSharedPtr<FString> FInventoryHandleDetails::GetTypeString(UScriptStruct* Type) const
-{
-	const TSharedPtr<FString>* TypeName = TypeMappings.FindKey(Type);
-
-	if (!TypeName)
-	{
-		// Return the default type string
-		return TypeStrings[0];
-	}
-
-	return *TypeName;
-}
-
-UScriptStruct* FInventoryHandleDetails::GetType(TSharedPtr<FString> TypeString) const
-{
-	UScriptStruct* const* Type = TypeMappings.Find(TypeString);
-
-	if (!Type)
-	{
-		// return default type
-		return FInventoryItem::StaticStruct();
-	}
-
-	return *Type;
-}
-
-FInventoryItemHandle* FInventoryHandleDetails::GetItemHandle() const
+FInventoryItem* FInventoryItemDetails::GetItem() const
 {
 	if (!PropertyHandle.IsValid() || !PropertyHandle->IsValidHandle())
 	{
@@ -170,6 +73,98 @@ FInventoryItemHandle* FInventoryHandleDetails::GetItemHandle() const
 		return nullptr;
 	}
 
-	return static_cast<FInventoryItemHandle*>(DataPointer);
+	return static_cast<FInventoryItem*>(DataPointer);
+}
+
+void FInventoryItemDetails::NotifyPropertyChange() const
+{
+	if (!PropertyHandle.IsValid())
+	{
+		return;
+	}
+
+	PropertyHandle->NotifyPostChange();
+}
+
+void FInventoryItemDetails::PreTypeChange()
+{
+	if (!TypePropertyHandle.IsValid())
+	{
+		return;
+	}
+
+	// Try to store the old item type
+	UObject* CurrentItemType;
+	
+	if (TypePropertyHandle->GetValue(CurrentItemType) != FPropertyAccess::Success)
+	{
+		// On failure to access the stashed type, set the stashed type to null
+		StashedItemType = nullptr;
+	}
+	else
+	{
+		StashedItemType = Cast<UItemTypeBase>(CurrentItemType);
+	}
+}
+
+void FInventoryItemDetails::TypeChange()
+{
+	FInventoryItem* Item = GetItem();
+
+	if (!Item || !TypePropertyHandle.IsValid())
+	{
+		return;
+	}
+
+	UObject* NewItemObject;
+	UItemTypeBase* NewItemType;
+	if (TypePropertyHandle->GetValue(NewItemObject) != FPropertyAccess::Success)
+	{
+		NewItemType = nullptr;
+	}
+	else
+	{
+		NewItemType = Cast<UItemTypeBase>(NewItemObject);
+	}
+
+	// Simulate usage of the setter
+	Item->Type = StashedItemType.Get();
+	Item->SetType(NewItemType);
+
+	// Update the internal struct access
+	UpdateDataStruct();
+
+	// Refresh the builder view
+	NotifyPropertyChange();
+	ChildBuilder->GetParentCategory().GetParentLayout().ForceRefreshDetails();
+}
+
+
+
+void FInventoryItemDetails::UpdateDataStruct()
+{
+	if (!ChildBuilder)
+	{
+		return;
+	}
+	
+	// Access the item handle from the property
+	FInventoryItem* Item = GetItem();
+
+	if (!Item || !Item->Data.IsValid() || !Item->Data->GetScriptStruct())
+	{
+		return;
+	}
+
+	UScriptStruct* ItemDataType = Item->Data->GetScriptStruct();
+	
+	// Add access to the internal data struct
+	const TSharedRef<FStructOnScope> InternalStruct = MakeShared<FStructOnScope>(ItemDataType, reinterpret_cast<uint8*>(Item->Data.Get()));
+	IDetailPropertyRow* StructProperty = ChildBuilder->AddExternalStructure(InternalStruct);
+
+	// Set up delegate to mark property as dirty when internal struct changes
+	FSimpleDelegate NotifyPropertyChangeDelegate;
+	NotifyPropertyChangeDelegate.BindSP(this, &FInventoryItemDetails::NotifyPropertyChange);
+	StructProperty->GetPropertyHandle()->SetOnChildPropertyValueChanged(NotifyPropertyChangeDelegate);
 }
 

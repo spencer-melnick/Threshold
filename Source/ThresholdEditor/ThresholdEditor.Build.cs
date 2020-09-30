@@ -8,8 +8,7 @@ public class ThresholdEditor : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Threshold", "Slate", "SlateCore", "EditorStyle", "GameplayTags" });
-
-        PublicIncludePaths.AddRange(new string[] {"Threshold"});
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Threshold",
+            "Slate", "SlateCore", "EditorStyle", "GameplayTags", "InventorySystem" });
     }
 }

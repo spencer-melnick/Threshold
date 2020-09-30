@@ -9,7 +9,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogInventorySystem, All, All)
 
-class FInventorySystemModule : public IModuleInterface
+class INVENTORYSYSTEM_API FInventorySystemModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;

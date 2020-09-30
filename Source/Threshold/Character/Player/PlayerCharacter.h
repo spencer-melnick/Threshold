@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Threshold/Character/BaseCharacter.h"
-#include "Threshold/Player/Inventory/InventoryOwner.h"
 #include "PlayerCharacter.generated.h"
 
 
@@ -23,7 +22,7 @@ class ABaseWeapon;
  * except in special cases.
  */
 UCLASS()
-class THRESHOLD_API APlayerCharacter : public ABaseCharacter, public IInventoryOwner
+class THRESHOLD_API APlayerCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -37,10 +36,6 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 
-
-	// Inventory owner overrides
-
-	virtual UInventoryComponent* GetInventoryComponent() const override;
 
 
 
