@@ -9,11 +9,11 @@
  * Base class for item data. Override to add additional item data as needed.
  */
 USTRUCT()
-struct FItemDataBase
+struct INVENTORYSYSTEM_API FInventoryItemDataBase
 {
 	GENERATED_BODY()
 
-	virtual ~FItemDataBase() = default;
+	virtual ~FInventoryItemDataBase() = default;
 
 	/**
 	 * Used for replication so that the inventory item knows the type of data to replicate.
