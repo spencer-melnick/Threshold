@@ -11,7 +11,7 @@
 class IDetailGroup;
 class IDetailLayoutBuilder;
 struct FInventoryItem;
-class UItemTypeBase;
+class UInventoryItemTypeBase;
 
 
 
@@ -43,5 +43,5 @@ private:
 	TSharedPtr<IPropertyHandle> PropertyHandle;
 	TSharedPtr<IPropertyHandle> TypePropertyHandle;
 	
-	TWeakObjectPtr<UItemTypeBase> StashedItemType = nullptr;
+	TWeakObjectPtr<UInventoryItemTypeBase> StashedItemType = nullptr;
 };

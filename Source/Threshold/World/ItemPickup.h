@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InteractiveObject.h"
-#include "InventoryItem.h"
+#include "Inventory/InventoryItem.h"
 #include "ItemPickup.generated.h"
 
 

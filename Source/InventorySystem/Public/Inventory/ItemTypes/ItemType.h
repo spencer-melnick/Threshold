@@ -8,14 +8,14 @@
 
 // Forward declarations
 
-struct FItemDataBase;
+struct FInventoryItemDataBase;
 
 
 /*
  * Class used as the base for any inventory item type
  */
 UCLASS(Abstract, BlueprintType)
-class INVENTORYSYSTEM_API UItemTypeBase : public UObject
+class INVENTORYSYSTEM_API UInventoryItemTypeBase : public UObject
 {
 	GENERATED_BODY()
 	
@@ -36,23 +36,23 @@ public:
 	 * Allocates new item data specific to this item type
 	 * @return Pointer to new item data
 	 */
-	virtual TSharedPtr<FItemDataBase> CreateItemData() const { return TSharedPtr<FItemDataBase>(); }
+	virtual TSharedPtr<FInventoryItemDataBase> CreateItemData() const { return TSharedPtr<FInventoryItemDataBase>(); }
 
 	/**
 	 * Used to get the name of this item as it should appear in the inventory UI
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual FText GetItemName(TWeakPtr<FItemDataBase> ItemData) const { unimplemented(); return FText(); }
+	virtual FText GetItemName(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return FText(); }
 
 	/**
 	 * Used to get the description of this item as it should appear in the inventory UI
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual FText GetItemDescription(TWeakPtr<FItemDataBase> ItemData) const { unimplemented(); return FText(); }
+	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return FText(); }
 
 	/**
 	 * Used to get an actor that can be rendered as a 3D display for this inventory item
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FItemDataBase> ItemData) const { unimplemented(); return TSoftClassPtr<AActor>(); }
+	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return TSoftClassPtr<AActor>(); }
 };

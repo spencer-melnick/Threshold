@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
-#include "ItemTypes/TableItem.h"
-
+#include "Inventory/ItemTypes/TableItem.h"
 #include "InventorySystem.h"
 
 
@@ -9,7 +8,7 @@
 
 // Item type overrides
 
-bool UTableItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess)
+bool UTableInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess)
 {
 	TSoftObjectPtr<UDataTable> TablePointer;
 	uint32 RowNameHash;
@@ -68,7 +67,7 @@ bool UTableItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutS
 	return true;
 }
 
-FText UTableItem::GetItemName(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) const
+FText UTableInventoryItem::GetItemName(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
 
@@ -80,7 +79,7 @@ FText UTableItem::GetItemName(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) c
 	return ItemRow->ItemName;
 }
 
-FText UTableItem::GetItemDescription(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) const
+FText UTableInventoryItem::GetItemDescription(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
 
@@ -92,7 +91,7 @@ FText UTableItem::GetItemDescription(TWeakPtr<FItemDataBase, ESPMode::Fast> Item
 	return ItemRow->ItemDescription;
 }
 
-TSoftClassPtr<AActor> UTableItem::GetPreviewActorClass(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) const
+TSoftClassPtr<AActor> UTableInventoryItem::GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
 
@@ -107,7 +106,7 @@ TSoftClassPtr<AActor> UTableItem::GetPreviewActorClass(TWeakPtr<FItemDataBase, E
 
 // Protected helpers
 
-FItemRow* UTableItem::GetRow() const
+FItemRow* UTableInventoryItem::GetRow() const
 {
 	return RowHandle.GetRow<FItemRow>(TEXT("UTableItem"));
 }

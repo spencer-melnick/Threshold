@@ -14,7 +14,7 @@
  * Simple data type that holds a stack count
  */
 USTRUCT()
-struct FStackItemData : public FItemDataBase
+struct INVENTORYSYSTEM_API FInventoryStackData : public FInventoryItemDataBase
 {
 	GENERATED_BODY()
 

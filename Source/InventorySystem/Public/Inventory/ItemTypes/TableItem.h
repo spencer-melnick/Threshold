@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ItemType.h"
-#include "DataTypes/StackData.h"
+#include "Inventory/DataTypes/StackData.h"
 #include "Engine/DataTable.h"
 #include "TableItem.generated.h"
 
@@ -30,7 +30,7 @@ struct FItemRow : public FTableRowBase
  * Simple item type that references a data table row
  */
 UCLASS(EditInlineNew)
-class INVENTORYSYSTEM_API UTableItem : public UItemTypeBase
+class INVENTORYSYSTEM_API UTableInventoryItem : public UInventoryItemTypeBase
 {
 	GENERATED_BODY()
 
@@ -39,9 +39,9 @@ public:
 	// Item type overrides
 	
 	virtual bool NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess) override;
-	virtual FText GetItemName(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) const override;
-	virtual FText GetItemDescription(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) const override;
-	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FItemDataBase, ESPMode::Fast> ItemData) const override;
+	virtual FText GetItemName(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
+	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
+	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 
 
 	// Editor properties
@@ -59,11 +59,11 @@ protected:
 };
 
 UCLASS()
-class INVENTORYSYSTEM_API UTableStackItem : public UTableItem
+class INVENTORYSYSTEM_API UTableStackItem : public UTableInventoryItem
 {
 	GENERATED_BODY()
 public:
 
-	virtual UScriptStruct* GetItemDataType() const override { return FStackItemData::StaticStruct(); }
-	virtual TSharedPtr<FItemDataBase> CreateItemData() const override { return MakeShareable(new FStackItemData()); };
+	virtual UScriptStruct* GetItemDataType() const override { return FInventoryStackData::StaticStruct(); }
+	virtual TSharedPtr<FInventoryItemDataBase> CreateItemData() const override { return MakeShareable(new FInventoryStackData()); };
 };

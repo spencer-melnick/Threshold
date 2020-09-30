@@ -8,9 +8,9 @@
 #include "IDetailChildrenBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "UObject/StructOnScope.h"
-#include "InventoryItem.h"
-#include "ItemTypes/ItemType.h"
-#include "DataTypes/ItemData.h"
+#include "Inventory/InventoryItem.h"
+#include "Inventory/ItemTypes/ItemType.h"
+#include "Inventory/DataTypes/ItemData.h"
 
 
 TSharedRef<IPropertyTypeCustomization> FInventoryItemDetails::MakeInstance()
@@ -103,7 +103,7 @@ void FInventoryItemDetails::PreTypeChange()
 	}
 	else
 	{
-		StashedItemType = Cast<UItemTypeBase>(CurrentItemType);
+		StashedItemType = Cast<UInventoryItemTypeBase>(CurrentItemType);
 	}
 }
 
@@ -117,14 +117,14 @@ void FInventoryItemDetails::TypeChange()
 	}
 
 	UObject* NewItemObject;
-	UItemTypeBase* NewItemType;
+	UInventoryItemTypeBase* NewItemType;
 	if (TypePropertyHandle->GetValue(NewItemObject) != FPropertyAccess::Success)
 	{
 		NewItemType = nullptr;
 	}
 	else
 	{
-		NewItemType = Cast<UItemTypeBase>(NewItemObject);
+		NewItemType = Cast<UInventoryItemTypeBase>(NewItemObject);
 	}
 
 	// Simulate usage of the setter

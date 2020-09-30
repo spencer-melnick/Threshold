@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
-#include "InventoryItem.h"
+#include "Inventory/InventoryItem.h"
 #include "InventorySystem.h"
-#include "ItemTypes/ItemType.h"
-#include "DataTypes/ItemData.h"
+#include "Inventory/ItemTypes/ItemType.h"
+#include "Inventory/DataTypes/ItemData.h"
 
 
 // FInventoryItem
@@ -44,7 +44,7 @@ TSoftClassPtr<AActor> FInventoryItem::GetPreviewActorClass() const
 
 // Data accessors
 
-void FInventoryItem::SetType(UItemTypeBase* NewType)
+void FInventoryItem::SetType(UInventoryItemTypeBase* NewType)
 {
 	if (Type == NewType)
 	{
@@ -65,11 +65,11 @@ void FInventoryItem::SetType(UItemTypeBase* NewType)
 	if (!Data.IsValid() || NewItemDataType != Data->GetScriptStruct())
 	{
 		// Allocate and initialize item data based on the new data type if it changed
-		FItemDataBase* NewItemData = static_cast<FItemDataBase*>(FMemory::Malloc(NewItemDataType->GetStructureSize()));
+		FInventoryItemDataBase* NewItemData = static_cast<FInventoryItemDataBase*>(FMemory::Malloc(NewItemDataType->GetStructureSize()));
 		NewItemDataType->InitializeStruct(NewItemData);
 
 		// Store our new item data
-		Data = TSharedPtr<FItemDataBase>(NewItemData);
+		Data = TSharedPtr<FInventoryItemDataBase>(NewItemData);
 	}
 }
 
@@ -81,8 +81,8 @@ void FInventoryItem::SetType(UItemTypeBase* NewType)
 bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess)
 {
 	bool bStaticItemType;
-	TCheckedObjPtr<UItemTypeBase> SerializedItemType;
-	TSubclassOf<UItemTypeBase> SerializeItemTypeClass;
+	TCheckedObjPtr<UInventoryItemTypeBase> SerializedItemType;
+	TSubclassOf<UInventoryItemTypeBase> SerializeItemTypeClass;
 
 	if (Ar.IsSaving())
 	{
@@ -146,7 +146,7 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 			if (Type && SerializeItemTypeClass != Type->GetClass())
 			{
 				// Create a new type object if it's different than our current type
-				UItemTypeBase* NewItemType = NewObject<UItemTypeBase>(static_cast<UObject*>(GetTransientPackage()), SerializeItemTypeClass);
+				UInventoryItemTypeBase* NewItemType = NewObject<UInventoryItemTypeBase>(static_cast<UObject*>(GetTransientPackage()), SerializeItemTypeClass);
 				SetType(NewItemType);
 			}
 
@@ -170,7 +170,7 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 
 bool FInventoryItem::Serialize(FArchive& Ar)
 {
-	TCheckedObjPtr<UItemTypeBase> ItemType;
+	TCheckedObjPtr<UInventoryItemTypeBase> ItemType;
 
 	if (Ar.IsSaving())
 	{

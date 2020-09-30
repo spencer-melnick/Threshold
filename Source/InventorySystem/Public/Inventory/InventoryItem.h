@@ -8,8 +8,8 @@
 
 // Forward declarations
 
-class UItemTypeBase;
-struct FItemDataBase;
+class UInventoryItemTypeBase;
+struct FInventoryItemDataBase;
 
 
 /**
@@ -46,9 +46,9 @@ public:
 
 	// Data accessors
 
-	UItemTypeBase* GetType() const { return Type; }
-	TWeakPtr<FItemDataBase> GetData() const { return Data; }
-	void SetType(UItemTypeBase* NewType);
+	UInventoryItemTypeBase* GetType() const { return Type; }
+	TWeakPtr<FInventoryItemDataBase> GetData() const { return Data; }
+	void SetType(UInventoryItemTypeBase* NewType);
 
 
 	// Serialization
@@ -61,9 +61,9 @@ private:
 	// Storage
 	
 	UPROPERTY(EditAnywhere, Instanced, meta=(AllowPrivateAccess="true"))
-	UItemTypeBase* Type = nullptr;
+	UInventoryItemTypeBase* Type = nullptr;
 
-	TSharedPtr<FItemDataBase> Data;
+	TSharedPtr<FInventoryItemDataBase> Data;
 };
 
 
