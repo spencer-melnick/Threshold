@@ -64,12 +64,7 @@ void FInventoryItem::SetType(UInventoryItemTypeBase* NewType)
 
 	if (!Data.IsValid() || NewItemDataType != Data->GetScriptStruct())
 	{
-		// Allocate and initialize item data based on the new data type if it changed
-		FInventoryItemDataBase* NewItemData = static_cast<FInventoryItemDataBase*>(FMemory::Malloc(NewItemDataType->GetStructureSize()));
-		NewItemDataType->InitializeStruct(NewItemData);
-
-		// Store our new item data
-		Data = TSharedPtr<FInventoryItemDataBase>(NewItemData);
+		Data = Type->CreateItemData();
 	}
 }
 
