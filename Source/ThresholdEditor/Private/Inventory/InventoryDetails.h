@@ -4,42 +4,44 @@
 
 #include "CoreMinimal.h"
 #include "IPropertyTypeCustomization.h"
-#include "Types/SlateEnums.h"
 
 
 // Forward declarations
 
 class IDetailGroup;
 class IDetailLayoutBuilder;
-struct FInventoryItemHandle;
+struct FInventoryItem;
+class UItemTypeBase;
 
 
 
 /**
- * Class to display the properties of an inventory item in the editor for debugging
+ * Class to display the properties of an inventory item
  */
-class FInventoryHandleDetails : public IPropertyTypeCustomization
+class FInventoryItemDetails : public IPropertyTypeCustomization
 {
 public:
-	FInventoryHandleDetails();
-	
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 	
 	virtual void CustomizeHeader(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle, ESPMode::Fast> InPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
-	void OnTypeSelection(TSharedPtr<FString> NewType, ESelectInfo::Type SelectInfo);
-	void NotifyPropertyChange();
 
 	UScriptStruct* GetType(TSharedPtr<FString> TypeString) const;
 	TSharedPtr<FString> GetTypeString(UScriptStruct* Type) const;
 
 protected:
-	TArray<TSharedPtr<FString>> TypeStrings;
-	TMap<TSharedPtr<FString>, UScriptStruct*> TypeMappings;
-
-	FInventoryItemHandle* GetItemHandle() const;
+	FInventoryItem* GetItem() const;
+	void NotifyPropertyChange() const;
+	void PreTypeChange();
+	void TypeChange();
+	void UpdateDataStruct();
 
 private:
 	IDetailLayoutBuilder* ParentBuilder = nullptr;
+	IDetailChildrenBuilder* ChildBuilder = nullptr;
+	
 	TSharedPtr<IPropertyHandle> PropertyHandle;
+	TSharedPtr<IPropertyHandle> TypePropertyHandle;
+	
+	TWeakObjectPtr<UItemTypeBase> StashedItemType = nullptr;
 };

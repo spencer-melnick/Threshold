@@ -1,14 +1,13 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "THPlayerState.h"
-#include "Threshold/Player/Inventory/InventoryComponent.h"
 
 
 // ATHPlayerState
 
 ATHPlayerState::ATHPlayerState()
 {
-	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
+
 }
 
 
