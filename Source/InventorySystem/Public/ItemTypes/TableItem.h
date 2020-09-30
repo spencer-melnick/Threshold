@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ItemType.h"
+#include "DataTypes/StackData.h"
 #include "Engine/DataTable.h"
 #include "TableItem.generated.h"
 
@@ -55,4 +56,14 @@ protected:
 		const FTCHARToUTF8 StringUtf8(*Name.ToString());
 		return CityHash32(StringUtf8.Get(), StringUtf8.Length());
 	}
+};
+
+UCLASS()
+class INVENTORYSYSTEM_API UTableStackItem : public UTableItem
+{
+	GENERATED_BODY()
+public:
+
+	virtual UScriptStruct* GetItemDataType() const override { return FStackItemData::StaticStruct(); }
+	virtual TSharedPtr<FItemDataBase> CreateItemData() const override { return MakeShareable(new FStackItemData()); };
 };
