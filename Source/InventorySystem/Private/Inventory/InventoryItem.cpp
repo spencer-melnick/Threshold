@@ -95,7 +95,7 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 {
 	bool bStaticItemType;
 	TCheckedObjPtr<UInventoryItemTypeBase> SerializedItemType;
-	TSubclassOf<UInventoryItemTypeBase> SerializeItemTypeClass;
+	TSubclassOf<UInventoryItemTypeBase> SerializedItemTypeClass;
 
 	if (Ar.IsSaving())
 	{
@@ -116,7 +116,7 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 		else
 		{
 			// Otherwise serialize the type class so we can create a new object
-			SerializeItemTypeClass = Type->GetClass();
+			SerializedItemTypeClass = Type->GetClass();
 		}
 	}
 
@@ -131,7 +131,7 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 	else
 	{
 		// Serialize the object class if it's not
-		Ar << SerializeItemTypeClass;
+		Ar << SerializedItemTypeClass;
 	}
 
 	if (Ar.IsSaving())
@@ -156,15 +156,35 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 	{
 		if (!bStaticItemType)
 		{
-			if (Type && SerializeItemTypeClass != Type->GetClass())
+			// Default to null if we don't have a type class
+			TSubclassOf<UInventoryItemTypeBase> CurrentItemTypeClass = nullptr;
+
+			if (Type)
+			{
+				// Get the current type class if we have one
+				CurrentItemTypeClass = Type->GetClass(); 
+			}
+			
+			if (SerializedItemTypeClass != CurrentItemTypeClass)
 			{
 				// Create a new type object if it's different than our current type
-				UInventoryItemTypeBase* NewItemType = NewObject<UInventoryItemTypeBase>(static_cast<UObject*>(GetTransientPackage()), SerializeItemTypeClass);
+
+				UInventoryItemTypeBase* NewItemType = nullptr;
+				
+				if (SerializedItemTypeClass)
+				{
+					// Create a new object if the type is non-null (fall back to an empty object if it is)
+					NewItemType = NewObject<UInventoryItemTypeBase>(static_cast<UObject*>(GetTransientPackage()), SerializedItemTypeClass);
+				}
+				
 				SetType(NewItemType);
 			}
 
 			// Deserialize the mutable type data
-			Type->NetSerialize(Ar, PackageMap, bOutSuccess);
+			if (Type)
+			{
+				Type->NetSerialize(Ar, PackageMap, bOutSuccess);
+			}
 		}
 
 		UScriptStruct* ItemDataType = nullptr;
