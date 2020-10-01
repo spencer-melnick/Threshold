@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Inventory/DataTypes/ItemData.h"
 #include "InventoryItem.generated.h"
 
 
 // Forward declarations
 
 class UInventoryItemTypeBase;
-struct FInventoryItemDataBase;
+
 
 
 /**
@@ -25,7 +26,57 @@ struct INVENTORYSYSTEM_API FInventoryItem : public FFastArraySerializerItem
 	friend class FInventoryItemDetails;
 
 public:
+	FInventoryItem() {}
 
+
+	/**
+	 * Copy constructor
+	 */
+	FInventoryItem(const FInventoryItem& OtherItem) :
+		Type(OtherItem.Type)
+	{
+		if (OtherItem.Data.IsValid())
+		{
+			Data = TSharedPtr<FInventoryItemDataBase>(OtherItem.Data->Copy());
+		}
+	}
+
+	/**
+	 * Move constructor
+	 */
+	FInventoryItem(FInventoryItem&& OtherItem) noexcept :
+		Type(OtherItem.Type), Data(MoveTemp(OtherItem.Data)) {}
+
+
+	/**
+	 * Copy assignment
+	 */
+	FInventoryItem& operator=(const FInventoryItem& OtherItem)
+	{
+		Type = OtherItem.Type;
+
+		if (OtherItem.Data.IsValid())
+		{
+			Data = TSharedPtr<FInventoryItemDataBase>(OtherItem.Data->Copy());
+		}
+
+		return *this;
+	}
+
+	
+	/**
+	 * Move assignment
+	 */
+	FInventoryItem& operator=(FInventoryItem&& OtherItem) noexcept
+	{
+		Type = OtherItem.Type;
+		Data = MoveTemp(OtherItem.Data);
+
+		return *this;
+	}
+	
+
+	
 	// Property accessors
 
 	/**
@@ -42,6 +93,13 @@ public:
 	 * Used to get an actor that can be rendered as a 3D display for this inventory item
 	 */
 	TSoftClassPtr<AActor> GetPreviewActorClass() const;
+
+	/**
+	 * Check to see if the object is valid. The item is considered valid if the type is non-null and the item data
+	 * type matches what is expected of the item type
+	 * @return True if the item is valid, false otherwise
+	 */
+	bool IsValid() const;
 
 
 	// Data accessors
@@ -63,7 +121,7 @@ private:
 	UPROPERTY(EditAnywhere, Instanced, meta=(AllowPrivateAccess="true"))
 	UInventoryItemTypeBase* Type = nullptr;
 
-	TSharedPtr<FInventoryItemDataBase> Data;
+	TSharedPtr<FInventoryItemDataBase> Data = nullptr;
 };
 
 

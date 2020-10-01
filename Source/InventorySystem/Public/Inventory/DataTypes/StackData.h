@@ -19,7 +19,23 @@ struct INVENTORYSYSTEM_API FInventoryStackData : public FInventoryItemDataBase
 	GENERATED_BODY()
 
 	virtual UScriptStruct* GetScriptStruct() const override { return StaticStruct(); }
+	bool NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess);
 
 	UPROPERTY(EditAnywhere)
 	int32 StackCount = 1;
 };
+
+
+
+/**
+ * Enable net serialization of stack data
+ */
+template <>
+struct TStructOpsTypeTraits<FInventoryStackData> : TStructOpsTypeTraitsBase2<FInventoryStackData>
+{
+	enum
+	{
+        WithNetSerializer = true
+    };
+};
+

@@ -20,4 +20,9 @@ struct INVENTORYSYSTEM_API FInventoryItemDataBase
 	 * @return Struct type reflection data
 	 */
 	virtual UScriptStruct* GetScriptStruct() const { return StaticStruct(); }
+
+	/**
+	 * Create a copy of this data, allocated on the heap
+	 */
+	virtual FInventoryItemDataBase* Copy() const;
 };

@@ -61,3 +61,19 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+
+
+// Inventory owner overrides
+
+UInventoryComponent* APlayerCharacter::GetInventoryComponent() const
+{
+	ATHPlayerState* THPlayerState = GetPlayerStateChecked<ATHPlayerState>();
+
+	if (!THPlayerState)
+	{
+		return nullptr;
+	}
+
+	return THPlayerState->GetInventoryComponent();
+}
+
