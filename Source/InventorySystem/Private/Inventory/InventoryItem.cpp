@@ -12,7 +12,7 @@
 
 FText FInventoryItem::GetName() const
 {
-	if (!Type)
+	if (!IsValid())
 	{
 		return FText();
 	}
@@ -22,7 +22,7 @@ FText FInventoryItem::GetName() const
 
 FText FInventoryItem::GetDescription() const
 {
-	if (!Type)
+	if (!IsValid())
 	{
 		return FText();
 	}
@@ -32,13 +32,31 @@ FText FInventoryItem::GetDescription() const
 
 TSoftClassPtr<AActor> FInventoryItem::GetPreviewActorClass() const
 {
-	if (!Type)
+	if (!IsValid())
 	{
 		return nullptr;
 	}
 
 	return Type->GetPreviewActorClass(Data);
 }
+
+bool FInventoryItem::IsValid() const
+{
+	if (!Type)
+	{
+		return false;
+	}
+
+	if (Type->GetItemDataType())
+	{
+		// Make sure our data type matches the expected type
+		return Data.IsValid() && Type->GetItemDataType() == Data->GetScriptStruct();
+	}
+
+	// If we have require no data, then the item should be valid
+	return true;
+}
+
 
 
 
@@ -149,7 +167,12 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 			Type->NetSerialize(Ar, PackageMap, bOutSuccess);
 		}
 
-		UScriptStruct* ItemDataType = Type->GetItemDataType();
+		UScriptStruct* ItemDataType = nullptr;
+
+		if (Type)
+		{
+			ItemDataType = Type->GetItemDataType();
+		}
 
 		if (ItemDataType)
 		{
