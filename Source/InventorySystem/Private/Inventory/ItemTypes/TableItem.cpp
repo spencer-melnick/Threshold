@@ -2,6 +2,8 @@
 
 #include "Inventory/ItemTypes/TableItem.h"
 #include "InventorySystem.h"
+#include "Inventory/DataTypes/ItemData.h"
+#include "Inventory/DataTypes/StackData.h"
 
 
 // UTableItem
@@ -38,7 +40,7 @@ bool UTableInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bo
 		// TODO: add method for loading synchronously without flushing all pending asynchronous loads
 		RowHandle.DataTable = TablePointer.LoadSynchronous();
 
-		if (!RowHandle.DataTable || RowHandle.DataTable->RowStruct != FItemRow::StaticStruct())
+		if (!RowHandle.DataTable || RowHandle.DataTable->RowStruct != GetRowStruct())
 		{
 			UE_LOG(LogInventorySystem, Error, TEXT("UTableItem::NetSerialize failed on %s - received invalid data table reference %s"),
 				*GetNameSafe(this), *TablePointer->GetPathName())
@@ -70,43 +72,60 @@ bool UTableInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bo
 FText UTableInventoryItem::GetItemName(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
-
-	if (!ItemRow)
-	{
-		return FText();
-	}
-
-	return ItemRow->ItemName;
+	return ItemRow ? ItemRow->ItemName : FText();
 }
 
 FText UTableInventoryItem::GetItemDescription(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
-
-	if (!ItemRow)
-	{
-		return FText();
-	}
-
-	return ItemRow->ItemDescription;
+	return ItemRow ? ItemRow->ItemDescription : FText();
 }
 
 TSoftClassPtr<AActor> UTableInventoryItem::GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
+	return ItemRow ? ItemRow->PreviewActorClass : nullptr;
+}
 
-	if (!ItemRow)
-	{
-		return nullptr;
-	}
-
-	return ItemRow->PreviewActorClass;
+bool UTableInventoryItem::AllowsDuplicates() const
+{
+	const FItemRow* ItemRow = GetRow();
+	return ItemRow ? ItemRow->bAllowsDuplicates : false;
 }
 
 
-// Protected helpers
 
-FItemRow* UTableInventoryItem::GetRow() const
+
+// UTableStackItem
+
+int32 UTableStackItem::AddToStack(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const
 {
-	return RowHandle.GetRow<FItemRow>(TEXT("UTableItem"));
+	const TSharedPtr<FInventoryStackData> StackData = ConvertDataChecked<FInventoryStackData>(ItemData);
+
+	if (!StackData.IsValid())
+	{
+		return 0;
+	}
+
+	const int32 PreviousStackCount = StackData->StackCount;
+	const int32 NewStackCount = FMath::Clamp(PreviousStackCount + Count, 0, GetMaxStackSize());
+	StackData->StackCount = NewStackCount;
+	return NewStackCount - PreviousStackCount;
+}
+
+int32 UTableStackItem::RemoveFromStack(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const
+{
+	return -AddToStack(ItemData, -Count);
+}
+
+int32 UTableStackItem::GetStackCount(TWeakPtr<FInventoryItemDataBase> ItemData) const
+{
+	const TSharedPtr<FInventoryStackData> StackData = ConvertDataChecked<FInventoryStackData>(ItemData);
+	return StackData.IsValid() ? StackData->StackCount : 0;
+}
+
+int32 UTableStackItem::GetMaxStackSize() const
+{
+	const FStackItemRow* ItemRow = GetRow<FStackItemRow>();
+	return ItemRow ? ItemRow->MaxStackSize : 1;
 }

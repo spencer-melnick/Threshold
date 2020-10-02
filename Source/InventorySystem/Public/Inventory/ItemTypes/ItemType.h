@@ -42,17 +42,83 @@ public:
 	 * Used to get the name of this item as it should appear in the inventory UI
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual FText GetItemName(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return FText(); }
+	virtual FText GetItemName(TWeakPtr<FInventoryItemDataBase> ItemData) const { return FText(); }
 
 	/**
 	 * Used to get the description of this item as it should appear in the inventory UI
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return FText(); }
+	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase> ItemData) const { return FText(); }
 
 	/**
 	 * Used to get an actor that can be rendered as a 3D display for this inventory item
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return TSoftClassPtr<AActor>(); }
+	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const { return TSoftClassPtr<AActor>(); }
+
+	/**
+	 * Overridden to determine inventory storage behavior
+	 * @return Whether or not an inventory component should store multiple items with this item type
+	 */
+	virtual bool AllowsDuplicates() const { return true; }
+
+	/**
+	 * Overridden to determine inventory storage behavior
+	 * @return Whether or not an inventory component should store multiple items with this item type
+	 */
+	virtual bool AllowsStacking() const { return false; }
+
+	/**
+	 * Try to add items to a stack of this type. Must be implemented for any type that allows stacking
+	 * @param ItemData - Item data relevant to this item type. Should contain stack count. May be null, so you should
+	 * add an assert for validity
+	 * @param Count - Number of items of this type to try to add to the stack
+	 * @return Number of items added to the stack. 0 on failure
+	 */
+	virtual int32 AddToStack(TWeakPtr<FInventoryItemDataBase> ItemData, const int32 Count) const { unimplemented(); return 0; }
+
+	/**
+	 * Try to remove items from a stack of this type. Must be implemented for any type that allows stacking
+	 * @param ItemData - Item data relevant to this item type. Should contain stack count. May be null, so you should
+	 * add an assert for validity
+	* @param Count - Number of items of this type to try to remove from stack
+	 * @return Number of items removed from the stack. 0 on failure
+	 */
+	virtual int32 RemoveFromStack(TWeakPtr<FInventoryItemDataBase> ItemData, const int32 Count) const { unimplemented(); return 0; }
+
+	/**
+	 * Used to get the number of items in a stack of this type
+	 * @param ItemData - Item data relevant to this item type. Should contain stack count. May be null, so you should
+	 * add an assert for validity
+	 * @return Number of items stored in the stack
+	 */
+	virtual int32 GetStackCount(TWeakPtr<FInventoryItemDataBase> ItemData) const { unimplemented(); return 0; }
+
+	/**
+	 * Compare inventory item types, default implementation only checks for matching class
+	 */
+	virtual bool operator==(const UInventoryItemTypeBase& OtherType) { return GetClass() == OtherType.GetClass(); }
+
+	bool operator!=(const UInventoryItemTypeBase& OtherType) { return !operator==(OtherType); }
+
+
+	
+protected:
+	template <typename DataType>
+	static TSharedPtr<DataType> ConvertDataChecked(TWeakPtr<FInventoryItemDataBase> ItemData)
+	{
+		static_assert(TIsDerivedFrom<DataType, FInventoryItemDataBase>::IsDerived, "Conversion data type must be derived from FInventoryItemDataBase");
+		if (!ItemData.IsValid())
+		{
+			return nullptr;
+		}
+
+		const TSharedPtr<FInventoryItemDataBase> PinnedData = ItemData.Pin();
+		if (PinnedData->GetScriptStruct() != DataType::StaticStruct())
+		{
+			return nullptr;
+		}
+
+		return StaticCastSharedPtr<DataType>(PinnedData);
+	}
 };
