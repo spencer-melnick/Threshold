@@ -93,6 +93,20 @@ bool UTableInventoryItem::AllowsDuplicates() const
 	return ItemRow ? ItemRow->bAllowsDuplicates : false;
 }
 
+bool UTableInventoryItem::operator==(const UInventoryItemTypeBase& OtherType)
+{
+	if (!Super::operator==(OtherType))
+	{
+		// Super operator == should check class types for equality already
+		return false;
+	}
+
+	// Compare table items by row handle
+	const UTableInventoryItem* OtherTableType = Cast<UTableInventoryItem>(&OtherType);
+	check(OtherTableType);
+	return OtherTableType->RowHandle == RowHandle;
+}
+
 
 
 
