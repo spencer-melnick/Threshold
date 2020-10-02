@@ -40,6 +40,67 @@ TSoftClassPtr<AActor> FInventoryItem::GetPreviewActorClass() const
 	return Type->GetPreviewActorClass(Data);
 }
 
+bool FInventoryItem::AllowsDuplicates() const
+{
+	if (!IsValid())
+	{
+		return false;
+	}
+
+	return Type->AllowsDuplicates();
+}
+
+bool FInventoryItem::AllowsStacking() const
+{
+	if (!IsValid())
+	{
+		return false;
+	}
+
+	return Type->AllowsStacking();
+}
+
+int32 FInventoryItem::AddToStack(const int32 Count)
+{
+	if (!IsValid() || !AllowsStacking())
+	{
+		return 0;
+	}
+
+	return Type->AddToStack(Data, Count);
+}
+
+int32 FInventoryItem::RemoveFromStack(const int32 Count)
+{
+	if (!IsValid() || !AllowsStacking())
+	{
+		return 0;
+	}
+
+	return Type->RemoveFromStack(Data, Count);
+}
+
+void FInventoryItem::SetStackCount(const int32 Count) const
+{
+	if (!IsValid() || !AllowsStacking())
+	{
+		return;
+	}
+
+	Type->SetStackCount(Data, Count);
+}
+
+
+int32 FInventoryItem::GetStackCount() const
+{
+	if (!IsValid() || !AllowsStacking())
+	{
+		return 0;
+	}
+
+	return Type->GetStackCount(Data);
+}
+
 bool FInventoryItem::IsValid() const
 {
 	if (!Type)

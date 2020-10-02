@@ -92,6 +92,7 @@ public:
 	virtual bool AllowsStacking() const override { return true; }
 	virtual int32 AddToStack(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const override;
 	virtual int32 RemoveFromStack(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const override;
+	virtual void SetStackCount(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const override;
 	virtual int32 GetStackCount(TWeakPtr<FInventoryItemDataBase> ItemData) const override;
 	int32 GetMaxStackSize() const;
 };
