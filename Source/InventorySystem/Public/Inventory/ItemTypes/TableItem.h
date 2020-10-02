@@ -46,8 +46,11 @@ public:
 	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 	virtual bool AllowsDuplicates() const override;
+	virtual bool operator==(const UInventoryItemTypeBase& OtherType) override;
 
 
+	// Table item functionality
+	
 	virtual UScriptStruct* GetRowStruct() const { return FItemRow::StaticStruct(); }
 
 
