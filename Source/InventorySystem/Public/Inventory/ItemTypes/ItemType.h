@@ -87,6 +87,14 @@ public:
 	virtual int32 RemoveFromStack(TWeakPtr<FInventoryItemDataBase> ItemData, const int32 Count) const { unimplemented(); return 0; }
 
 	/**
+	 * Try set the number of items in a stack of this type - does not need to check against max stack size
+	 * @param ItemData - Item data relevant to this item type. Should contain stack count. May be null, so you should
+	 * add an assert for validity
+	 * @param Count - Number of items of this type try to set
+	*/
+	virtual void SetStackCount(TWeakPtr<FInventoryItemDataBase> ItemData, const int32 Count) const { unimplemented(); }
+
+	/**
 	 * Used to get the number of items in a stack of this type
 	 * @param ItemData - Item data relevant to this item type. Should contain stack count. May be null, so you should
 	 * add an assert for validity

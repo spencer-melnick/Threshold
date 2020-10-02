@@ -45,10 +45,35 @@ public:
 	// Inventory access
 
 	/**
-	 * Try to add an inventory item to this inventory.
+	 * Try to add an inventory item to this inventory via a copy.
 	 * @return The count of the items added on success or 0 on failure
 	 */
 	int32 AddItem(const FInventoryItem& NewItem);
+
+	/**
+	 * Try to remove an inventory item from this inventory by type
+	 * @param ItemType - The type of the item to remove
+	 * @param Count - The number of items to be removed
+	 * @return The count of the items removed or 0 if none were removed
+	 */
+	int32 RemoveItem(UInventoryItemTypeBase* ItemType, int32 Count);
+
+	/**
+	 * Find all inventory items that match a type
+	 * @param ItemType - Pointer to the type object to compare against
+	 * @return An array of inventory item pointers. NOTE: these are not guaranteed to be valid for very long, since any
+	 * insertions or deletions on the underlying array could invalidate the pointers.
+	 */
+	TArray<FInventoryItem*> GetAllItemsByType(UInventoryItemTypeBase* ItemType);
+
+	/**
+	 * Find the first inventory item that matches a type
+	 * @param ItemType - Pointer to the type object to compare against
+	 * @return Pointer to the first element that matches the type or nullptr if there are no matches. NOTE: this pointer
+	 * is not guaranteed to be valid for very long, since any insertions or deletions on the underlying array could
+	 * invalidate the pointers.
+	 */
+	FInventoryItem* GetFirstItemByType(UInventoryItemTypeBase* ItemType);
 
 
 protected:

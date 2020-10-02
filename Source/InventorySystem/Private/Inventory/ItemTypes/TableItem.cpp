@@ -100,16 +100,9 @@ bool UTableInventoryItem::AllowsDuplicates() const
 
 int32 UTableStackItem::AddToStack(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const
 {
-	const TSharedPtr<FInventoryStackData> StackData = ConvertDataChecked<FInventoryStackData>(ItemData);
-
-	if (!StackData.IsValid())
-	{
-		return 0;
-	}
-
-	const int32 PreviousStackCount = StackData->StackCount;
+	const int32 PreviousStackCount = GetStackCount(ItemData);
 	const int32 NewStackCount = FMath::Clamp(PreviousStackCount + Count, 0, GetMaxStackSize());
-	StackData->StackCount = NewStackCount;
+	SetStackCount(ItemData, NewStackCount);
 	return NewStackCount - PreviousStackCount;
 }
 
@@ -117,6 +110,19 @@ int32 UTableStackItem::RemoveFromStack(TWeakPtr<FInventoryItemDataBase, ESPMode:
 {
 	return -AddToStack(ItemData, -Count);
 }
+
+void UTableStackItem::SetStackCount(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const
+{
+	const TSharedPtr<FInventoryStackData> StackData = ConvertDataChecked<FInventoryStackData>(ItemData);
+
+	if (!StackData.IsValid())
+	{
+		return;
+	}
+
+	StackData->StackCount = Count;
+}
+
 
 int32 UTableStackItem::GetStackCount(TWeakPtr<FInventoryItemDataBase> ItemData) const
 {
