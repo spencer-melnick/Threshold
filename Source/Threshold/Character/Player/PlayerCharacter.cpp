@@ -4,7 +4,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
-#include "Threshold/Threshold.h"
+#include "Threshold/Player/THPlayerState.h"
 
 
 // Component name constants
@@ -59,5 +59,21 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+
+
+// Inventory owner overrides
+
+UInventoryComponent* APlayerCharacter::GetInventoryComponent() const
+{
+	ATHPlayerState* THPlayerState = GetPlayerStateChecked<ATHPlayerState>();
+
+	if (!THPlayerState)
+	{
+		return nullptr;
+	}
+
+	return THPlayerState->GetInventoryComponent();
 }
 

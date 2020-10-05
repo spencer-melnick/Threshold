@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "InteractiveObject.h"
+#include "Inventory/InventoryItem.h"
 #include "ItemPickup.generated.h"
 
 
 // Forward declarations
 
 class UMeshComponent;
+class UInventoryItemHelper;
 
 
 /**
@@ -45,6 +47,9 @@ public:
 
 
 	// Editor properties
+
+	UPROPERTY(Category="ItemPickup", EditAnywhere, BlueprintReadWrite)
+	FInventoryItem InventoryItem;
 
 
 private:
