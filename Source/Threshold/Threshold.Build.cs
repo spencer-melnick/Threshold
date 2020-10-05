@@ -11,7 +11,7 @@ public class Threshold : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
         {
             "GameplayAbilities", "GameplayTags", "GameplayTasks", "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay",
-            "Niagara"
+            "Niagara", "InventorySystem"
         });
-	}
+    }
 }

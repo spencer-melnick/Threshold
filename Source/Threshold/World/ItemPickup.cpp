@@ -5,6 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Threshold/Threshold.h"
 #include "Threshold/Global/Subsystems/InteractionSubsystem.h"
+#include "Inventory/Components/InventoryOwner.h"
 
 
 // Component name constants
@@ -27,6 +28,8 @@ AItemPickup::AItemPickup()
 
 void AItemPickup::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	GetWorld()->GetSubsystem<UInteractionSubsystem>()->RegisterObject(this);
 }
 
@@ -69,5 +72,14 @@ void AItemPickup::AttachInteractionIndicator(AActor* Indicator)
 void AItemPickup::OnServerInteract(ABaseCharacter* Character)
 {
 	UE_LOG(LogThresholdGeneral, Display, TEXT("%s picked up %s"), *GetNameSafe(Character), *GetNameSafe(this))
+
+	IInventoryOwner* InventoryOwner = Cast<IInventoryOwner>(Character);
+
+	if (!InventoryOwner || !InventoryItem.IsValid())
+	{
+		return;
+	}
+
+	InventoryOwner->AddItem(InventoryItem);
 }
 
