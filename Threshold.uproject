@@ -15,10 +15,12 @@
       {
         "Name": "InventorySystem",
         "Type": "Runtime",
-        "LoadingPhase": "Default",
-        "AdditionalDependencies": [
-          "Engine"
-        ]
+        "LoadingPhase": "Default"
+      },
+      {
+        "Name": "ThresholdUI",
+        "Type": "ClientOnly",
+        "LoadingPhase": "Default"
       },
       {
         "Name": "ThresholdEditor",
