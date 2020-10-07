@@ -22,7 +22,43 @@ void APlayerHUD::BeginPlay()
 	Super::BeginPlay();
 	
 	CreateWidgets();
+
+	// Set default status this way to hide appropriate widgets
+	SetStatus(EPlayerHUDStatus::WorldView);
 }
+
+
+
+// Accessors
+
+void APlayerHUD::SetStatus(const EPlayerHUDStatus NewStatus)
+{
+	Status = NewStatus;
+
+	switch (Status)
+	{
+		case EPlayerHUDStatus::WorldView:
+			HideWidgetChecked(PlayerMenuWidget);
+			break;
+
+		case EPlayerHUDStatus::PlayerMenuActive:
+			ShowWidgetChecked(PlayerMenuWidget);
+			break;
+	}
+}
+
+bool APlayerHUD::ShouldEnableCharacterControl() const
+{
+	switch (Status)
+	{
+		case EPlayerHUDStatus::WorldView:
+			return true;
+		default:
+			return false;
+	}
+}
+
+
 
 
 
@@ -49,5 +85,25 @@ void APlayerHUD::CreateWidgets()
 	PlayerMenuWidget->AddToViewport();
 
 	UE_LOG(LogThresholdUI, Display, TEXT("APlayerHUD %s created starting widgets"), *GetNameSafe(this))
+}
+
+void APlayerHUD::HideWidgetChecked(UUserWidget* Widget)
+{
+	if (!Widget)
+	{
+		return;
+	}
+
+	Widget->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void APlayerHUD::ShowWidgetChecked(UUserWidget* Widget)
+{
+	if (!Widget)
+	{
+		return;
+	}
+
+	Widget->SetVisibility(ESlateVisibility::Visible);
 }
 

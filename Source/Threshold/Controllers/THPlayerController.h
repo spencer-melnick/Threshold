@@ -15,6 +15,7 @@
 
 class ICombatant;
 class IInteractiveObject;
+enum class EPlayerHUDStatus : uint8;
 
 
 /**
@@ -63,6 +64,12 @@ public:
 	
 	void NextTarget();
 	void PreviousTarget();
+
+
+
+	// HUD controls
+
+	void ToggleMenu();
 
 
 
