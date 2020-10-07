@@ -9,6 +9,7 @@
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Global/Subsystems/InteractionSubsystem.h"
 #include "Threshold/World/InteractiveObject.h"
+#include "HUD/PlayerHUD.h"
 #include "EngineUtils.h"
 
 
@@ -65,6 +66,8 @@ void ATHPlayerController::SetupInputComponent()
 	InputComponent->BindAction("ToggleTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleTarget);
 	InputComponent->BindAction("NextTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::NextTarget);
 	InputComponent->BindAction("PreviousTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::PreviousTarget);
+
+	InputComponent->BindAction("ToggleMenu", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleMenu);
 }
 
 void ATHPlayerController::Tick(float DeltaTime)
@@ -436,6 +439,32 @@ void ATHPlayerController::SetTarget(TWeakInterfacePtr<ICombatant> NewTarget)
 	LockonTarget->AttachTargetIndicator(TargetIndicatorActor);
 	TargetIndicatorActor->SetActorHiddenInGame(false);
 }
+
+
+
+// HUD controls
+
+void ATHPlayerController::ToggleMenu()
+{
+	APlayerHUD* PlayerHUD = GetHUD<APlayerHUD>();
+
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	switch (PlayerHUD->GetStatus())
+	{
+		case EPlayerHUDStatus::WorldView:
+			PlayerHUD->SetStatus(EPlayerHUDStatus::PlayerMenuActive);
+			break;
+
+		default:
+			PlayerHUD->SetStatus(EPlayerHUDStatus::WorldView);
+			break;
+	}
+}
+
 
 
 

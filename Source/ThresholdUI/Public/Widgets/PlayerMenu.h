@@ -10,7 +10,7 @@
  * Main class for the player menu that contains the inventory screen and player status
  */
 UCLASS()
-class UPlayerMenuWidget : public UUserWidget
+class THRESHOLDUI_API UPlayerMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
