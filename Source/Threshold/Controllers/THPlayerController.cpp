@@ -9,7 +9,7 @@
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Global/Subsystems/InteractionSubsystem.h"
 #include "Threshold/World/InteractiveObject.h"
-#include "HUD/PlayerHUD.h"
+#include "ThresholdUI/HUD/PlayerHUD.h"
 #include "EngineUtils.h"
 
 

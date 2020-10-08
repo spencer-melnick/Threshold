@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
-#include "HUD/PlayerHUD.h"
+#include "ThresholdUI/HUD/PlayerHUD.h"
 #include "Blueprint/UserWidget.h"
 #include "ThresholdUI.h"
-#include "Widgets/PlayerMenu.h"
+#include "ThresholdUI/Widgets/PlayerMenu.h"
 
 
 // APlayerHUD
