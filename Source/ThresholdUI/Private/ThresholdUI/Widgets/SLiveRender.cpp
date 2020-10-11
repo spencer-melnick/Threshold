@@ -64,14 +64,38 @@ void SLiveRender::AddReferencedObjects(FReferenceCollector& Collector)
 
 void SLiveRender::SetMaterial(UMaterialInterface* Material)
 {
-	MaterialInstance = UMaterialInstanceDynamic::Create(Material, nullptr);
+	// Compare materials by their base/parent materials
+	UMaterialInterface* CurrentParentMaterial = nullptr;
+	if (Material)
+	{
+		CurrentParentMaterial = Material->GetBaseMaterial();
+	}
+
+	if (CurrentParentMaterial == Material)
+	{
+		// Skip if the materials have the same base
+		return;
+	}
+	
+	if (!Material)
+	{
+		MaterialInstance = nullptr;
+	}
+	else
+	{
+		MaterialInstance = UMaterialInstanceDynamic::Create(Material, nullptr);
+	}
+
 	UpdateMaterial();
 }
 
 void SLiveRender::SetTextureParameterName(FName InTextureParameterName)
 {
-	TextureParameterName = InTextureParameterName;
-	UpdateMaterial();
+	if (InTextureParameterName != TextureParameterName)
+	{
+		TextureParameterName = InTextureParameterName;
+		UpdateMaterial();
+	}
 }
 
 
@@ -85,7 +109,7 @@ int32 SLiveRender::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	const FVector2D WidgetSize = BoundingRect.GetSize();
 	const FIntPoint TargetSize(FMath::RoundToInt(WidgetSize.X), FMath::RoundToInt(WidgetSize.Y));
 
-	if (RenderTarget->SizeX != TargetSize.X || RenderTarget->SizeY != TargetSize.Y)
+	if (RenderTarget && (RenderTarget->SizeX != TargetSize.X || RenderTarget->SizeY != TargetSize.Y))
 	{
 		// Resize the render target if necessary
 		RenderTarget->ResizeTarget(TargetSize.X, TargetSize.Y);
@@ -138,12 +162,20 @@ FVector2D SLiveRender::ComputeDesiredSize(float) const
 // Helper functions
 
 void SLiveRender::UpdateMaterial()
-{
-	MaterialBrush.SetMaterial(MaterialInstance);
-	
+{	
 	if (MaterialInstance)
 	{
-		MaterialInstance->SetTextureParameterValue(TextureParameterName, RenderTarget);
+		MaterialBrush.SetMaterial(MaterialInstance);
+		
+		if (RenderTarget)
+		{
+			MaterialInstance->SetTextureParameterValue(TextureParameterName, RenderTarget);
+		}
+		else
+		{
+			// TODO: Only clear the specific named parameter
+			MaterialInstance->ClearParameterValues();
+		}
 	}
 }
 
