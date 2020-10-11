@@ -52,7 +52,6 @@ public:
 
 	/** Constructor */
 	SLiveRender()
-		: MaterialBrush(FVector2D::ZeroVector)
 	{
 		SetCanTick(true);
 		bCanSupportFocus = false;
@@ -143,5 +142,5 @@ protected:
 	
 	UMaterialInstanceDynamic* MaterialInstance;
 	UTextureRenderTarget2D* RenderTarget;
-	FSlateMaterialBrush MaterialBrush;
+	TSharedPtr<FSlateMaterialBrush> MaterialBrush;
 };

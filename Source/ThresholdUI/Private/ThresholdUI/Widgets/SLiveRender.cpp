@@ -30,6 +30,7 @@ void SLiveRender::Construct(const FArguments& InArgs, UObject* WorldContextObjec
 	RenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(WorldContextObject);
 
 	// Assign the parent material
+	MaterialBrush = MakeShareable(new FSlateMaterialBrush(FVector2D(SlateBrushDefs::DefaultImageSize, SlateBrushDefs::DefaultImageSize)));
 	SetMaterial(ParentMaterial);
 }
 
@@ -66,9 +67,9 @@ void SLiveRender::SetMaterial(UMaterialInterface* Material)
 {
 	// Compare materials by their base/parent materials
 	UMaterialInterface* CurrentParentMaterial = nullptr;
-	if (Material)
+	if (MaterialInstance)
 	{
-		CurrentParentMaterial = Material->GetBaseMaterial();
+		CurrentParentMaterial = MaterialInstance->GetBaseMaterial();
 	}
 
 	if (CurrentParentMaterial == Material)
@@ -118,21 +119,21 @@ int32 SLiveRender::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeom
 	
 
 	// Use standard image rendering
-	if (MaterialBrush.DrawAs != ESlateBrushDrawType::NoDrawType)
+	if (MaterialBrush.IsValid() && MaterialBrush->DrawAs != ESlateBrushDrawType::NoDrawType)
 	{
 		const bool bIsEnabled = ShouldBeEnabled(bParentEnabled);
 		const ESlateDrawEffect DrawEffects = bIsEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-		const FLinearColor FinalColorAndOpacity( InWidgetStyle.GetColorAndOpacityTint() * ColorAndOpacity.Get().GetColor(InWidgetStyle) * MaterialBrush.GetTint( InWidgetStyle ) );
+		const FLinearColor FinalColorAndOpacity( InWidgetStyle.GetColorAndOpacityTint() * ColorAndOpacity.Get().GetColor(InWidgetStyle) * MaterialBrush->GetTint( InWidgetStyle ) );
 
 		if (bFlipForRightToLeftFlowDirection && GSlateFlowDirection == EFlowDirection::RightToLeft)
 		{
 			const FGeometry FlippedGeometry = AllottedGeometry.MakeChild(FSlateRenderTransform(FScale2D(-1, 1)));
-			FSlateDrawElement::MakeBox(OutDrawElements, LayerId, FlippedGeometry.ToPaintGeometry(), &MaterialBrush, DrawEffects, FinalColorAndOpacity);
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId, FlippedGeometry.ToPaintGeometry(), MaterialBrush.Get(), DrawEffects, FinalColorAndOpacity);
 		}
 		else
 		{
-			FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), &MaterialBrush, DrawEffects, FinalColorAndOpacity);
+			FSlateDrawElement::MakeBox(OutDrawElements, LayerId, AllottedGeometry.ToPaintGeometry(), MaterialBrush.Get(), DrawEffects, FinalColorAndOpacity);
 		}
 	}
 
@@ -165,7 +166,7 @@ void SLiveRender::UpdateMaterial()
 {	
 	if (MaterialInstance)
 	{
-		MaterialBrush.SetMaterial(MaterialInstance);
+		MaterialBrush->SetMaterial(MaterialInstance);
 		
 		if (RenderTarget)
 		{
