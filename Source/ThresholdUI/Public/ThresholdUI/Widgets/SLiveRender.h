@@ -81,6 +81,7 @@ public:
 	FIntPoint GetDefaultTargetSize() const { return DefaultTargetSize; }
 
 	void SetMaterial(UMaterialInterface* Material);
+	UMaterialInstanceDynamic* GetMaterialInstance() const { return MaterialInstance; }
 	
 	void SetTextureParameterName(FName InTextureParameterName);
 	FName GetTextureParameterName() const { return TextureParameterName; }
