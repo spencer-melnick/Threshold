@@ -166,7 +166,10 @@ void SLiveRender::UpdateMaterial()
 {	
 	if (MaterialInstance)
 	{
-		MaterialBrush->SetMaterial(MaterialInstance);
+		if (MaterialBrush.IsValid())
+		{
+			MaterialBrush->SetMaterial(MaterialInstance);
+		}
 		
 		if (RenderTarget)
 		{
@@ -200,7 +203,6 @@ bool SLiveRender::CalculateCurrentVisibility(const FGeometry& AllottedGeometry) 
 
 		ParentWidget = PinnedParent->GetParentWidget();
 	}
-
 	
 	if (GEngine && GEngine->GameViewport && GEngine->GameViewport->Viewport)
 	{

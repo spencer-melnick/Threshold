@@ -140,7 +140,7 @@ protected:
 
 	// Render resources
 	
-	UMaterialInstanceDynamic* MaterialInstance;
-	UTextureRenderTarget2D* RenderTarget;
+	UMaterialInstanceDynamic* MaterialInstance = nullptr;
+	UTextureRenderTarget2D* RenderTarget = nullptr;
 	TSharedPtr<FSlateMaterialBrush> MaterialBrush;
 };
