@@ -52,6 +52,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Render)
 	UMaterialInterface* ParentMaterial;
 
+	/** Simple read only property for viewing render target size in editor */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Render)
+	FIntPoint RenderTargetSize;
+
+	/** Simple read only property for debugging visibility in editor */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Render)
+	bool bVisible = false;
+
 
 
 	// Delegates

@@ -2,6 +2,7 @@
 
 // ReSharper disable CppExpressionWithoutSideEffects
 #include "ThresholdUI/Widgets/LiveRender.h"
+#include "Engine/TextureRenderTarget2D.h"
 
 
 
@@ -124,11 +125,25 @@ TSharedRef<SWidget> ULiveRender::RebuildWidget()
 
 void ULiveRender::OnVisibilityChanged(bool bIsVisible)
 {
+	bVisible = bIsVisible;
+	
 	OnVisibilityChangedEvent.ExecuteIfBound(bIsVisible);
 }
 
 void ULiveRender::OnSizeChanged()
 {
+	if (LiveRenderWidget.IsValid())
+	{
+		const UTextureRenderTarget2D* RenderTarget = LiveRenderWidget->GetRenderTarget();
+
+		if (RenderTarget)
+		{
+			RenderTargetSize.X = RenderTarget->SizeX;
+			RenderTargetSize.Y = RenderTarget->SizeY;
+		}
+	}
+
+
 	OnSizeChangedEvent.ExecuteIfBound();
 }
 
