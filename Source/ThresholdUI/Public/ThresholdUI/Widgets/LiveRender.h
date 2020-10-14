@@ -111,8 +111,8 @@ protected:
 
 	// Delegates
 
-	void OnVisibilityChanged(bool bIsVisible);
-	void OnSizeChanged();
+	virtual void OnVisibilityChanged(bool bIsVisible);
+	virtual void OnSizeChanged();
 	
 	
 	

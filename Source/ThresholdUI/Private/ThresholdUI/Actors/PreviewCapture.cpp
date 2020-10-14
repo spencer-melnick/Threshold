@@ -33,6 +33,7 @@ APreviewCapture::APreviewCapture()
 	CaptureComponent->bConsiderUnrenderedOpaquePixelAsFullyTranslucent = true;
 	CaptureComponent->CaptureSource = SCS_FinalColorHDR;
 	CaptureComponent->ShowFlags.TemporalAA = true;
+	CaptureComponent->bAlwaysPersistRenderingState = true;
 
 	// Only render actors added to the "show" list
 	CaptureComponent->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
