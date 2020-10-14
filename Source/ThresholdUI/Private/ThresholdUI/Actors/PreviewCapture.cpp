@@ -4,6 +4,7 @@
 #include "ThresholdUI.h"
 #include "ThresholdUI/Actors/PreviewActor.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Engine/AssetManager.h"
 
 
 // APreviewCapture
@@ -30,7 +31,8 @@ APreviewCapture::APreviewCapture()
 
 	// Enable rendering transparency
 	CaptureComponent->bConsiderUnrenderedOpaquePixelAsFullyTranslucent = true;
-	CaptureComponent->CaptureSource = SCS_SceneColorHDR;
+	CaptureComponent->CaptureSource = SCS_FinalColorHDR;
+	CaptureComponent->ShowFlags.TemporalAA = true;
 
 	// Only render actors added to the "show" list
 	CaptureComponent->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
@@ -50,8 +52,6 @@ APreviewCapture::APreviewCapture()
 void APreviewCapture::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	UpdateCameraPosition();
 }
 
 
@@ -60,120 +60,150 @@ void APreviewCapture::Tick(float DeltaSeconds)
 
 void APreviewCapture::RenderSinglePreview()
 {
-	if (IsCapturingEveryFrame())
+	if (CaptureComponent->bCaptureEveryFrame)
 	{
 		return;
 	}
 	
-	UpdateCameraPosition();
 	CaptureComponent->CaptureScene();
 }
 
-void APreviewCapture::AttachTargetActor(APreviewActor* NewTargetActor)
+void APreviewCapture::SetPreviewActorClass(TSoftClassPtr<APreviewActor> NewPreviewClass, bool bCaptureImmediately)
 {
-	if (!NewTargetActor)
+	if (PreviewActorClass.IsNull() && NewPreviewClass.IsNull() || PreviewActorClass == NewPreviewClass)
 	{
+		// Skip if the preview class isn't going to change
 		return;
 	}
 
-	if (NewTargetActor != TargetActor)
+	// Dump our existing preview actor and class
+	DetachPreviewActor();
+	PreviewActorClass = NewPreviewClass;
+	StopLoading();
+	
+	if (PreviewActorClass.IsNull())
 	{
-		// Detach the current target actor if there is one
-		DetachCurrentTargetActor();
+		// If the new class is invalid, skip loading
+		return;
 	}
 
-	// Assign the new target actor and attach it
-	TargetActor = NewTargetActor;
-	NewTargetActor->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-
-	// Add our target actor to the capture list
-	CaptureComponent->ShowOnlyActors.Reset(1);
-	CaptureComponent->ShowOnlyActors.Add(TargetActor);
+	// Request that our preview actor be loaded asynchronously
+	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+	PreviewActorStreamableHandle = StreamableManager.RequestAsyncLoad(NewPreviewClass.ToSoftObjectPath(),
+		FStreamableDelegate::CreateUObject(this, &APreviewCapture::OnAssetLoaded, bCaptureImmediately));
 }
 
-void APreviewCapture::DetachCurrentTargetActor()
+void APreviewCapture::ClearPreviewActorClass(bool bCapture)
 {
-	// Reset the capture list
-	CaptureComponent->ShowOnlyActors.Reset(1);
+	StopLoading();
+	DetachPreviewActor();
 
-	// Physically detach the target actor
-	TargetActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-	// Clear reference to target actor
-	TargetActor = nullptr;
-}
-
-void APreviewCapture::SetRenderTarget(UTextureRenderTarget2D* RenderTarget)
-{
-	CaptureComponent->TextureTarget = RenderTarget;
-}
-
-void APreviewCapture::SetCapturingEveryFrame(const bool bCaptureEveryFrame)
-{
-	// Assign the new value and enable ticking if necessary
-	CaptureComponent->bCaptureEveryFrame = bCaptureEveryFrame;
-	SetActorTickEnabled(bCaptureEveryFrame);
-}
-
-bool APreviewCapture::IsCapturingEveryFrame() const
-{
-	return CaptureComponent->bCaptureEveryFrame;
-}
-
-void APreviewCapture::SetFOV(const float NewFOV)
-{
-	CaptureComponent->FOVAngle = NewFOV;
-}
-
-float APreviewCapture::GetFOV() const
-{
-	return CaptureComponent->FOVAngle;
-}
-
-
-
-// Factory method
-
-APreviewCapture* APreviewCapture::CreatePreviewCapture(UObject* WorldContextObject, APreviewActor* TargetActor,
-	UTextureRenderTarget2D* RenderTarget, const FRotator TargetRotation, const FVector SpawnLocation,
-	const float CameraFOV, bool bCaptureEveryFame)
-{
-	if (!WorldContextObject || !WorldContextObject->GetWorld())
+	if (bCapture)
 	{
-		UE_LOG(LogThresholdUI, Error, TEXT("Cannot create new preview capture actor - invalid world context object provided"))
-		return nullptr;
+		RenderSinglePreview();
 	}
-
-	// Spawn the new preview actor
-	UWorld* World = WorldContextObject->GetWorld();
-	APreviewCapture* NewCaptureActor = World->SpawnActor<APreviewCapture>(StaticClass(), SpawnLocation, FRotator::ZeroRotator);
-
-	// Set the default parameters
-	NewCaptureActor->AttachTargetActor(TargetActor);
-	NewCaptureActor->SetRenderTarget(RenderTarget);
-	NewCaptureActor->SetFOV(CameraFOV);
-	NewCaptureActor->SetCapturingEveryFrame(bCaptureEveryFame);
-
-	// Set the target actor's default rotation (if the target actor exists)
-	if (TargetActor)
-	{
-		TargetActor->SetActorRotation(TargetRotation, ETeleportType::ResetPhysics);
-	}
-
-	return NewCaptureActor;
 }
+
+
 
 
 
 // Helper functions
 
-void APreviewCapture::UpdateCameraPosition()
+void APreviewCapture::AttachPreviewActor(APreviewActor* NewActor)
 {
-	if (!TargetActor)
+	if (!NewActor)
 	{
+		// Skip if the new preview actor is null
 		return;
 	}
 	
-	CaptureComponent->SetRelativeLocation(FVector::BackwardVector * TargetActor->CameraDistance);
+	if (NewActor == PreviewActor)
+	{
+		// Skip if nothing has changed
+		return;
+	}
+
+	// Detach the current preview actor
+	DetachPreviewActor();
+
+	// Assign the new preview actor and attach it
+	PreviewActor = NewActor;
+	PreviewActor->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	CaptureComponent->SetRelativeLocation(FVector::BackwardVector * PreviewActor->CameraDistance);
+
+	// Add our preview actor to the capture list
+	CaptureComponent->ShowOnlyActors.Add(PreviewActor);
+}
+
+void APreviewCapture::DetachPreviewActor()
+{
+	if (!PreviewActor)
+	{
+		// Skip if there is no preview actor currently
+		return;
+	}
+	
+	// Reset the capture list
+	CaptureComponent->ShowOnlyActors.Reset(1);
+
+	// Physically detach the preview actor and destroy it
+	PreviewActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	PreviewActor->Destroy();
+
+	// Clear reference to preview actor
+	PreviewActor = nullptr;
+}
+
+void APreviewCapture::StopLoading()
+{
+	if (PreviewActorStreamableHandle.IsValid() && PreviewActorStreamableHandle->IsLoadingInProgress())
+	{
+		// If we're loading something already, cancel it
+		PreviewActorStreamableHandle->CancelHandle();
+	}
+}
+
+
+
+
+// Delegates
+
+void APreviewCapture::OnAssetLoaded(bool bCaptureImmediately)
+{
+	if (!PreviewActorStreamableHandle.IsValid())
+	{
+		// Handle could be invalidated if the asset is dumped elsewhere while we're still loading
+		UE_LOG(LogThresholdUI, Error, TEXT("APreviewCapture::OnAssetLoaded failed for %s - asset handle is invalid"),
+			*GetNameSafe(this))
+		return;
+	}
+
+	if (!PreviewActorStreamableHandle->HasLoadCompleted())
+	{
+		// For some reason the delegate has been called but the load isn't completed
+		UE_LOG(LogThresholdUI, Error, TEXT("APreviewCapture::OnAssetLoaded failed for %s - asset handle hasn't finished loading"),
+            *GetNameSafe(this))
+		return;
+	}
+
+	UClass* LoadedActorClass = Cast<UClass>(PreviewActorStreamableHandle->GetLoadedAsset());
+
+	if (!LoadedActorClass || !LoadedActorClass->IsChildOf<APreviewActor>())
+	{
+		UE_LOG(LogThresholdUI, Error, TEXT("APreviewCapture::OnAssetLoaded failed for %s - failed to load a valid APreviewActor class"),
+            *GetNameSafe(this))
+		return;
+	}
+
+	// Spawn our new actor
+	APreviewActor* NewPreviewActor = Cast<APreviewActor>(GetWorld()->SpawnActor(LoadedActorClass));
+	AttachPreviewActor(NewPreviewActor);
+
+	// Render a capture if needed
+	if (bCaptureImmediately)
+	{
+		RenderSinglePreview();
+	}
 }
 
