@@ -10,6 +10,7 @@
 
 class USceneCaptureComponent2D;
 class APreviewActor;
+struct FStreamableHandle;
 
 
 
@@ -42,70 +43,38 @@ public:
 	void RenderSinglePreview();
 
 	/**
-	 * Attaches a target actor to this preview capture to render. Does nothing if the target actor is null. Detaches
-	 * the currently attached actor if there is any.
+	 * Sets the preview actor by class and spawns the actor as needed - will load asynchronously
+	 * @param NewPreviewClass - Class for the preview actor. Skips execution if null
+	 * @param bCaptureImmediately - If true, a capture will be rendered as soon as the actor is loaded
 	 */
 	UFUNCTION(BlueprintCallable, Category=CaptureControls)
-	void AttachTargetActor(APreviewActor* NewTargetActor);
+	void SetPreviewActorClass(TSoftClassPtr<APreviewActor> NewPreviewClass, bool bCaptureImmediately = true);
 
+	/**
+	 * Clears the preview actor class, destroying and detaching the preview actor as needed. Any load operations will
+	 * be canceled as well
+	 * @param bCapture - If true, a capture will be rendered (useful for setting the preview to a default/clear state)
+	 */
 	UFUNCTION(BlueprintCallable, Category=CaptureControls)
-	void DetachCurrentTargetActor();
+    void ClearPreviewActorClass(bool bCapture = true);
 
+
+
+	// Accessors
+	
 	UFUNCTION(BlueprintPure, Category=CaptureControls)
-	APreviewActor* GetTargetActor() const
+	APreviewActor* GetPreviewActor() const
 	{
-		return TargetActor;
+		return PreviewActor;
 	}
 
-	/**
-	 * Sets the render target for the capture component
-	 */
-	UFUNCTION(BlueprintCallable, Category=CaptureControls)
-	void SetRenderTarget(UTextureRenderTarget2D* RenderTarget);
-
-	UFUNCTION(BlueprintCallable, Category=CaptureControls)
-	void SetCapturingEveryFrame(const bool bCaptureEveryFrame);
-
-	UFUNCTION(BlueprintPure, Category=CaptureControls)
-	bool IsCapturingEveryFrame() const;
-
-	/**
-	 * Set the capture camera FOV
-	 * @param NewFOV - Desired camera FOV in degrees
-	 */
-	UFUNCTION(BlueprintCallable, Category=CaptureControls)
-	void SetFOV(const float NewFOV);
-
-	/**
-	 * Get the capture camera FOV
-	 * @return - Camera FOV in degrees
-	 */
-	UFUNCTION(BlueprintCallable, Category=CaptureControls)
-	float GetFOV() const;
+	USceneCaptureComponent2D* GetCaptureComponent() const
+	{
+		return CaptureComponent;
+	}
 
 
-
-	// Factory method
-
-	/**
-	 * Factory method that creates a new preview capture and initializes it with  the set properties
-	 * @param WorldContextObject - Object used to get the current world from (can be whoever is spawning this)
-	 * @param TargetActor - Actor holding a 3D model used for preview rendering
-	 * @param RenderTarget - Render target that the preview image is rendered to
-	 * @param TargetRotation - Starting rotation of the target actor once it is attached to the preview capture
-	 * @param SpawnLocation - Location to place this preview capture actor (and its subsequent children) in the world
-	 * @param CameraFOV - Desired camera FOV
-	 * @param bCaptureEveryFame - Whether or not to capture to the render target every frame (use RenderSinglePreview
-	 * in other cases as needed)
-	 * @return New preview capture actor, or null if the creation failed
-	 */
-	UFUNCTION(BlueprintCallable, Category=PreviewCapture)
-	static APreviewCapture* CreatePreviewCapture(UObject* WorldContextObject, APreviewActor* TargetActor,
-		UTextureRenderTarget2D* RenderTarget, const FRotator TargetRotation = FRotator::ZeroRotator,
-		const FVector SpawnLocation = FVector::ZeroVector, const float CameraFOV = 90.f, bool bCaptureEveryFame = false);
 	
-	
-
 	// Component name constants
 
 	static FName OriginComponentName;
@@ -116,15 +85,42 @@ protected:
 	
 	// Helper functions
 
-	// Sets the camera position based on the zoom distance of the target actor
-	void UpdateCameraPosition();
+	/**
+	 * Attaches the preview actor and adds it to the visibility list
+	 * @param NewActor - Preview actor to be attached. Skips execution if null
+	 */
+	void AttachPreviewActor(APreviewActor* NewActor);
+
+	/**
+	 * Detaches and destroys the existing preview actor (if any)
+	 */
+	void DetachPreviewActor();
+
+	/**
+	 * Stops loading the current preview actor (if any)
+	 */
+	void StopLoading();
+
+
+
+	// Delegates
+
+	void OnAssetLoaded(bool bCaptureImmediately);
+	
 
 	
 private:
 
+	// Desired actor class
+	UPROPERTY()
+	TSoftClassPtr<APreviewActor> PreviewActorClass;
+	
 	// Attached actor
 	UPROPERTY()
-	APreviewActor* TargetActor;
+	APreviewActor* PreviewActor;
+
+	// Used for streaming the preview actor
+	TSharedPtr<FStreamableHandle> PreviewActorStreamableHandle;
 
 	
 
@@ -133,6 +129,6 @@ private:
 	UPROPERTY(Category=PreviewCapture, VisibleAnywhere, meta=(AllowPrivateAccess="true"))
 	USceneComponent* OriginSceneComponent;
 	
-	UPROPERTY(Category=PreviewCapture, VisibleAnywhere, meta=(AllowPrivateAccess="true"))
+	UPROPERTY(Category=PreviewCapture, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	USceneCaptureComponent2D* CaptureComponent;
 };
