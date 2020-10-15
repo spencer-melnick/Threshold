@@ -21,7 +21,7 @@ struct FInventoryItem;
  * Simple widget used for displaying a small window with information about an inventory item, usually as part of a grid
  */
 UCLASS()
-class UInventoryBlock : public UUserWidget
+class THRESHOLDUI_API UInventoryBlock : public UUserWidget
 {
 	GENERATED_BODY()
 	
