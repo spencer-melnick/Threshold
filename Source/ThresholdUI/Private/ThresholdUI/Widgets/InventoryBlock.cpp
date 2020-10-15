@@ -21,6 +21,13 @@ void UInventoryBlock::AssignToInventory(UInventoryComponent* InventoryComponent,
 
 void UInventoryBlock::UpdateDisplay()
 {
+	#if WITH_EDITOR
+		if (!StackDisplay || !PreviewDisplay)
+		{
+			return;
+		}
+	#endif
+	
 	const FInventoryItem* InventoryItem = GetInventoryItem();
 
 	if (!InventoryItem)

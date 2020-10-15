@@ -10,9 +10,10 @@
 
 // Forward declarations
 
+class UInventoryComponent;
 class UInventoryBlock;
 class UUniformGridPanel;
-class UInventoryComponent;
+class UUniformGridSlot;
 
 
 
@@ -87,6 +88,9 @@ protected:
 
 	UPROPERTY(meta=(BindWidget))
 	UUniformGridPanel* GridPanel;
+
+	UPROPERTY()
+	TArray<UUniformGridSlot*> GridSlots;
 
 
 	// Parent inventory references
