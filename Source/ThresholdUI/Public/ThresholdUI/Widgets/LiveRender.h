@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/Widget.h"
-#include "ThresholdUI/Widgets/SLiveRender.h"
+#include "ThresholdUI/SlateWidgets/SLiveRender.h"
 #include "LiveRender.generated.h"
 
 

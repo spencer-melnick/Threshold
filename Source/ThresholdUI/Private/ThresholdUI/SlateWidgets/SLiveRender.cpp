@@ -2,7 +2,7 @@
 
 // ReSharper disable CppExpressionWithoutSideEffects
 
-#include "ThresholdUI/Widgets/SLiveRender.h"
+#include "ThresholdUI/SlateWidgets/SLiveRender.h"
 #include "Rendering/DrawElements.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/KismetRenderingLibrary.h"
