@@ -12,7 +12,7 @@ class UInventoryComponent;
 struct FInventoryItem;
 
 
-UINTERFACE()
+UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
 class INVENTORYSYSTEM_API UInventoryOwner : public UInterface
 {
 	GENERATED_BODY()
@@ -26,6 +26,8 @@ class INVENTORYSYSTEM_API IInventoryOwner
 	GENERATED_BODY()
 
 public:
+	
+	UFUNCTION(BlueprintCallable, Category=InventoryOwner)
 	virtual UInventoryComponent* GetInventoryComponent() const = 0;
 
 	/**
