@@ -58,6 +58,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=InventoryGrid)
 	FIntPoint GridSize;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=InventoryGrid)
+	TEnumAsByte<EHorizontalAlignment> HorizontalAlignment;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=InventoryGrid)
+	TEnumAsByte<EVerticalAlignment> VerticalAlignment;
+
 
 protected:
 

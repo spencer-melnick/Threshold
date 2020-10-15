@@ -117,6 +117,8 @@ void UInventoryGrid::ConstructSubBlocks()
 
 			// Add the block to the widget and track the slot
 			UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(InventoryBlock, Row, Column);
+			GridSlot->SetHorizontalAlignment(HorizontalAlignment);
+			GridSlot->SetVerticalAlignment(VerticalAlignment);
 			GridSlots.Add(GridSlot);
 		}
 	}
