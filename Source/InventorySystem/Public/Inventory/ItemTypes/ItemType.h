@@ -9,6 +9,7 @@
 // Forward declarations
 
 struct FInventoryItemDataBase;
+class APreviewActor;
 
 
 /*
@@ -54,7 +55,7 @@ public:
 	 * Used to get an actor that can be rendered as a 3D display for this inventory item
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const { return TSoftClassPtr<AActor>(); }
+	virtual TSoftClassPtr<APreviewActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const { return nullptr; }
 
 	/**
 	 * Overridden to determine inventory storage behavior

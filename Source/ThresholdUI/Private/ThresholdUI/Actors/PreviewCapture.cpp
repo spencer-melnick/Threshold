@@ -2,9 +2,10 @@
 
 #include "ThresholdUI/Actors/PreviewCapture.h"
 #include "ThresholdUI.h"
-#include "ThresholdUI/Actors/PreviewActor.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/AssetManager.h"
+#include "Inventory/Actors/PreviewActor.h"
+
 
 
 // APreviewCapture

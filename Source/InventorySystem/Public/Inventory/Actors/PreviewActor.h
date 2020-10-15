@@ -11,7 +11,7 @@
  * scene component to use as the origin and a single property that describes the desired camera distance
  */
 UCLASS()
-class THRESHOLDUI_API APreviewActor : public AActor
+class INVENTORYSYSTEM_API APreviewActor : public AActor
 {
 	GENERATED_BODY()
 

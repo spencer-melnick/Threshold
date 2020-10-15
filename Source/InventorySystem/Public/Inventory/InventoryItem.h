@@ -11,6 +11,7 @@
 // Forward declarations
 
 class UInventoryItemTypeBase;
+class APreviewActor;
 
 
 
@@ -107,7 +108,7 @@ public:
 	/**
 	 * Used to get an actor that can be rendered as a 3D display for this inventory item
 	 */
-	TSoftClassPtr<AActor> GetPreviewActorClass() const;
+	TSoftClassPtr<APreviewActor> GetPreviewActorClass() const;
 
 	/**
 	* Used to determine inventory storage behavior
