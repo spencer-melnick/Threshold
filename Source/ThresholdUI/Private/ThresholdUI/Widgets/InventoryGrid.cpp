@@ -4,6 +4,7 @@
 #include "ThresholdUI/Widgets/InventoryBlock.h"
 #include "ThresholdUI.h"
 #include "Components/UniformGridPanel.h"
+#include "Components/UniformGridSlot.h"
 
 
 // UInventoryGrid
@@ -71,6 +72,15 @@ void UInventoryGrid::UpdateDisplay()
 
 void UInventoryGrid::ConstructSubBlocks()
 {
+	#if WITH_EDITOR
+		// In the editor we may not have a grid panel yet
+		if (!GridPanel)
+		{
+			return;
+		}
+	#endif
+
+	
 	if (!InventoryBlockClass)
 	{
 		UE_LOG(LogThresholdUI, Error, TEXT("UInventoryGrid::ConstructSubBlocks() failed on %s - invalid inventory block class"),
@@ -95,15 +105,19 @@ void UInventoryGrid::ConstructSubBlocks()
 	// Clear all references to old widgets and reserve size for the new widgets
 	const int32 NewSubBlockCount = GridSize.X * GridSize.Y;
 	SubBlocks.Empty(NewSubBlockCount);
+	GridSlots.Empty(NewSubBlockCount);
 
 	for (int32 Row = 0; Row < GridSize.Y; Row++)
 	{
 		for (int32 Column = 0; Column < GridSize.X; Column++)
 		{
-			// Construct a new inventory block widget, add the new widget to the grid and track it
+			// Construct a new inventory block widget and track it
 			UInventoryBlock* InventoryBlock = CreateWidget<UInventoryBlock>(this, InventoryBlockClass);
-			GridPanel->AddChildToUniformGrid(InventoryBlock, Row, Column);
 			SubBlocks.Add(InventoryBlock);
+
+			// Add the block to the widget and track the slot
+			UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(InventoryBlock, Row, Column);
+			GridSlots.Add(GridSlot);
 		}
 	}
 }
