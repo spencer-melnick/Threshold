@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Inventory/DataTypes/ItemData.h"
-#include "Inventory/ItemTypes/ItemType.h"
+#include "Inventory/ItemTypes/ItemTypeBase.h"
 #include "InventoryItem.generated.h"
 
 
@@ -172,7 +172,7 @@ public:
 private:
 	// Storage
 	
-	UPROPERTY(EditAnywhere, Instanced, meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess="true"))
 	UInventoryItemTypeBase* Type = nullptr;
 
 	TSharedPtr<FInventoryItemDataBase> Data = nullptr;

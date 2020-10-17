@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "Inventory/ItemTypes/TableItem.h"
-#include "InventorySystem.h"
+/*#include "InventorySystem.h"
 #include "Inventory/DataTypes/ItemData.h"
 #include "Inventory/DataTypes/StackData.h"
 
@@ -9,6 +9,8 @@
 // UTableItem
 
 // Item type overrides
+
+/*
 
 bool UTableInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess)
 {
@@ -148,4 +150,4 @@ int32 UTableStackItem::GetMaxStackSize() const
 {
 	const FStackItemRow* ItemRow = GetRow<FStackItemRow>();
 	return ItemRow ? ItemRow->MaxStackSize : 1;
-}
+} */
