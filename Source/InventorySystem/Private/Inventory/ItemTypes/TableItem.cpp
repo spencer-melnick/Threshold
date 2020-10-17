@@ -81,7 +81,7 @@ FText UTableInventoryItem::GetItemDescription(TWeakPtr<FInventoryItemDataBase, E
 	return ItemRow ? ItemRow->ItemDescription : FText();
 }
 
-TSoftClassPtr<AActor> UTableInventoryItem::GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
+TSoftClassPtr<APreviewActor> UTableInventoryItem::GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const
 {
 	const FItemRow* ItemRow = GetRow();
 	return ItemRow ? ItemRow->PreviewActorClass : nullptr;

@@ -26,6 +26,12 @@ struct FInventoryArray : public FFastArraySerializer
 
 
 
+// Delegates
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryChangedDelegate);
+
+
+
 /**
  * Component used to hold an inventory filed with an array of inventory items
  */
@@ -74,6 +80,18 @@ public:
 	 * invalidate the pointers.
 	 */
 	FInventoryItem* GetFirstItemByType(UInventoryItemTypeBase* ItemType);
+
+	/**
+	 * Access the underlying array object
+	 */
+	const TArray<FInventoryItem>& GetArray() const { return InventoryArray.Items; }
+
+
+	// Delegates
+
+	// Called whenever the array changes
+	UPROPERTY(BlueprintAssignable)
+	FInventoryChangedDelegate InventoryChangedDelegate;
 
 
 protected:

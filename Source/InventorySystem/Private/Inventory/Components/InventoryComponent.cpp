@@ -2,6 +2,7 @@
 
 #include "Inventory/Components/InventoryComponent.h"
 #include "Inventory/ItemTypes/ItemType.h"
+#include "Inventory/InventoryItem.h"
 #include "Net/UnrealNetwork.h"
 
 // UInventoryComponent

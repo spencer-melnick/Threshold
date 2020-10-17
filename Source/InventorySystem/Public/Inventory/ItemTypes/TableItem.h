@@ -21,7 +21,7 @@ struct FItemRow : public FTableRowBase
 	FText ItemDescription;
 
 	UPROPERTY(EditAnywhere)
-	TSoftClassPtr<AActor> PreviewActorClass;
+	TSoftClassPtr<APreviewActor> PreviewActorClass;
 
 	UPROPERTY(EditAnywhere)
 	bool bAllowsDuplicates = false;
@@ -44,7 +44,7 @@ public:
 	virtual bool NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& bOutSuccess) override;
 	virtual FText GetItemName(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
-	virtual TSoftClassPtr<AActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
+	virtual TSoftClassPtr<APreviewActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 	virtual bool AllowsDuplicates() const override;
 	virtual bool operator==(const UInventoryItemTypeBase& OtherType) override;
 

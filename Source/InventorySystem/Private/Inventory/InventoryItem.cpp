@@ -30,7 +30,7 @@ FText FInventoryItem::GetDescription() const
 	return Type->GetItemDescription(Data);
 }
 
-TSoftClassPtr<AActor> FInventoryItem::GetPreviewActorClass() const
+TSoftClassPtr<APreviewActor> FInventoryItem::GetPreviewActorClass() const
 {
 	if (!IsValid())
 	{
