@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
-#pragma once
+/*#pragma once
 
 #include "CoreMinimal.h"
-#include "ItemType.h"
+#include "ItemTypeBase.h"
 #include "Inventory/DataTypes/StackData.h"
 #include "Engine/DataTable.h"
 #include "TableItem.generated.h"
+
 
 
 USTRUCT()
@@ -31,9 +32,9 @@ struct FItemRow : public FTableRowBase
 
 /**
  * Simple item type that references a data table row
- */
+ *
 UCLASS(EditInlineNew)
-class INVENTORYSYSTEM_API UTableInventoryItem : public UInventoryItemTypeBase
+class INVENTORYSYSTEM_API UTableInventoryItem : public UInventoryItemType
 {
 	GENERATED_BODY()
 
@@ -46,7 +47,7 @@ public:
 	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 	virtual TSoftClassPtr<APreviewActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData) const override;
 	virtual bool AllowsDuplicates() const override;
-	virtual bool operator==(const UInventoryItemTypeBase& OtherType) override;
+	virtual bool operator==(const UInventoryItemType& OtherType) override;
 
 
 	// Table item functionality
@@ -98,4 +99,4 @@ public:
 	virtual void SetStackCount(TWeakPtr<FInventoryItemDataBase, ESPMode::Fast> ItemData, const int32 Count) const override;
 	virtual int32 GetStackCount(TWeakPtr<FInventoryItemDataBase> ItemData) const override;
 	int32 GetMaxStackSize() const;
-};
+}; */

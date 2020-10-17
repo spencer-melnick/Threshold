@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "Inventory/Components/InventoryComponent.h"
-#include "Inventory/ItemTypes/ItemType.h"
+#include "Inventory/ItemTypes/ItemTypeBase.h"
 #include "Inventory/InventoryItem.h"
 #include "Net/UnrealNetwork.h"
 
