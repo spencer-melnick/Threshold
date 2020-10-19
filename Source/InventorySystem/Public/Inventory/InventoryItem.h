@@ -26,6 +26,8 @@ struct INVENTORYSYSTEM_API FInventoryItem : public FFastArraySerializerItem
 	GENERATED_BODY()
 
 	friend class FInventoryItemDetails;
+	friend class UInventoryComponent;
+	friend struct FInventoryArray;
 
 public:
 	FInventoryItem() {}
@@ -48,7 +50,7 @@ public:
 	 * Copy constructor
 	 */
 	FInventoryItem(const FInventoryItem& OtherItem) :
-		Type(OtherItem.Type)
+		Type(OtherItem.Type), UniqueID(OtherItem.UniqueID)
 	{
 		if (OtherItem.Data.IsValid())
 		{
@@ -61,7 +63,7 @@ public:
 	 * Move constructor
 	 */
 	FInventoryItem(FInventoryItem&& OtherItem) noexcept :
-		Type(OtherItem.Type), Data(MoveTemp(OtherItem.Data)) {}
+		Type(OtherItem.Type), Data(MoveTemp(OtherItem.Data)), UniqueID(OtherItem.UniqueID) {}
 
 
 	/**
@@ -70,6 +72,7 @@ public:
 	FInventoryItem& operator=(const FInventoryItem& OtherItem)
 	{
 		Type = OtherItem.Type;
+		UniqueID = OtherItem.UniqueID;
 
 		if (OtherItem.Data.IsValid())
 		{
@@ -87,6 +90,7 @@ public:
 	{
 		Type = OtherItem.Type;
 		Data = MoveTemp(OtherItem.Data);
+		UniqueID = OtherItem.UniqueID;
 
 		return *this;
 	}
@@ -176,6 +180,12 @@ private:
 	UInventoryItemTypeBase* Type = nullptr;
 
 	TSharedPtr<FInventoryItemDataBase> Data = nullptr;
+
+
+	// Unique ID for fast lookup in inventory component
+
+	UPROPERTY(NotReplicated)
+	int32 UniqueID = INDEX_NONE;
 };
 
 
