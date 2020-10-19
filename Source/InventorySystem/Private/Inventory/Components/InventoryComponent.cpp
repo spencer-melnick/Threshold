@@ -5,9 +5,12 @@
 #include "Inventory/InventoryItem.h"
 #include "Net/UnrealNetwork.h"
 
+
+
 // UInventoryComponent
 
 UInventoryComponent::UInventoryComponent()
+	: InventoryArray(this)
 {
 	// Should be replicated by default
 	SetIsReplicatedByDefault(true);
@@ -28,15 +31,15 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 // Inventory access
 
-int32 UInventoryComponent::AddItem(const FInventoryItem& NewItem)
+UInventoryComponent::FAdditionResult UInventoryComponent::AddItem(const FInventoryItem& NewItem)
 {
 	if (!NewItem.IsValid())
 	{
-		return 0;
+		return FAdditionResult(0, FInventoryArrayHandle());
 	}
 
 	UInventoryItemTypeBase* NewItemType = NewItem.GetType();
-	TArray<FInventoryItem*> CurrentItems = GetAllItemsByType(NewItemType);
+	TArray<FInventoryArrayHandle> CurrentItems = GetAllItemsByType(NewItemType);
 
 	int32 InitialCount = 1;
 	int32 CountLeftToAdd = InitialCount;
@@ -50,16 +53,22 @@ int32 UInventoryComponent::AddItem(const FInventoryItem& NewItem)
 		if (CurrentItems.Num() > 0)
 		{
 			// If there are any existing stacks
-			
-			for (FInventoryItem* ExistingStack : CurrentItems)
+			for (FInventoryArrayHandle ExistingStack : CurrentItems)
 			{
 				// Try to add to the existing stacks until there is nothing left to add
-				CountLeftToAdd -= ExistingStack->AddToStack(CountLeftToAdd);
+				const int32 CountAdded = ExistingStack->AddToStack(CountLeftToAdd);
+
+				if (CountAdded > 0)
+				{
+					// Mark the item dirty on any change
+					CountLeftToAdd -= CountAdded;
+					ExistingStack.MarkDirty();
+				}
 
 				if (CountLeftToAdd <= 0)
 				{
 					// Early exit if there is nothing left to add
-					return InitialCount;
+					return FAdditionResult(InitialCount, FInventoryArrayHandle());
 				}
             }
 		}
@@ -70,43 +79,48 @@ int32 UInventoryComponent::AddItem(const FInventoryItem& NewItem)
 		if (!NewItemType->AllowsDuplicates())
 		{
 			// If the item doesn't allow duplicates, return however many are left to add
-			return InitialCount - CountLeftToAdd;
+			return FAdditionResult(InitialCount - CountLeftToAdd, FInventoryArrayHandle());
 		}
 	}
 
 	// Add a new item by copy
-	FInventoryItem& ItemCopy = InventoryArray.Items.Emplace_GetRef(NewItem);
-	InventoryArray.MarkItemDirty(ItemCopy);
+	FInventoryArrayHandle ItemCopy = InventoryArray.Emplace(NewItem);
 
-	if (NewItemType->AllowsStacking())
+	if (NewItemType->AllowsStacking() && ItemCopy->IsValid())
 	{
 		// If the item can be stacked, set the stack size to the remaining count
-		ItemCopy.SetStackCount(CountLeftToAdd);
-		return InitialCount;
+		ItemCopy->SetStackCount(CountLeftToAdd);
+		ItemCopy.MarkDirty();
 	}
-
-	// If it wasn't a stack item, we only added one
-	return 1;
+	
+	return TPair<int32, FInventoryArrayHandle>(InitialCount, ItemCopy);
 }
 
 int32 UInventoryComponent::RemoveItem(UInventoryItemTypeBase* ItemType, int32 Count)
 {
-	if (!ItemType)
+	if (!ItemType || Count <= 0)
 	{
 		return 0;
 	}
 
 	int32 CountLeftToRemove = Count;
-
+	
 	if (ItemType->AllowsStacking())
 	{
 		// If the item is stackable, try and remove it from the stacks
-		TArray<FInventoryItem*> ExistingStacks = GetAllItemsByType(ItemType);
+		TArray<FInventoryArrayHandle> ExistingStacks = GetAllItemsByType(ItemType);
 
-		for (FInventoryItem* ExistingStack : ExistingStacks)
+		for (FInventoryArrayHandle ExistingStack : ExistingStacks)
 		{
 			// Remove until there are no more to remove
-			CountLeftToRemove -= ExistingStack->RemoveFromStack(CountLeftToRemove);
+			const int32 CountRemoved = ExistingStack->RemoveFromStack(CountLeftToRemove);
+
+			if (CountRemoved > 0)
+			{
+				// If anything changed mark the existing stack as dirty
+				CountLeftToRemove -= ExistingStack->RemoveFromStack(CountLeftToRemove);
+				ExistingStack.MarkDirty();
+			}
 
 			if (CountLeftToRemove <= 0)
 			{
@@ -115,7 +129,7 @@ int32 UInventoryComponent::RemoveItem(UInventoryItemTypeBase* ItemType, int32 Co
 			}
 		}
 
-		InventoryArray.Items.RemoveAll([](const FInventoryItem& Item) -> bool
+		InventoryArray.RemoveAll([](const FInventoryItem& Item) -> bool
 		{
 			// Remove all empty stacks
 			return Item.GetStackCount() == 0;
@@ -123,24 +137,31 @@ int32 UInventoryComponent::RemoveItem(UInventoryItemTypeBase* ItemType, int32 Co
 	}
 	else
 	{
-		InventoryArray.Items.RemoveAll([&CountLeftToRemove, ItemType](const FInventoryItem& Item) -> bool
-		{
-			if (CountLeftToRemove <= 0 || !Item.IsValid() || *ItemType != *Item.GetType())
-			{
-				// If we already removed everything we need, if the item is invalid or the type doesn't match, skip removal
-				return false;
-			}
+		// Get all items by handle so we can delete them while iterating
+		// (a bit slower, but cleaner)
+		TArray<FInventoryArrayHandle> ExistingItems = GetAllItemsByType(ItemType);
 
-			// Decrement the counter
-			CountLeftToRemove--;
-			return true;
-		});
+		for (FInventoryArrayHandle ItemHandle : ExistingItems)
+		{
+			if (*ItemHandle->GetType() != *ItemType)
+			{
+				continue;
+			}
+			
+			ItemHandle.Remove();
+
+			if (CountLeftToRemove-- <= 0)
+			{
+				// Decrement the count left to remove and exit if we've finished
+				break;
+			}
+		}
 	}
 
 	return CountLeftToRemove;
 }
 
-TArray<FInventoryItem*> UInventoryComponent::GetAllItemsByType(UInventoryItemTypeBase* ItemType)
+TArray<FInventoryItem*> UInventoryComponent::GetAllItemsByTypeTemporary(UInventoryItemTypeBase* ItemType)
 {
 	TArray<FInventoryItem*> Result;
 
@@ -153,36 +174,78 @@ TArray<FInventoryItem*> UInventoryComponent::GetAllItemsByType(UInventoryItemTyp
 	if (!ItemType->AllowsDuplicates())
 	{
 		// Find only the first result if the item type doesn't allow duplicates
-		FInventoryItem* SingleResult = GetFirstItemByType(ItemType);
+		FInventoryItem* SingleResult = GetFirstItemByTypeTemporary(ItemType);
 
 		if (SingleResult)
 		{
 			Result.Add(SingleResult);
 		}
+
+		return Result;
 	}
 	else
 	{
-		for (FInventoryItem& InventoryItem : InventoryArray.Items)
-		{
-			// Add each item pointer if its type matches
-			if (*InventoryItem.GetType() == *ItemType)
-			{
-				Result.Add(&InventoryItem);
-			}
-		}
+		return InventoryArray.FindAllTemporary([ItemType](const FInventoryItem& Item) -> bool
+        {
+            // Add each item pointer if its type matches
+            return *Item.GetType() == *ItemType;
+        });
 	}
-
-	return Result;
 }
 
-FInventoryItem* UInventoryComponent::GetFirstItemByType(UInventoryItemTypeBase* ItemType)
+TArray<FInventoryArrayHandle> UInventoryComponent::GetAllItemsByType(UInventoryItemTypeBase* ItemType)
+{
+	TArray<FInventoryArrayHandle> Result;
+
+	if (!ItemType)
+	{
+		// Return an empty result if the type is invalid
+		return Result;
+	}
+
+	if (!ItemType->AllowsDuplicates())
+	{
+		// Find only the first result if the item type doesn't allow duplicates
+		FInventoryArrayHandle SingleResult = GetFirstItemByType(ItemType);
+
+		if (!SingleResult.IsNull())
+		{
+			Result.Add(SingleResult);
+		}
+
+		return Result;
+	}
+	else
+	{
+		return InventoryArray.FindAll([ItemType](const FInventoryItem& Item) -> bool
+		{
+			// Add each item pointer if its type matches
+			return *Item.GetType() == *ItemType;
+		});
+	}
+}
+
+FInventoryItem* UInventoryComponent::GetFirstItemByTypeTemporary(UInventoryItemTypeBase* ItemType)
 {
 	if (!ItemType)
 	{
 		return nullptr;
 	}
 	
-	return InventoryArray.Items.FindByPredicate([ItemType](const FInventoryItem& Item)
+	return InventoryArray.FindTemporary([ItemType](const FInventoryItem& Item)
+    {
+        return *Item.GetType() == *ItemType; 
+    });
+}
+
+FInventoryArrayHandle UInventoryComponent::GetFirstItemByType(UInventoryItemTypeBase* ItemType)
+{
+	if (!ItemType)
+	{
+		return FInventoryArrayHandle();
+	}
+	
+	return InventoryArray.Find([ItemType](const FInventoryItem& Item)
 	{
 		return *Item.GetType() == *ItemType; 
 	});
@@ -197,4 +260,3 @@ void UInventoryComponent::OnRep_InventoryArray()
 {
 	
 }
-
