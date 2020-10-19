@@ -104,6 +104,7 @@ bool FInventoryArray::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 		// If we added or deleted any elements, rebuild the ID map
 		RebuildIDMap();
 		NotifyArrayChanged();
+		bNeedsIDRebuild = false;
 	}
 
 	return Result;
