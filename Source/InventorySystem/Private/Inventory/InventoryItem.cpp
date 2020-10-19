@@ -247,6 +247,10 @@ bool FInventoryItem::NetSerialize(FArchive& Ar, UPackageMap* PackageMap, bool& b
 				Type->NetSerialize(Ar, PackageMap, bOutSuccess);
 			}
 		}
+		else
+		{
+			SetType(SerializedItemType.Get());
+		}
 
 		UScriptStruct* ItemDataType = nullptr;
 
