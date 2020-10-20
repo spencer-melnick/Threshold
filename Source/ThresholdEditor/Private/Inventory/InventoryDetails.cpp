@@ -9,7 +9,7 @@
 #include "DetailCategoryBuilder.h"
 #include "UObject/StructOnScope.h"
 #include "Inventory/InventoryItem.h"
-#include "Inventory/ItemTypes/ItemType.h"
+#include "Inventory/ItemTypes/ItemTypeBase.h"
 #include "Inventory/DataTypes/ItemData.h"
 
 
