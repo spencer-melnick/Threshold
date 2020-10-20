@@ -132,7 +132,7 @@ void FInventoryArray::Empty(int32 Slack)
 	Items.Empty(Slack);
 	IDtoIndex.Empty();
 	MarkArrayDirty();
-	InventoryArrayChangedDelegate.Broadcast();
+	NotifyArrayChanged();
 }
 
 
@@ -141,7 +141,7 @@ void FInventoryArray::Empty(int32 Slack)
 
 void FInventoryArray::NotifyArrayChanged()
 {
-	InventoryArrayChangedDelegate.Broadcast();
+	InventoryArrayChangedDelegate.ExecuteIfBound();
 }
 
 
