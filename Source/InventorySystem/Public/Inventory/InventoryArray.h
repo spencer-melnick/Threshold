@@ -157,6 +157,10 @@ public:
 
 	// Array operations
 
+	/**
+	 * Emplaces an element in the array
+	 * @return Handle to the new element
+	 */
 	template<typename ... ArgsType>
 	FInventoryArrayHandle Emplace(ArgsType&&... Args)
 	{
@@ -172,8 +176,14 @@ public:
 		return FInventoryArrayHandle(NewItem.UniqueID, Owner, this);
 	}
 
+	/**
+	 * Removes an element based on its handle
+	 */
 	void Remove(FInventoryArrayHandle& ItemHandle);
 
+	/**
+	 * Removes all elements for which the predicate returns true
+	 */
 	template <class PredicateClass>
 	int32 RemoveAll(const PredicateClass& Predicate)
 	{
@@ -187,8 +197,17 @@ public:
 		return RemovalCount;
 	}
 
+	/**
+	 * Empties the entire array
+	 * @param Slack - Optional expected usage size after emptying
+	 */
 	void Empty(int32 Slack = 0);
 
+	/**
+	 * Finds all elements for which the predicate returns true
+	 * @return Array of pointers to the elements in the array. Should only be used temporarily - any insertions or
+	 * deletions could invalidate the pointers.
+	 */
 	template <class PredicateClass>
 	TArray<FInventoryItem*> FindAllTemporary(const PredicateClass& Predicate)
 	{
@@ -205,6 +224,10 @@ public:
 		return Result;
 	}
 
+	/**
+	 * Finds all elements for which the predicate returns true
+	 * @return Array of handles referencing the elements. Can be stored and referenced later
+	 */
 	template <class PredicateClass>
 	TArray<FInventoryArrayHandle> FindAll(const PredicateClass& Predicate)
 	{
@@ -221,9 +244,18 @@ public:
 		return Result;
 	}
 
+	/**
+	 * Finds the first element for which the predicate returns true
+	 * @return Pointer to the found element, or null. Should only be used temporarily - insertions or deletions
+	 * could invalidate the pointer
+	 */
 	template <class PredicateClass>
 	FInventoryItem* FindTemporary(const PredicateClass& Predicate) { return (Items.FindByPredicate(Predicate)); }
 
+	/**
+	 * Finds the first element for which the predicate returns true
+	 * @return Handle to the found element. IsNull will be true if no element was found
+	 */
 	template <class PredicateClass>
 	FInventoryArrayHandle Find(const PredicateClass& Predicate)
 	{
@@ -237,6 +269,9 @@ public:
 		return FInventoryArrayHandle(Item->UniqueID, Owner, this);
 	}
 
+	/**
+	 * Access the underlying array
+	 */
 	const TArray<FInventoryItem>& GetArray() const { return Items; }
 
 
@@ -272,6 +307,12 @@ protected:
 	* Builds a map of unique item IDs to inventory indices
 	*/
 	void RebuildIDMap();
+
+	/**
+	 * Look up an element's index by its unique ID - will rebuild the ID map if needed
+	 * @return Element's array index or INDEX_NONE if it is not valid
+	 */
+	int32 LookupIndex(const int32 UniqueID);
 
 	
 private:
