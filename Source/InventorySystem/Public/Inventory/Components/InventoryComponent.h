@@ -99,6 +99,11 @@ public:
 
 protected:
 
+	// Delegate functions
+
+	void OnInventoryArrayChanged();
+	
+
 	// Replication
 	
 	UFUNCTION()

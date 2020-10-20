@@ -16,6 +16,9 @@ UInventoryComponent::UInventoryComponent()
 {
 	// Should be replicated by default
 	SetIsReplicatedByDefault(true);
+
+	// Bind the changed delegate
+	InventoryArray.InventoryArrayChangedDelegate.BindUObject(this, &UInventoryComponent::OnInventoryArrayChanged);
 }
 
 
@@ -251,6 +254,15 @@ FInventoryArrayHandle UInventoryComponent::GetFirstItemByType(UInventoryItemType
 	{
 		return *Item.GetType() == *ItemType; 
 	});
+}
+
+
+
+// Delegate functions
+
+void UInventoryComponent::OnInventoryArrayChanged()
+{
+	InventoryChangedDelegate.Broadcast();
 }
 
 
