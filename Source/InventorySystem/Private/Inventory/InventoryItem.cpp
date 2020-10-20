@@ -289,6 +289,11 @@ bool FInventoryItem::Serialize(FArchive& Ar)
 		if (!ItemType.IsValid())
 		{
 			UE_LOG(LogInventorySystem, Error, TEXT("FInventoryItem::Serialize failed - invalid item type"))
+			SetType(nullptr);
+
+			// Serialize an empty struct
+			FInventoryItemDataBase BaseData;
+			FInventoryItemDataBase::StaticStruct()->SerializeItem(Ar, &BaseData, nullptr);
 			return true;
 		}
 
