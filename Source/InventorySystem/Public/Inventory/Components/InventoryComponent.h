@@ -4,25 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Inventory/InventoryItem.h"
+#include "Inventory/InventoryArray.h"
 #include "InventoryComponent.generated.h"
 
 
-/**
- * Array used to support fast serialization of inventory items
- */
-USTRUCT()
-struct FInventoryArray : public FFastArraySerializer
-{
-	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere)
-	TArray<FInventoryItem> Items;
+// Delegates
 
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
-	{
-		return FastArrayDeltaSerialize(Items, DeltaParams, *this);
-	}
-};
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryChangedDelegate);
 
 
 
@@ -33,8 +22,16 @@ UCLASS()
 class INVENTORYSYSTEM_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
+
+	friend struct FInventoryArrayHandle;
+	
 public:
 	UInventoryComponent();
+
+
+	// Type aliases
+
+	using FAdditionResult = TPair<int32, FInventoryArrayHandle>;
 
 
 	// Engine overrides
@@ -46,9 +43,9 @@ public:
 
 	/**
 	 * Try to add an inventory item to this inventory via a copy.
-	 * @return The count of the items added on success or 0 on failure
+	 * @return The count of the items added on success or 0 on failure, and a handle to the new item (if any)
 	 */
-	int32 AddItem(const FInventoryItem& NewItem);
+	TPair<int32, FInventoryArrayHandle> AddItem(const FInventoryItem& NewItem);
 
 	/**
 	 * Try to remove an inventory item from this inventory by type
@@ -61,41 +58,54 @@ public:
 	/**
 	 * Find all inventory items that match a type
 	 * @param ItemType - Pointer to the type object to compare against
-	 * @return An array of inventory item pointers. NOTE: these are not guaranteed to be valid for very long, since any
-	 * insertions or deletions on the underlying array could invalidate the pointers.
+	 * @return An array of temporary inventory item pointers
 	 */
-	TArray<FInventoryItem*> GetAllItemsByType(UInventoryItemTypeBase* ItemType);
+	TArray<FInventoryItem*> GetAllItemsByTypeTemporary(UInventoryItemTypeBase* ItemType);
+
+	/**
+	 * Find all inventory items that match a type
+	 * @param ItemType - Pointer to the type object to compare against
+	 * @return An array of inventory item handles.
+	 */
+	TArray<FInventoryArrayHandle> GetAllItemsByType(UInventoryItemTypeBase* ItemType);
+	
+	/**
+	 * Find the first inventory item that matches a type
+	 * @param ItemType - Pointer to the type object to compare against
+	 * @return Temporary pointer to the first item that matches the type, or nullptr if there is none
+	 */
+	FInventoryItem* GetFirstItemByTypeTemporary(UInventoryItemTypeBase* ItemType);
 
 	/**
 	 * Find the first inventory item that matches a type
 	 * @param ItemType - Pointer to the type object to compare against
-	 * @return Pointer to the first element that matches the type or nullptr if there are no matches. NOTE: this pointer
-	 * is not guaranteed to be valid for very long, since any insertions or deletions on the underlying array could
-	 * invalidate the pointers.
+	 * @return Handle to the first item that matches the type (handle will be invalid if no item matches the type)
 	 */
-	FInventoryItem* GetFirstItemByType(UInventoryItemTypeBase* ItemType);
+	FInventoryArrayHandle GetFirstItemByType(UInventoryItemTypeBase* ItemType);
+
+	/**
+	 * Access the underlying array object
+	 */
+	const TArray<FInventoryItem>& GetArray() const { return InventoryArray.GetArray(); }
+
+
+	// Delegates
+
+	// Called whenever the array changes (either due to addition, deletion, or modification of an element)
+	// Will be called whenever MarkItemDirty or MarkArrayDirty are called
+	UPROPERTY(BlueprintAssignable)
+	FInventoryChangedDelegate InventoryChangedDelegate;
 
 
 protected:
+
+	// Replication
+	
 	UFUNCTION()
 	virtual void OnRep_InventoryArray();
-
+	
 
 private:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_InventoryArray)
 	FInventoryArray InventoryArray;
-};
-
-
-
-/**
-* Enables fast network serialization of an inventory array
-*/
-template <>
-struct TStructOpsTypeTraits<FInventoryArray> : public TStructOpsTypeTraitsBase2<FInventoryArray>
-{
-	enum 
-	{
-		WithNetDeltaSerializer = true,
-   };
 };

@@ -4,12 +4,12 @@
 #include "Inventory/Components/InventoryComponent.h"
 
 
-int32 IInventoryOwner::AddItem(const FInventoryItem& NewItem)
+IInventoryOwner::FAdditionResult IInventoryOwner::AddItem(const FInventoryItem& NewItem)
 {
 	UInventoryComponent* InventoryComponent = GetInventoryComponent();
 	if (!InventoryComponent)
 	{
-		return 0;
+		return FAdditionResult(0, FInventoryArrayHandle());
 	}
 
 	return InventoryComponent->AddItem(NewItem);

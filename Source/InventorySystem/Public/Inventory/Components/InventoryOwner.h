@@ -10,9 +10,10 @@
 
 class UInventoryComponent;
 struct FInventoryItem;
+struct FInventoryArrayHandle;
 
 
-UINTERFACE()
+UINTERFACE(meta=(CannotImplementInterfaceInBlueprint))
 class INVENTORYSYSTEM_API UInventoryOwner : public UInterface
 {
 	GENERATED_BODY()
@@ -26,11 +27,20 @@ class INVENTORYSYSTEM_API IInventoryOwner
 	GENERATED_BODY()
 
 public:
+
+	// Type aliases
+
+	using FAdditionResult = TPair<int32, FInventoryArrayHandle>;
+
+
+	// Interface functions
+	
+	UFUNCTION(BlueprintCallable, Category=InventoryOwner)
 	virtual UInventoryComponent* GetInventoryComponent() const = 0;
 
 	/**
 	* Try to add an inventory item to this inventory.
-	* @return The count of the items added on success or 0 on failure
+	* @return The count of the items added on success or 0 on failure, and a handle to the item added (if any)
 	*/
-	int32 AddItem(const FInventoryItem& NewItem);
+	FAdditionResult AddItem(const FInventoryItem& NewItem);
 };
