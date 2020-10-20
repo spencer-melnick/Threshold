@@ -15,14 +15,7 @@ int32 FInventoryArrayHandle::GetIndex() const
 		return INDEX_NONE;
 	}
 
-	int32* FoundIndex = Array->IDtoIndex.Find(ItemID);
-
-	if (!FoundIndex)
-	{
-		return INDEX_NONE;
-	}
-
-	return *FoundIndex;
+	return Array->LookupIndex(ItemID);
 }
 
 FInventoryItem* FInventoryArrayHandle::Get() const
@@ -116,12 +109,12 @@ bool FInventoryArray::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 
 void FInventoryArray::Remove(FInventoryArrayHandle& ItemHandle)
 {
-	if (ItemHandle.IsNull())
+	if (ItemHandle.IsNull() || ItemHandle.Array != this)
 	{
 		return;
 	}
 
-	const int32 Index = ItemHandle.GetIndex();
+	const int32 Index = LookupIndex(ItemHandle.ItemID);
 	
 	if (Index == INDEX_NONE)
 	{
@@ -156,11 +149,13 @@ void FInventoryArray::NotifyItemsDeleted()
 {
 	// Update the array state and notify any listeners
 	MarkArrayDirty();
-	RebuildIDMap();
+	bNeedsIDRebuild = true;
 	NotifyArrayChanged();
 }
 
 
+
+// Helper functions
 
 void FInventoryArray::RebuildIDMap()
 {
@@ -174,5 +169,24 @@ void FInventoryArray::RebuildIDMap()
 		
 		IDtoIndex.Emplace(Items[i].UniqueID, i);
 	}
+}
+
+int32 FInventoryArray::LookupIndex(const int32 UniqueID)
+{
+	if (bNeedsIDRebuild)
+	{
+		// Rebuild the ID map if any operation marked it dirty
+		RebuildIDMap();
+		bNeedsIDRebuild = false;
+	}
+
+	int32* FoundIndex = IDtoIndex.Find(UniqueID);
+
+	if (!FoundIndex)
+	{
+		return INDEX_NONE;
+	}
+
+	return *FoundIndex;
 }
 
