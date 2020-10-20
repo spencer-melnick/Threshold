@@ -291,7 +291,8 @@ bool FInventoryItem::Serialize(FArchive& Ar)
 			UE_LOG(LogInventorySystem, Error, TEXT("FInventoryItem::Serialize failed - invalid item type"))
 			SetType(nullptr);
 
-			// Serialize an empty struct
+			// Serialize an empty struct (this works for some reason?)
+			// Based on MovieSceneEvalTemplateSerializer
 			FInventoryItemDataBase BaseData;
 			FInventoryItemDataBase::StaticStruct()->SerializeItem(Ar, &BaseData, nullptr);
 			return true;
