@@ -40,7 +40,7 @@ TSoftClassPtr<APreviewActor> FInventoryItem::GetPreviewActorClass() const
 	return Type->GetPreviewActorClass(Data);
 }
 
-TSoftObjectPtr<UTexture> FInventoryItem::GetThumbnailImage() const
+TSoftObjectPtr<UTexture2D> FInventoryItem::GetThumbnailImage() const
 {
 	if (!IsValid())
 	{

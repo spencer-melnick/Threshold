@@ -5,6 +5,8 @@
 #include "ThresholdUI.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Inventory/Components/InventoryComponent.h"
+#include "Inventory/Components/InventoryOwner.h"
 
 
 // UInventoryGrid
@@ -13,7 +15,6 @@ UInventoryGrid::UInventoryGrid(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	InventoryBlockClass = UInventoryBlock::StaticClass();
-	StartingInventoryIndex = 0;
 	GridSize = FIntPoint(4, 3);
 }
 
@@ -21,9 +22,15 @@ UInventoryGrid::UInventoryGrid(const FObjectInitializer& ObjectInitializer)
 
 // User widget overrides
 
-void UInventoryGrid::NativeConstruct()
+void UInventoryGrid::NativeOnInitialized()
 {
-	Super::NativeConstruct();
+	Super::NativeOnInitialized();
+
+	IInventoryOwner* InventoryOwner = Cast<IInventoryOwner>(GetOwningPlayerState());
+	if (InventoryOwner)
+	{
+		AssignInventoryComponent(InventoryOwner->GetInventoryComponent());
+	}
 
 	Reconstruct();
 }
@@ -40,27 +47,55 @@ void UInventoryGrid::SynchronizeProperties()
 
 // Inventory controls
 
-void UInventoryGrid::AssignInventoryComponent(UInventoryComponent* InventoryComponent, int32 InStartingInventoryIndex)
+void UInventoryGrid::AssignInventoryComponent(UInventoryComponent* InInventoryComponent)
 {
-	if (ParentInventory == InventoryComponent && StartingInventoryIndex == InStartingInventoryIndex)
+	if (InventoryComponent == InInventoryComponent)
 	{
 		// Skip if nothing changes
 		return;
 	}
 
-	// Assign properties to new values
-	ParentInventory = InventoryComponent;
-	StartingInventoryIndex = InStartingInventoryIndex;
+	if (InventoryComponent != nullptr)
+	{
+		// Clear update from previous inventory component delegate
+		InventoryComponent->OnInventoryChanged.RemoveDynamic(this, &UInventoryGrid::UpdateDisplay);
+	}
 
-	BindSubBlocks();
+	// Assign properties to new values
+	InventoryComponent = InInventoryComponent;
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->OnInventoryChanged.AddUniqueDynamic(this, &UInventoryGrid::UpdateDisplay);
+	}
 }
 
 
 void UInventoryGrid::UpdateDisplay()
 {
+	if (!InventoryComponent)
+	{
+		for (UInventoryBlock* InventoryBlock : SubBlocks)
+		{
+			InventoryBlock->ClearDisplay();
+		}
+
+		return;
+	}
+
+	TArray<FInventoryArrayHandle> ItemHandles = InventoryComponent->GetArrayHandles();
+	int32 HandleIndex = 0;
+	
 	for (UInventoryBlock* InventoryBlock : SubBlocks)
 	{
-		InventoryBlock->UpdateDisplay();
+		if (HandleIndex >= ItemHandles.Num())
+		{
+			InventoryBlock->ClearDisplay();
+		}
+		else
+		{
+			InventoryBlock->DisplayItem(ItemHandles[HandleIndex++]);
+		}
 	}
 }
 
@@ -124,22 +159,9 @@ void UInventoryGrid::ConstructSubBlocks()
 	}
 }
 
-void UInventoryGrid::BindSubBlocks()
-{
-	int32 CurrentInventoryIndex = StartingInventoryIndex;
-	for (UInventoryBlock* InventoryBlock : SubBlocks)
-	{
-		// Bind each inventory block to a specific inventory index
-		InventoryBlock->AssignToInventory(ParentInventory, CurrentInventoryIndex++);
-	}
-
-	UpdateDisplay();
-}
-
 void UInventoryGrid::Reconstruct()
 {
 	ConstructSubBlocks();
-	BindSubBlocks();
 	UpdateDisplay();
 }
 

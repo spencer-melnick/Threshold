@@ -22,7 +22,7 @@ struct FInventoryArray;
  * that theoretically when the owner is invalidated or garbage collected, we know the array is also invalid)
  */
 USTRUCT()
-struct FInventoryArrayHandle
+struct INVENTORYSYSTEM_API FInventoryArrayHandle
 {
 	GENERATED_BODY()
 
@@ -151,7 +151,8 @@ public:
 	
 	void PostSerialize(FArchive& Ar);
 	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
-	void PreReplicatedRemove(const TArrayView <int32>& RemovedIndices, int32 FinalSize);
+	void PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize);
+	void PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams);
 
 
@@ -274,6 +275,11 @@ public:
 	 */
 	const TArray<FInventoryItem>& GetArray() const { return Items; }
 
+	/**
+	 * Returns handles to all of the items in the underlying array
+	 */
+	TArray<FInventoryArrayHandle> GetArrayHandles();
+
 
 	// Delegates
 
@@ -331,6 +337,9 @@ private:
 
 	UPROPERTY(NotReplicated)
 	bool bNeedsIDRebuild = false;
+
+	UPROPERTY(NotReplicated)
+	bool bReceivedChanges = false;
 };
 
 

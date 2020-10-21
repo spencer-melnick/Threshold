@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Inventory/InventoryArray.h"
 #include "InventoryBlock.generated.h"
 
 
@@ -11,7 +12,7 @@
 // Forward declarations
 
 class UTextBlock;
-class UPreviewWidget;
+class UImage;
 class UInventoryComponent;
 struct FInventoryItem;
 
@@ -27,39 +28,42 @@ class THRESHOLDUI_API UInventoryBlock : public UUserWidget
 	
 public:
 
-
 	// Inventory controls
 	
 	/**
-	 * Assigns the item to display a specific index in an inventory
-	 * @param InventoryComponent - Inventory to attach to
-	 * @param Index - Index of the item in the inventory array
+	 * Displays a specific item in an inventory
+	 * @param InItemHandle - Handle to the item to be displayed - will clear display if invalid
 	 */
-	UFUNCTION(BlueprintCallable, Category=InventoryBlock)
-	void AssignToInventory(UInventoryComponent* InventoryComponent, int32 Index);
+	void DisplayItem(FInventoryArrayHandle InItemHandle);
 
 	/**
-	 * Updates the display using the bound inventory component and index
+	 * Clears the item display and item handle
 	 */
-	UFUNCTION(BlueprintCallable, Category=InventoryBlock)
-	void UpdateDisplay();
+	void ClearDisplay();
 
 
 	// Accessors
 
-	UFUNCTION(BlueprintCallable, Category=InventoryBlock)
-	UInventoryComponent* GetParentInventory() const { return ParentInventory; }
+	FInventoryArrayHandle GetItemHandle() const { return ItemHandle; }
 
-	UFUNCTION(BlueprintCallable, Category=InventoryBlock)
-	int32 GetInventoryIndex() const { return InventoryIndex; }
+
+	// Editor properties
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Display)
+	UMaterialInterface* Material;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Display)
+	FName TextureParameter;
 
 
 protected:
 
 	// Helper functions
 	
-	const FInventoryItem* GetInventoryItem() const;
+	static FText GetStackText(FInventoryItem* InventoryItem);
 
+	void ClearBrush();
+	void SetBrushTexture(TSoftObjectPtr<UTexture2D> Texture);
 	
 
 private:
@@ -70,15 +74,10 @@ private:
 	UTextBlock* StackDisplay;
 
 	UPROPERTY(meta=(BindWidget))
-	UPreviewWidget* PreviewDisplay;
-
+	UImage* ThumbnailDisplay;
 
 
 	// Binding values
 
-	UPROPERTY()
-	UInventoryComponent* ParentInventory;
-
-	UPROPERTY()
-	int32 InventoryIndex;
+	FInventoryArrayHandle ItemHandle;
 };

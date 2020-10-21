@@ -63,7 +63,7 @@ public:
 	 * Used to get an image for displaying a thumbnail of this inventory item
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
-	virtual TSoftObjectPtr<UTexture> GetThumbnailImage(TWeakPtr<FInventoryItemDataBase> ItemData) const { return nullptr; }
+	virtual TSoftObjectPtr<UTexture2D> GetThumbnailImage(TWeakPtr<FInventoryItemDataBase> ItemData) const { return nullptr; }
 
 	/**
 	 * Used to get gameplay tags describing this item

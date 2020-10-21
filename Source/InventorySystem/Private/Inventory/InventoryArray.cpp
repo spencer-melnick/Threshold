@@ -74,15 +74,24 @@ void FInventoryArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, i
 	{
 		// If we received any additions, we need to rebuild the local ID map
 		bNeedsIDRebuild = true;
+		bReceivedChanges = true;
 	}
 }
 
+void FInventoryArray::PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
+{
+	if (ChangedIndices.Num() > 0)
+	{
+		bReceivedChanges = true;
+	}
+}
 
 void FInventoryArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize)
 {
 	if (RemovedIndices.Num() > 0)
 	{
 		bNeedsIDRebuild = true;
+		bReceivedChanges = true;
 	}
 }
 
@@ -96,8 +105,14 @@ bool FInventoryArray::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 	{
 		// If we added or deleted any elements, rebuild the ID map
 		RebuildIDMap();
-		NotifyArrayChanged();
 		bNeedsIDRebuild = false;
+	}
+
+	if (bReceivedChanges)
+	{
+		// If anything was added, deleted, or changed, notify the delegates
+		NotifyArrayChanged();
+		bReceivedChanges = false;
 	}
 
 	return Result;
@@ -134,6 +149,20 @@ void FInventoryArray::Empty(int32 Slack)
 	MarkArrayDirty();
 	InventoryArrayChangedDelegate.Broadcast();
 }
+
+TArray<FInventoryArrayHandle> FInventoryArray::GetArrayHandles()
+{
+	TArray<FInventoryArrayHandle> Result;
+	Result.Reserve(Items.Num());
+
+	for (FInventoryItem& Item : Items)
+	{
+		Result.Add(FInventoryArrayHandle(Item.UniqueID, Owner, this));
+	}
+
+	return Result;
+}
+
 
 
 
