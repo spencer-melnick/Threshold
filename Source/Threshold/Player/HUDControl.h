@@ -53,4 +53,9 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category=HUDControl)
 	virtual bool ShouldEnableCharacterControl() const = 0;
+
+	/**
+	 * Called whenever the player state is replicated to the client, or created on the server
+	 */
+	virtual void OnPlayerStateInitialized() = 0;
 };

@@ -100,6 +100,29 @@ void ATHPlayerController::AcknowledgePossession(APawn* P)
 	}
 }
 
+void ATHPlayerController::InitPlayerState()
+{
+	Super::InitPlayerState();
+
+	if (!IsNetMode(NM_Client) && IsLocalPlayerController())
+	{
+		// If this is a server, and the player controller is local, it's either a bot or we're a listen server
+		
+		InitializePlayerStateUI();
+	}
+}
+
+void ATHPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (PlayerState)
+	{
+		InitializePlayerStateUI();
+	}
+}
+
+
 
 
 
@@ -467,6 +490,17 @@ void ATHPlayerController::ToggleMenu()
 			break;
 	}
 }
+
+void ATHPlayerController::InitializePlayerStateUI()
+{
+	IHUDControl* PlayerHUD = GetHUD<IHUDControl>();
+		
+	if (PlayerHUD)
+	{
+		PlayerHUD->OnPlayerStateInitialized();
+	}
+}
+
 
 
 

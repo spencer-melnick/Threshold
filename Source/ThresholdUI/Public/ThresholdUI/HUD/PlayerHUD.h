@@ -52,6 +52,12 @@ public:
 
 
 
+	// Initialization
+
+	virtual void OnPlayerStateInitialized() override;
+
+
+
 	// Editor properties
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Widgets")
