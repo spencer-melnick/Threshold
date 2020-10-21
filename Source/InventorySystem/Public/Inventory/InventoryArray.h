@@ -22,7 +22,7 @@ struct FInventoryArray;
  * that theoretically when the owner is invalidated or garbage collected, we know the array is also invalid)
  */
 USTRUCT()
-struct FInventoryArrayHandle
+struct INVENTORYSYSTEM_API FInventoryArrayHandle
 {
 	GENERATED_BODY()
 
@@ -91,7 +91,7 @@ public:
 	/**
 	 * Notifies the inventory component that we modified this inventory item so it can update replication and UI as needed
 	 */
-	void MarkDirty() const;
+	void MarkDirty();
 
 	/**
 	 * Deletes this item from the inventory component and notifies the array to update its state accordingly
@@ -151,7 +151,8 @@ public:
 	
 	void PostSerialize(FArchive& Ar);
 	void PostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize);
-	void PreReplicatedRemove(const TArrayView <int32>& RemovedIndices, int32 FinalSize);
+	void PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize);
+	void PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams);
 
 
@@ -175,6 +176,11 @@ public:
 
 		return FInventoryArrayHandle(NewItem.UniqueID, Owner, this);
 	}
+
+	/**
+	 * Marks an item as dirty and notifies the update delegates
+	 */
+	void MarkDirty(FInventoryArrayHandle& ItemHandle);
 
 	/**
 	 * Removes an element based on its handle
@@ -274,6 +280,11 @@ public:
 	 */
 	const TArray<FInventoryItem>& GetArray() const { return Items; }
 
+	/**
+	 * Returns handles to all of the items in the underlying array
+	 */
+	TArray<FInventoryArrayHandle> GetArrayHandles();
+
 
 	// Delegates
 
@@ -331,6 +342,9 @@ private:
 
 	UPROPERTY(NotReplicated)
 	bool bNeedsIDRebuild = false;
+
+	UPROPERTY(NotReplicated)
+	bool bReceivedChanges = false;
 };
 
 

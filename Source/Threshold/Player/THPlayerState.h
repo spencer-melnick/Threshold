@@ -28,7 +28,7 @@ public:
 
 	// Engine overrides
 
-	void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 
 	// Inventory owner overrides

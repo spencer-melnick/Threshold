@@ -40,6 +40,28 @@ TSoftClassPtr<APreviewActor> FInventoryItem::GetPreviewActorClass() const
 	return Type->GetPreviewActorClass(Data);
 }
 
+TSoftObjectPtr<UTexture2D> FInventoryItem::GetThumbnailImage() const
+{
+	if (!IsValid())
+	{
+		return nullptr;
+	}
+
+	return Type->GetThumbnailImage(Data);
+}
+
+FGameplayTagContainer FInventoryItem::GetGameplayTags() const
+{
+	if (!IsValid())
+	{
+		return FGameplayTagContainer::EmptyContainer;
+	}
+
+	return Type->GetGameplayTags(Data);
+}
+
+
+
 bool FInventoryItem::AllowsDuplicates() const
 {
 	if (!IsValid())
@@ -289,6 +311,12 @@ bool FInventoryItem::Serialize(FArchive& Ar)
 		if (!ItemType.IsValid())
 		{
 			UE_LOG(LogInventorySystem, Error, TEXT("FInventoryItem::Serialize failed - invalid item type"))
+			SetType(nullptr);
+
+			// Serialize an empty struct (this works for some reason?)
+			// Based on MovieSceneEvalTemplateSerializer
+			FInventoryItemDataBase BaseData;
+			FInventoryItemDataBase::StaticStruct()->SerializeItem(Ar, &BaseData, nullptr);
 			return true;
 		}
 

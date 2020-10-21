@@ -115,6 +115,16 @@ public:
 	TSoftClassPtr<APreviewActor> GetPreviewActorClass() const;
 
 	/**
+	 * Used to get an image for displaying a thumbnail of this inventory item
+	 */
+	TSoftObjectPtr<UTexture2D> GetThumbnailImage() const;
+
+	/**
+	 * Used to get gameplay tags describing this item
+	*/
+	FGameplayTagContainer GetGameplayTags() const;
+
+	/**
 	* Used to determine inventory storage behavior
 	* @return Whether or not an inventory component should store multiple items with this item type
 	*/

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "Inventory/Components/InventoryComponent.h"
-
 #include "InventorySystem.h"
 #include "Inventory/ItemTypes/ItemTypeBase.h"
 #include "Inventory/InventoryItem.h"
@@ -173,7 +172,7 @@ TArray<FInventoryItem*> UInventoryComponent::GetAllItemsByTypeTemporary(UInvento
 	if (!ItemType)
 	{
 		// Return an empty result if the type is invalid
-		return Result;
+		return MoveTemp(Result);
 	}
 
 	if (!ItemType->AllowsDuplicates())
@@ -205,13 +204,13 @@ TArray<FInventoryArrayHandle> UInventoryComponent::GetAllItemsByType(UInventoryI
 	if (!ItemType)
 	{
 		// Return an empty result if the type is invalid
-		return Result;
+		return MoveTemp(Result);
 	}
 
 	if (!ItemType->AllowsDuplicates())
 	{
 		// Find only the first result if the item type doesn't allow duplicates
-		FInventoryArrayHandle SingleResult = GetFirstItemByType(ItemType);
+		const FInventoryArrayHandle SingleResult = GetFirstItemByType(ItemType);
 
 		if (!SingleResult.IsNull())
 		{
@@ -262,9 +261,8 @@ FInventoryArrayHandle UInventoryComponent::GetFirstItemByType(UInventoryItemType
 
 void UInventoryComponent::OnInventoryArrayChanged()
 {
-	InventoryChangedDelegate.Broadcast();
+	OnInventoryChanged.Broadcast();
 }
-
 
 
 

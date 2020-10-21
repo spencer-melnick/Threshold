@@ -3,15 +3,19 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 
 #include "THPlayerController.h"
+#include "GameFramework/HUD.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Global/Subsystems/InteractionSubsystem.h"
 #include "Threshold/World/InteractiveObject.h"
+#include "Threshold/Player/HUDControl.h"
 #include "EngineUtils.h"
 
 
+
+// ATHPlayerController
 
 ATHPlayerController::ATHPlayerController()
 {
@@ -65,6 +69,8 @@ void ATHPlayerController::SetupInputComponent()
 	InputComponent->BindAction("ToggleTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleTarget);
 	InputComponent->BindAction("NextTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::NextTarget);
 	InputComponent->BindAction("PreviousTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::PreviousTarget);
+
+	InputComponent->BindAction("ToggleMenu", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleMenu);
 }
 
 void ATHPlayerController::Tick(float DeltaTime)
@@ -93,6 +99,29 @@ void ATHPlayerController::AcknowledgePossession(APawn* P)
 		PossessedCharacter->GetAbilitySystemComponent()->InitAbilityActorInfo(PossessedCharacter, PossessedCharacter);
 	}
 }
+
+void ATHPlayerController::InitPlayerState()
+{
+	Super::InitPlayerState();
+
+	if (!IsNetMode(NM_Client) && IsLocalPlayerController())
+	{
+		// If this is a server, and the player controller is local, it's either a bot or we're a listen server
+		
+		InitializePlayerStateUI();
+	}
+}
+
+void ATHPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (PlayerState)
+	{
+		InitializePlayerStateUI();
+	}
+}
+
 
 
 
@@ -436,6 +465,43 @@ void ATHPlayerController::SetTarget(TWeakInterfacePtr<ICombatant> NewTarget)
 	LockonTarget->AttachTargetIndicator(TargetIndicatorActor);
 	TargetIndicatorActor->SetActorHiddenInGame(false);
 }
+
+
+
+// HUD controls
+
+void ATHPlayerController::ToggleMenu()
+{
+	IHUDControl* PlayerHUD = GetHUD<IHUDControl>();
+
+	if (!PlayerHUD)
+	{
+		return;
+	}
+
+	switch (PlayerHUD->GetStatus())
+	{
+		case EPlayerHUDStatus::WorldView:
+			PlayerHUD->SetStatus(EPlayerHUDStatus::PlayerMenuActive);
+			break;
+
+		default:
+			PlayerHUD->SetStatus(EPlayerHUDStatus::WorldView);
+			break;
+	}
+}
+
+void ATHPlayerController::InitializePlayerStateUI()
+{
+	IHUDControl* PlayerHUD = GetHUD<IHUDControl>();
+		
+	if (PlayerHUD)
+	{
+		PlayerHUD->OnPlayerStateInitialized();
+	}
+}
+
+
 
 
 

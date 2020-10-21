@@ -17,6 +17,7 @@ class ICombatant;
 class IInteractiveObject;
 
 
+
 /**
  * This is the base class for the player character controller. It has minimal functionality, providing a targeting
  * system that sets control rotation, and movement inputs. The rest of the character input is handled via gameplay
@@ -39,6 +40,8 @@ public:
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void AcknowledgePossession(APawn* P) override;
+	virtual void InitPlayerState() override;
+	virtual void OnRep_PlayerState() override;
 
 
 	
@@ -66,6 +69,12 @@ public:
 
 
 
+	// HUD controls
+
+	void ToggleMenu();
+
+
+
 	// Camera effects
 
 	void ApplyHitShake(FVector Direction, float Amplitude);
@@ -88,7 +97,7 @@ public:
 	{
 		return CurrentInteractiveObject;
 	}
-	
+
 
 	
 	// Public properties
@@ -125,6 +134,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Interaction")
 	TSubclassOf<AActor> InteractionIndicatorClass;
 
+
 	
 	// Holds information about potential lockon targets
 	struct FTarget
@@ -135,8 +145,7 @@ public:
 
 		bool operator==(const FTarget& OtherTarget) const;
 	};
-
-
+	
 	
 
 protected:
@@ -149,6 +158,11 @@ protected:
 
 	void CheckInteractiveObjects();
 	void SetCurrentInteractiveObject(TWeakInterfacePtr<IInteractiveObject> NewObject);
+
+	
+	// UI initialization
+
+	void InitializePlayerStateUI();
 
 
 	
@@ -166,6 +180,7 @@ private:
 	AActor* InteractionIndicatorActor = nullptr;
 
 
+	
 	// Camera control members
 
 	TWeakInterfacePtr<ICombatant> LockonTarget;

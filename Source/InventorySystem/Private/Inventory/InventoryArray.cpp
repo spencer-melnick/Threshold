@@ -31,16 +31,14 @@ FInventoryItem* FInventoryArrayHandle::Get() const
 	return &Array->Items[Index];
 }
 
-void FInventoryArrayHandle::MarkDirty() const
+void FInventoryArrayHandle::MarkDirty()
 {
-	FInventoryItem* Item = Get();
-
-	if (!Item)
+	if (IsNull())
 	{
 		return;
 	}
 
-	Array->MarkItemDirty(*Item);
+	Array->MarkDirty(*this);
 }
 
 void FInventoryArrayHandle::Remove()
@@ -74,15 +72,24 @@ void FInventoryArray::PostReplicatedAdd(const TArrayView<int32>& AddedIndices, i
 	{
 		// If we received any additions, we need to rebuild the local ID map
 		bNeedsIDRebuild = true;
+		bReceivedChanges = true;
 	}
 }
 
+void FInventoryArray::PostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
+{
+	if (ChangedIndices.Num() > 0)
+	{
+		bReceivedChanges = true;
+	}
+}
 
 void FInventoryArray::PreReplicatedRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize)
 {
 	if (RemovedIndices.Num() > 0)
 	{
 		bNeedsIDRebuild = true;
+		bReceivedChanges = true;
 	}
 }
 
@@ -96,8 +103,14 @@ bool FInventoryArray::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 	{
 		// If we added or deleted any elements, rebuild the ID map
 		RebuildIDMap();
-		NotifyArrayChanged();
 		bNeedsIDRebuild = false;
+	}
+
+	if (bReceivedChanges)
+	{
+		// If anything was added, deleted, or changed, notify the delegates
+		NotifyArrayChanged();
+		bReceivedChanges = false;
 	}
 
 	return Result;
@@ -106,6 +119,24 @@ bool FInventoryArray::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 
 
 // Array operations
+
+void FInventoryArray::MarkDirty(FInventoryArrayHandle& ItemHandle)
+{
+	if (ItemHandle.IsNull() || ItemHandle.Array != this)
+	{
+		return;
+	}
+
+	FInventoryItem* Item = ItemHandle.Get();
+	if (!Item)
+	{
+		return;
+	}
+
+	MarkItemDirty(*Item);
+	NotifyArrayChanged();
+}
+
 
 void FInventoryArray::Remove(FInventoryArrayHandle& ItemHandle)
 {
@@ -134,6 +165,20 @@ void FInventoryArray::Empty(int32 Slack)
 	MarkArrayDirty();
 	NotifyArrayChanged();
 }
+
+TArray<FInventoryArrayHandle> FInventoryArray::GetArrayHandles()
+{
+	TArray<FInventoryArrayHandle> Result;
+	Result.Reserve(Items.Num());
+
+	for (FInventoryItem& Item : Items)
+	{
+		Result.Add(FInventoryArrayHandle(Item.UniqueID, Owner, this));
+	}
+
+	return Result;
+}
+
 
 
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "ItemTypeBase.generated.h"
 
 
@@ -57,6 +58,18 @@ public:
 	 * @param ItemData - Optional item data relevant to this item type
 	 */
 	virtual TSoftClassPtr<APreviewActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const { return nullptr; }
+
+	/**
+	 * Used to get an image for displaying a thumbnail of this inventory item
+	 * @param ItemData - Optional item data relevant to this item type
+	 */
+	virtual TSoftObjectPtr<UTexture2D> GetThumbnailImage(TWeakPtr<FInventoryItemDataBase> ItemData) const { return nullptr; }
+
+	/**
+	 * Used to get gameplay tags describing this item
+	 * @param ItemData - Optional item data relevant to this item type
+	 */
+	virtual FGameplayTagContainer GetGameplayTags(TWeakPtr<FInventoryItemDataBase> ItemData) const { return FGameplayTagContainer::EmptyContainer; }
 
 	/**
 	 * Overridden to determine inventory storage behavior

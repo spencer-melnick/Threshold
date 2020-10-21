@@ -25,6 +25,8 @@ public:
 	virtual FText GetItemName(TWeakPtr<FInventoryItemDataBase> ItemData) const override { return ItemName; }
 	virtual FText GetItemDescription(TWeakPtr<FInventoryItemDataBase> ItemData) const override { return ItemDescription; }
 	virtual TSoftClassPtr<APreviewActor> GetPreviewActorClass(TWeakPtr<FInventoryItemDataBase> ItemData) const override { return PreviewActorClass; }
+	virtual TSoftObjectPtr<UTexture2D> GetThumbnailImage(TWeakPtr<FInventoryItemDataBase> ItemData) const override { return ThumbnailImage; }
+	virtual FGameplayTagContainer GetGameplayTags(TWeakPtr<FInventoryItemDataBase> ItemData) const override { return GameplayTags; }
 	virtual bool AllowsDuplicates() const override { return bAllowsDuplicates; }
 
 
@@ -44,6 +46,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ItemType)
 	TSoftClassPtr<APreviewActor> PreviewActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ItemType)
+	TSoftObjectPtr<UTexture2D> ThumbnailImage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ItemType)
+	FGameplayTagContainer GameplayTags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=ItemType)
 	bool bAllowsDuplicates = true;
