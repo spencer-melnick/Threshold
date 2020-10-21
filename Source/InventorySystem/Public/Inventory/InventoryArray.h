@@ -121,7 +121,7 @@ private:
 // Delegates
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FInventoryArrayItemChangedDelegate, int32);
-DECLARE_MULTICAST_DELEGATE(FInventoryArrayChangedDelegate);
+DECLARE_DELEGATE(FInventoryArrayChangedDelegate);
 
 
 

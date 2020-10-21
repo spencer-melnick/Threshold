@@ -16,8 +16,8 @@ UInventoryComponent::UInventoryComponent()
 	// Should be replicated by default
 	SetIsReplicatedByDefault(true);
 
-	// Bind this delegate to the inner array
-	InventoryArray.InventoryArrayChangedDelegate.AddUObject(this, &UInventoryComponent::InventoryChanged);
+	// Bind the changed delegate
+	InventoryArray.InventoryArrayChangedDelegate.BindUObject(this, &UInventoryComponent::OnInventoryArrayChanged);
 }
 
 
@@ -257,6 +257,14 @@ FInventoryArrayHandle UInventoryComponent::GetFirstItemByType(UInventoryItemType
 
 
 
+// Delegate functions
+
+void UInventoryComponent::OnInventoryArrayChanged()
+{
+	OnInventoryChanged.Broadcast();
+}
+
+
 
 // Network replication
 
@@ -264,13 +272,3 @@ void UInventoryComponent::OnRep_InventoryArray()
 {
 	
 }
-
-
-
-// Delegates
-
-void UInventoryComponent::InventoryChanged()
-{
-	OnInventoryChanged.Broadcast();
-}
-
