@@ -32,21 +32,22 @@ public:
 
 	// User widget overrides
 
-	virtual void NativeConstruct() override;
+	virtual void NativeOnInitialized() override;
 	virtual void SynchronizeProperties() override;
 
 
 	// Inventory controls
 
 	/**
-	 * Assigns this inventory grid to reference a specific inventory component, with an optional starting index offset.
-	 * Updates displays of all inventory blocks
+	 * Assigns this inventory grid to reference a specific inventory component.
+	 * Does not update displays of all inventory blocks
 	 */
-	void AssignInventoryComponent(UInventoryComponent* InventoryComponent, int32 InStartingInventoryIndex = 0);
+	void AssignInventoryComponent(UInventoryComponent* InInventoryComponent);
 
 	/**
-	 * Updates all inventory blocks based on the bound inventory component and index
+	 * Updates all inventory blocks
 	 */
+	UFUNCTION()
 	void UpdateDisplay();
 
 
@@ -76,13 +77,7 @@ protected:
 	void ConstructSubBlocks();
 
 	/**
-	* Binds all sub inventory blocks to an inventory component, and updates the displays
-	*/
-	void BindSubBlocks();
-
-	/**
-	 * Constructs sub inventory blocks, binds them to the inventory component (if one is assigned) and updates
-	 * their displays
+	 * Constructs sub inventory blocks and updates their displays
 	 */
 	void Reconstruct();
 
@@ -99,10 +94,8 @@ protected:
 	TArray<UUniformGridSlot*> GridSlots;
 
 
-	// Parent inventory references
+	// Inventory reference
 	
 	UPROPERTY()
-	UInventoryComponent* ParentInventory;
-
-	int32 StartingInventoryIndex;
+	UInventoryComponent* InventoryComponent;
 };

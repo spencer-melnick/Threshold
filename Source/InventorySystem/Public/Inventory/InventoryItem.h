@@ -117,12 +117,12 @@ public:
 	/**
 	 * Used to get an image for displaying a thumbnail of this inventory item
 	 */
-	TSoftObjectPtr<UTexture> GetThumbnailImage() const;
+	TSoftObjectPtr<UTexture2D> GetThumbnailImage() const;
 
 	/**
 	 * Used to get gameplay tags describing this item
 	*/
-	virtual FGameplayTagContainer GetGameplayTags() const;
+	FGameplayTagContainer GetGameplayTags() const;
 
 	/**
 	* Used to determine inventory storage behavior

@@ -15,6 +15,9 @@ UInventoryComponent::UInventoryComponent()
 {
 	// Should be replicated by default
 	SetIsReplicatedByDefault(true);
+
+	// Bind this delegate to the inner array
+	InventoryArray.InventoryArrayChangedDelegate.AddUObject(this, &UInventoryComponent::InventoryChanged);
 }
 
 
@@ -169,7 +172,7 @@ TArray<FInventoryItem*> UInventoryComponent::GetAllItemsByTypeTemporary(UInvento
 	if (!ItemType)
 	{
 		// Return an empty result if the type is invalid
-		return Result;
+		return MoveTemp(Result);
 	}
 
 	if (!ItemType->AllowsDuplicates())
@@ -201,13 +204,13 @@ TArray<FInventoryArrayHandle> UInventoryComponent::GetAllItemsByType(UInventoryI
 	if (!ItemType)
 	{
 		// Return an empty result if the type is invalid
-		return Result;
+		return MoveTemp(Result);
 	}
 
 	if (!ItemType->AllowsDuplicates())
 	{
 		// Find only the first result if the item type doesn't allow duplicates
-		FInventoryArrayHandle SingleResult = GetFirstItemByType(ItemType);
+		const FInventoryArrayHandle SingleResult = GetFirstItemByType(ItemType);
 
 		if (!SingleResult.IsNull())
 		{
@@ -261,3 +264,13 @@ void UInventoryComponent::OnRep_InventoryArray()
 {
 	
 }
+
+
+
+// Delegates
+
+void UInventoryComponent::InventoryChanged()
+{
+	OnInventoryChanged.Broadcast();
+}
+

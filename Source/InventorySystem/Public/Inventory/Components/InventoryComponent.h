@@ -88,13 +88,18 @@ public:
 	 */
 	const TArray<FInventoryItem>& GetArray() const { return InventoryArray.GetArray(); }
 
+	/**
+	 * Returns handles to all of the items in the underlying array
+	 */
+	TArray<FInventoryArrayHandle> GetArrayHandles() { return InventoryArray.GetArrayHandles(); }
+
 
 	// Delegates
 
 	// Called whenever the array changes (either due to addition, deletion, or modification of an element)
 	// Will be called whenever MarkItemDirty or MarkArrayDirty are called
 	UPROPERTY(BlueprintAssignable)
-	FInventoryChangedDelegate InventoryChangedDelegate;
+	FInventoryChangedDelegate OnInventoryChanged;
 
 
 
@@ -104,6 +109,11 @@ protected:
 	
 	UFUNCTION()
 	virtual void OnRep_InventoryArray();
+
+
+	// Delegates
+
+	void InventoryChanged();
 	
 
 private:

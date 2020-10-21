@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "ThresholdUI/Widgets/InventoryBlock.h"
-#include "ThresholdUI/Widgets/PreviewWidget.h"
 #include "Components/TextBlock.h"
-#include "Inventory/Components/InventoryComponent.h"
+#include "Components/Image.h"
+#include "Inventory/InventoryArray.h"
 
 
 
@@ -11,64 +11,72 @@
 
 // Inventory controls
 
-void UInventoryBlock::AssignToInventory(UInventoryComponent* InventoryComponent, int32 Index)
-{
-	ParentInventory = InventoryComponent;
-	InventoryIndex = Index;
-
-	UpdateDisplay();
-}
-
-void UInventoryBlock::UpdateDisplay()
+void UInventoryBlock::DisplayItem(FInventoryArrayHandle InItemHandle)
 {
 	#if WITH_EDITOR
-		if (!StackDisplay || !PreviewDisplay)
+		if (!StackDisplay || !ThumbnailDisplay)
 		{
 			return;
 		}
 	#endif
 	
-	const FInventoryItem* InventoryItem = GetInventoryItem();
+	ItemHandle = InItemHandle;
+	FInventoryItem* InventoryItem = ItemHandle.Get();
 
 	if (!InventoryItem)
 	{
-		// Clear display
-		StackDisplay->SetText(FText());
-		PreviewDisplay->ClearPreviewActorClass();
+		ClearDisplay();
+		return;
 	}
-	else
-	{
-		if (InventoryItem->AllowsStacking())
-		{
-			StackDisplay->SetText(FText::AsNumber(InventoryItem->GetStackCount()));
-		}
-		else
-		{
-			StackDisplay->SetText(FText::AsCultureInvariant(TEXT("Test")));
-		}
 
-		PreviewDisplay->SetPreviewActorClass(InventoryItem->GetPreviewActorClass());
-	}
+	StackDisplay->SetText(GetStackText(InventoryItem));
+	SetBrushTexture(InventoryItem->GetThumbnailImage());
+}
+
+void UInventoryBlock::ClearDisplay()
+{
+	#if WITH_EDITOR
+		if (!StackDisplay || !ThumbnailDisplay)
+		{
+			return;
+		}
+	#endif
+	
+	// Clear the item handle
+	ItemHandle.Clear();
+
+	// Clear the display
+	StackDisplay->SetText(GetStackText(nullptr));
+	ClearBrush();
 }
 
 
 
 // Helper functions
 
-const FInventoryItem* UInventoryBlock::GetInventoryItem() const
+FText UInventoryBlock::GetStackText(FInventoryItem* InventoryItem)
 {
-	if (!ParentInventory || InventoryIndex < 0)
+	if (!InventoryItem || !InventoryItem->AllowsStacking())
 	{
-		return nullptr;
+		return FText();
 	}
 
-	const TArray<FInventoryItem>& InventoryArray = ParentInventory->GetArray();
+	return FText::AsNumber(InventoryItem->GetStackCount());
+}
 
-	if (InventoryIndex >= InventoryArray.Num())
+void UInventoryBlock::ClearBrush()
+{
+	ThumbnailDisplay->SetBrush(FSlateNoResource());
+}
+
+void UInventoryBlock::SetBrushTexture(TSoftObjectPtr<UTexture2D> Texture)
+{
+	if (Texture.IsNull())
 	{
-		return nullptr;
+		ClearBrush();
+		return;
 	}
 
-	return &InventoryArray[InventoryIndex];
+	ThumbnailDisplay->SetBrushFromSoftTexture(Texture);
 }
 
