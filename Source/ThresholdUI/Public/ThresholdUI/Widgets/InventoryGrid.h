@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "PlayerWidget.h"
 #include "InventoryGrid.generated.h"
 
 
@@ -21,7 +22,7 @@ class UUniformGridSlot;
  * Simple widget that constructs a grid of inventory block widgets
  */
 UCLASS()
-class THRESHOLDUI_API UInventoryGrid : public UUserWidget
+class THRESHOLDUI_API UInventoryGrid : public UUserWidget, public IPlayerWidgetInterface
 {
 	GENERATED_BODY()
 
@@ -49,6 +50,11 @@ public:
 	 */
 	UFUNCTION()
 	void UpdateDisplay();
+
+
+	// Initialization
+
+	virtual void OnPlayerStateInitialized() override;
 
 
 	// Editor properties

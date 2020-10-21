@@ -26,12 +26,6 @@ void UInventoryGrid::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
-	IInventoryOwner* InventoryOwner = Cast<IInventoryOwner>(GetOwningPlayerState());
-	if (InventoryOwner)
-	{
-		AssignInventoryComponent(InventoryOwner->GetInventoryComponent());
-	}
-
 	Reconstruct();
 }
 
@@ -99,6 +93,20 @@ void UInventoryGrid::UpdateDisplay()
 	}
 }
 
+
+
+// Initialization
+
+void UInventoryGrid::OnPlayerStateInitialized()
+{
+	IInventoryOwner* InventoryOwner = Cast<IInventoryOwner>(GetOwningPlayerState());
+	if (InventoryOwner)
+	{
+		AssignInventoryComponent(InventoryOwner->GetInventoryComponent());
+	}
+
+	Reconstruct();
+}
 
 
 

@@ -25,6 +25,12 @@ void APlayerHUD::BeginPlay()
 
 	// Set default status this way to hide appropriate widgets
 	SetStatus(EPlayerHUDStatus::WorldView);
+
+	if (PlayerOwner && PlayerOwner->PlayerState)
+	{
+		// If the player state was created before we were, we can go ahead and run player state initialization now
+		OnPlayerStateInitialized();
+	}
 }
 
 
@@ -58,6 +64,17 @@ bool APlayerHUD::ShouldEnableCharacterControl() const
 	}
 }
 
+
+
+// Initialization
+
+void APlayerHUD::OnPlayerStateInitialized()
+{
+	if (PlayerMenuWidget)
+	{
+		PlayerMenuWidget->OnPlayerStateInitialized();
+	}
+}
 
 
 
@@ -106,4 +123,3 @@ void APlayerHUD::ShowWidgetChecked(UUserWidget* Widget)
 
 	Widget->SetVisibility(ESlateVisibility::Visible);
 }
-

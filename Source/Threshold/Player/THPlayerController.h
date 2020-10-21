@@ -40,6 +40,8 @@ public:
 	virtual void SetupInputComponent() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void AcknowledgePossession(APawn* P) override;
+	virtual void InitPlayerState() override;
+	virtual void OnRep_PlayerState() override;
 
 
 	
@@ -156,6 +158,11 @@ protected:
 
 	void CheckInteractiveObjects();
 	void SetCurrentInteractiveObject(TWeakInterfacePtr<IInteractiveObject> NewObject);
+
+	
+	// UI initialization
+
+	void InitializePlayerStateUI();
 
 
 	
