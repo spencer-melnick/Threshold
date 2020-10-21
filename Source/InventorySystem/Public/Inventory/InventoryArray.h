@@ -91,7 +91,7 @@ public:
 	/**
 	 * Notifies the inventory component that we modified this inventory item so it can update replication and UI as needed
 	 */
-	void MarkDirty() const;
+	void MarkDirty();
 
 	/**
 	 * Deletes this item from the inventory component and notifies the array to update its state accordingly
@@ -176,6 +176,11 @@ public:
 
 		return FInventoryArrayHandle(NewItem.UniqueID, Owner, this);
 	}
+
+	/**
+	 * Marks an item as dirty and notifies the update delegates
+	 */
+	void MarkDirty(FInventoryArrayHandle& ItemHandle);
 
 	/**
 	 * Removes an element based on its handle

@@ -7,7 +7,7 @@
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Abilities/Tasks/AT_ServerWaitForClientTargetData.h"
 #include "Threshold/Abilities/AbilityFunctionLibrary.h"
-#include "Threshold/Controllers/THPlayerController.h"
+#include "Threshold/Player/THPlayerController.h"
 #include "Threshold/Character/BaseCharacter.h"
 #include "Threshold/World/InteractiveObject.h"
 

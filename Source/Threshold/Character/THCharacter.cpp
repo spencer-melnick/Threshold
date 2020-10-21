@@ -11,7 +11,7 @@
 
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/Movement/THCharacterMovement.h"
-#include "Threshold/Controllers/THPlayerController.h"
+#include "Threshold/Player/THPlayerController.h"
 #include "Threshold/Character/Animation/THCharacterAnim.h"
 #include "Threshold/Global/THConfig.h"
 #include "Threshold/Combat/Weapons/WeaponMoveset.h"

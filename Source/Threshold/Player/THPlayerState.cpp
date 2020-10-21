@@ -8,6 +8,7 @@
 
 ATHPlayerState::ATHPlayerState()
 {
+	NetUpdateFrequency = 10.f;
     InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(InventoryComponentName);
 }
 

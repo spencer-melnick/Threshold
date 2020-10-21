@@ -31,16 +31,14 @@ FInventoryItem* FInventoryArrayHandle::Get() const
 	return &Array->Items[Index];
 }
 
-void FInventoryArrayHandle::MarkDirty() const
+void FInventoryArrayHandle::MarkDirty()
 {
-	FInventoryItem* Item = Get();
-
-	if (!Item)
+	if (IsNull())
 	{
 		return;
 	}
 
-	Array->MarkItemDirty(*Item);
+	Array->MarkDirty(*this);
 }
 
 void FInventoryArrayHandle::Remove()
@@ -121,6 +119,24 @@ bool FInventoryArray::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParams)
 
 
 // Array operations
+
+void FInventoryArray::MarkDirty(FInventoryArrayHandle& ItemHandle)
+{
+	if (ItemHandle.IsNull() || ItemHandle.Array != this)
+	{
+		return;
+	}
+
+	FInventoryItem* Item = ItemHandle.Get();
+	if (!Item)
+	{
+		return;
+	}
+
+	MarkItemDirty(*Item);
+	NotifyArrayChanged();
+}
+
 
 void FInventoryArray::Remove(FInventoryArrayHandle& ItemHandle)
 {

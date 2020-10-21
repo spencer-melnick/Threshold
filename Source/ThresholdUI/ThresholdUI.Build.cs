@@ -10,7 +10,7 @@ public class ThresholdUI : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[]
         {
-           "Core", "CoreUObject", "Engine", "InputCore", "UMG", "InventorySystem"
+           "Core", "CoreUObject", "Engine", "InputCore", "UMG", "InventorySystem", "Threshold"
         });
         
         PrivateDependencyModuleNames.AddRange(new string[]

@@ -3,16 +3,19 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 
 #include "THPlayerController.h"
+#include "GameFramework/HUD.h"
 #include "Threshold/Abilities/THAbilitySystemComponent.h"
 #include "Threshold/Character/THCharacter.h"
 #include "Threshold/Effects/Camera/THPlayerCameraManager.h"
 #include "Threshold/Global/Subsystems/CombatantSubsystem.h"
 #include "Threshold/Global/Subsystems/InteractionSubsystem.h"
 #include "Threshold/World/InteractiveObject.h"
-#include "ThresholdUI/HUD/PlayerHUD.h"
+#include "Threshold/Player/HUDControl.h"
 #include "EngineUtils.h"
 
 
+
+// ATHPlayerController
 
 ATHPlayerController::ATHPlayerController()
 {
@@ -446,7 +449,7 @@ void ATHPlayerController::SetTarget(TWeakInterfacePtr<ICombatant> NewTarget)
 
 void ATHPlayerController::ToggleMenu()
 {
-	APlayerHUD* PlayerHUD = GetHUD<APlayerHUD>();
+	IHUDControl* PlayerHUD = GetHUD<IHUDControl>();
 
 	if (!PlayerHUD)
 	{

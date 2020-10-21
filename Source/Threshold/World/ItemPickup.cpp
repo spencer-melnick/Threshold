@@ -6,6 +6,7 @@
 #include "Threshold/Threshold.h"
 #include "Threshold/Global/Subsystems/InteractionSubsystem.h"
 #include "Inventory/Components/InventoryOwner.h"
+#include "Inventory/InventoryArray.h"
 
 
 // Component name constants
