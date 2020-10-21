@@ -4,28 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "Threshold/Player/HUDControl.h"
 #include "PlayerHUD.generated.h"
 
 
 // Forward declarations
 
 class UPlayerMenuWidget;
-
-
-
-/**
- * Enum describing status of player HUD
- */
-UENUM(BlueprintType)
-enum class EPlayerHUDStatus : uint8
-{
-						// Player menu is hidden, and the main view is the 3D world view
-	WorldView,
-	
-
-						// Player menu is active, worldview is unfocused
-	PlayerMenuActive
-};
  
  
  
@@ -33,7 +18,7 @@ enum class EPlayerHUDStatus : uint8
  * Main HUD class for players, includes menus and screen overlays
  */
 UCLASS()
-class THRESHOLDUI_API APlayerHUD : public AHUD
+class THRESHOLDUI_API APlayerHUD : public AHUD, public IHUDControl
 {
 	GENERATED_BODY()
 
@@ -54,16 +39,16 @@ public:
 	 * @param NewStatus - The new HUD status
 	 */
 	UFUNCTION(BlueprintCallable, Category=PlayerHUD)
-	void SetStatus(const EPlayerHUDStatus NewStatus);
+	virtual void SetStatus(const EPlayerHUDStatus NewStatus) override;
 
-	EPlayerHUDStatus GetStatus() const { return Status; }
+	virtual EPlayerHUDStatus GetStatus() const override { return Status; }
 
 	/**
 	 * Used to check whether or not the player should have control over their character, based on the HUD status.
 	 * Useful for disabling character control when the menu is active
 	 * @return True if the player should be able to control their character, false otherwise
 	 */
-	bool ShouldEnableCharacterControl() const;
+	virtual bool ShouldEnableCharacterControl() const override;
 
 
 

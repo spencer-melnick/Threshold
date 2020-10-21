@@ -15,7 +15,7 @@
 
 class ICombatant;
 class IInteractiveObject;
-enum class EPlayerHUDStatus : uint8;
+
 
 
 /**
@@ -95,7 +95,7 @@ public:
 	{
 		return CurrentInteractiveObject;
 	}
-	
+
 
 	
 	// Public properties
@@ -132,6 +132,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Interaction")
 	TSubclassOf<AActor> InteractionIndicatorClass;
 
+
 	
 	// Holds information about potential lockon targets
 	struct FTarget
@@ -142,8 +143,7 @@ public:
 
 		bool operator==(const FTarget& OtherTarget) const;
 	};
-
-
+	
 	
 
 protected:
@@ -173,6 +173,7 @@ private:
 	AActor* InteractionIndicatorActor = nullptr;
 
 
+	
 	// Camera control members
 
 	TWeakInterfacePtr<ICombatant> LockonTarget;
