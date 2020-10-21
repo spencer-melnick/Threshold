@@ -163,7 +163,7 @@ void FInventoryArray::Empty(int32 Slack)
 	Items.Empty(Slack);
 	IDtoIndex.Empty();
 	MarkArrayDirty();
-	InventoryArrayChangedDelegate.Broadcast();
+	NotifyArrayChanged();
 }
 
 TArray<FInventoryArrayHandle> FInventoryArray::GetArrayHandles()
@@ -186,7 +186,7 @@ TArray<FInventoryArrayHandle> FInventoryArray::GetArrayHandles()
 
 void FInventoryArray::NotifyArrayChanged()
 {
-	InventoryArrayChangedDelegate.Broadcast();
+	InventoryArrayChangedDelegate.ExecuteIfBound();
 }
 
 
