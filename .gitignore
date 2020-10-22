@@ -74,8 +74,8 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 # Ignore starter content
-Content/Starter
 Content/StarterContent
+#Content/Mannequin
 
 # Ignore Rider project files
 .idea/*
