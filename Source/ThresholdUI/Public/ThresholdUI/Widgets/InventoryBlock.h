@@ -28,6 +28,11 @@ class THRESHOLDUI_API UInventoryBlock : public UUserWidget
 	
 public:
 
+	// Widget overrides
+
+	virtual void NativeConstruct() override;
+	
+
 	// Inventory controls
 	
 	/**
@@ -62,7 +67,6 @@ protected:
 	
 	static FText GetStackText(FInventoryItem* InventoryItem);
 
-	void ClearBrush();
 	void SetBrushTexture(TSoftObjectPtr<UTexture2D> Texture);
 	
 
