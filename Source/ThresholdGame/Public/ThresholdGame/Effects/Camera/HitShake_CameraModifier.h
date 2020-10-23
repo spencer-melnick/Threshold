@@ -10,7 +10,7 @@
 
 
 UCLASS()
-class UHitShake_CameraModifier : public UCameraModifier
+class THRESHOLDGAME_API UHitShake_CameraModifier : public UCameraModifier
 {
     GENERATED_BODY()
 

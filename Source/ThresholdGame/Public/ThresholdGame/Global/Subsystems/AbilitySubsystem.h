@@ -12,7 +12,7 @@
  * to work properly. This subsystem doesn't do much else currently.
  */
 UCLASS()
-class UAbilitySubsystem : public UEngineSubsystem
+class THRESHOLDGAME_API UAbilitySubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 

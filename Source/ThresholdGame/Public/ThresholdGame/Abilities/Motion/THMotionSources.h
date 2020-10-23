@@ -20,7 +20,7 @@
  * time.
  */
 USTRUCT()
-struct FRootMotionSource_PositionCurve : public FRootMotionSource
+struct THRESHOLDGAME_API FRootMotionSource_PositionCurve : public FRootMotionSource
 {
     GENERATED_USTRUCT_BODY()
 

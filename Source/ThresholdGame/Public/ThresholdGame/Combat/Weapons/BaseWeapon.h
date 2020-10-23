@@ -21,7 +21,7 @@ class ABaseCharacter;
  * This is the base class for all weapons 🤷
  */
 UCLASS()
-class ABaseWeapon : public AActor
+class THRESHOLDGAME_API ABaseWeapon : public AActor
 {
 	GENERATED_BODY()
 

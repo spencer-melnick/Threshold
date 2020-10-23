@@ -10,7 +10,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FApplyRootMotionPositionCurveDelegate);
 
 UCLASS()
-class UAbilityTask_ApplyRootMotionPositionCurve : public UAbilityTask_ApplyRootMotion_Base
+class THRESHOLDGAME_API UAbilityTask_ApplyRootMotionPositionCurve : public UAbilityTask_ApplyRootMotion_Base
 {
     GENERATED_BODY()
 

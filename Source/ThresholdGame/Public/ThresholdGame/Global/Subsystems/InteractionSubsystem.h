@@ -17,7 +17,7 @@ class IInteractiveObject;
  * Subsystem to track interactive actors
  */
 UCLASS()
-class UInteractionSubsystem : public UWorldSubsystem
+class THRESHOLDGAME_API UInteractionSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 

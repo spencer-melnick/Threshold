@@ -12,7 +12,7 @@
  * Struct used for storing directional input data and transmitting it during a gameplay ability call
  */
 USTRUCT()
-struct FAbilityDirectionalData : public FGameplayAbilityTargetData
+struct THRESHOLDGAME_API FAbilityDirectionalData : public FGameplayAbilityTargetData
 {
 	GENERATED_BODY()
 
@@ -49,7 +49,7 @@ struct FAbilityDirectionalData : public FGameplayAbilityTargetData
  * Struct used for weapon hit event data
  */
 USTRUCT()
-struct FWeaponHitTargetData : public FGameplayAbilityTargetData_SingleTargetHit
+struct THRESHOLDGAME_API FWeaponHitTargetData : public FGameplayAbilityTargetData_SingleTargetHit
 {
 	GENERATED_BODY()
 
@@ -89,7 +89,7 @@ struct FWeaponHitTargetData : public FGameplayAbilityTargetData_SingleTargetHit
  * (Is this entirely necessary? It seems like I'm just using target data for my own generic data payloads at this point)
  */
 USTRUCT()
-struct FIntegralTargetData : public FGameplayAbilityTargetData
+struct THRESHOLDGAME_API FIntegralTargetData : public FGameplayAbilityTargetData
 {
 	GENERATED_BODY()
 
@@ -115,7 +115,7 @@ struct FIntegralTargetData : public FGameplayAbilityTargetData
  * Target data that holds a single target - may not be an actor, but any UObject type
  */
 USTRUCT()
-struct FSingleObjectTargetData : public FGameplayAbilityTargetData
+struct THRESHOLDGAME_API FSingleObjectTargetData : public FGameplayAbilityTargetData
 {
 	GENERATED_BODY()
 

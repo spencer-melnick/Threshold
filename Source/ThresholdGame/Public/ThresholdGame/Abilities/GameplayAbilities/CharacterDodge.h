@@ -9,7 +9,7 @@
 
 
 USTRUCT()
-struct FDodgeInputData : public FBufferedAbilityInputData
+struct THRESHOLDGAME_API FDodgeInputData : public FBufferedAbilityInputData
 {
 	GENERATED_BODY()
 	

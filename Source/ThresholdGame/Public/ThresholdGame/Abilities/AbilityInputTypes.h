@@ -20,7 +20,7 @@ enum class EAbilityInputType : uint8
 
 // This is the base struct for any input data we're feeding to buffered abilities
 USTRUCT()
-struct FBufferedAbilityInputData
+struct THRESHOLDGAME_API FBufferedAbilityInputData
 {
 	GENERATED_BODY()
 	

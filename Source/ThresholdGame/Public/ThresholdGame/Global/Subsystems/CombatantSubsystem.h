@@ -18,7 +18,7 @@ class ICombatant;
  * Simple subsystem to track combatants
  */
 UCLASS()
-class UCombatantSubsystem : public UWorldSubsystem
+class THRESHOLDGAME_API UCombatantSubsystem : public UWorldSubsystem
 {
     GENERATED_BODY()
 

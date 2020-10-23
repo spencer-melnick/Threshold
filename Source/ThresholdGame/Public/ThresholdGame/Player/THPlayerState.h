@@ -18,7 +18,7 @@ class UInventoryComponent;
  * should be replicated to all clients.
  */
 UCLASS()
-class ATHPlayerState : public APlayerState, public IInventoryOwner
+class THRESHOLDGAME_API ATHPlayerState : public APlayerState, public IInventoryOwner
 {
 	GENERATED_BODY()
 

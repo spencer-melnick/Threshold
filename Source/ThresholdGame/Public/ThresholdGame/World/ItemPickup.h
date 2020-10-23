@@ -18,7 +18,7 @@ class UInventoryItemHelper;
  * Generic actor for picking up inventory objects
  */
 UCLASS()
-class AItemPickup : public AActor, public IInteractiveObject
+class THRESHOLDGAME_API AItemPickup : public AActor, public IInteractiveObject
 {
 	GENERATED_BODY()
 
