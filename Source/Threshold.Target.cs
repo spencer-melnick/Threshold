@@ -9,6 +9,6 @@ public class ThresholdTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange(new string [] { "Threshold", "ThresholdUI", "InventorySystem" } );
+		ExtraModuleNames.AddRange(new string [] { "ThresholdGame", "ThresholdUI", "InventorySystem" } );
 	}
 }

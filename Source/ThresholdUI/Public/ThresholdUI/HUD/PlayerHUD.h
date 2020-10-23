@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "Threshold/Player/HUDControl.h"
+#include "ThresholdGame/Player/HUDControl.h"
 #include "PlayerHUD.generated.h"
 
 

@@ -5,7 +5,7 @@
 	"Description": "",
 	"Modules": [
       {
-        "Name": "Threshold",
+        "Name": "ThresholdGame",
         "Type": "Runtime",
         "LoadingPhase": "Default",
         "AdditionalDependencies": [
