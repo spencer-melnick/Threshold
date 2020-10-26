@@ -78,7 +78,7 @@ protected:
 
 	/**
 	 * Clears all sub inventory blocks and recreates them. If the grid size is negative in either dimension, the grid
-	 * will simply be cleared. Does not trigger an update of the sub block contents.
+	 * will simply be cleared. Does not trigger an update of the sub block contents. Skips if the grid size hasn't changed
 	 */
 	void ConstructSubBlocks();
 
@@ -104,4 +104,9 @@ protected:
 	
 	UPROPERTY()
 	UInventoryComponent* InventoryComponent;
+
+
+private:
+
+	FIntPoint PreviousGridSize = FIntPoint::ZeroValue;
 };

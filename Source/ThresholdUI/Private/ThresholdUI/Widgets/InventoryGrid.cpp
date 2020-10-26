@@ -115,6 +115,15 @@ void UInventoryGrid::OnPlayerStateInitialized()
 
 void UInventoryGrid::ConstructSubBlocks()
 {
+	// Clamp grid size to non-negative values
+	GridSize = FIntPoint(FMath::Max(0, GridSize.X), FMath::Max(0, GridSize.Y));
+	if (PreviousGridSize == GridSize)
+	{
+		// Skip
+		return;
+	}
+
+	
 	#if WITH_EDITOR
 		// In the editor we may not have a grid panel yet
 		if (!GridPanel)
@@ -130,6 +139,9 @@ void UInventoryGrid::ConstructSubBlocks()
 			*GetNameSafe(this))
 		return;
 	}
+
+	// Track the new grid size
+	PreviousGridSize = GridSize;
 
 	for (UInventoryBlock* InventoryBlock : SubBlocks)
 	{
