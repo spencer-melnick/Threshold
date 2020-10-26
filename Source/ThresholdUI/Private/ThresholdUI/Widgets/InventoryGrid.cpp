@@ -294,7 +294,7 @@ void UInventoryGrid::ConstructSubBlocks()
 			SubBlocks.Add(InventoryBlock);
 
 			// Assign references to this and parent controllers
-			InventoryBlock->SetParentGrid(this, FIntPoint(Row, Column));
+			InventoryBlock->SetParentGrid(this, FIntPoint(Column, Row));
 			InventoryBlock->InitializeSelection(SelectionController);
 
 			// Add the block to the widget and track the slot

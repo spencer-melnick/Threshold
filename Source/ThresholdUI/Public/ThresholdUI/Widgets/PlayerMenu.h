@@ -10,6 +10,12 @@
 
 
 
+// Forward declarations
+
+class UInventoryMenu;
+
+
+
 /**
  * Main class for the player menu that contains the inventory screen and player status
  */
@@ -37,7 +43,6 @@ public:
 	// Input binding
 
 	void SetupInputComponent(UInputComponent* InInputComponent);
-
 	void MoveCursor(ESelectionDirection Direction);
 
 
@@ -51,9 +56,14 @@ protected:
 
 private:
 
-
 	// Track selected widget
 	
 	UPROPERTY()
 	TScriptInterface<ISelectableWidget> SelectedWidget;
+
+
+	// Child widgets
+
+	UPROPERTY(meta=(BindWidget))
+	UInventoryMenu* InventoryMenu;
 };

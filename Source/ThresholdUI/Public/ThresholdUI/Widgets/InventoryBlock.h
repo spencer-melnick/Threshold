@@ -20,12 +20,6 @@ class UInventoryGrid;
 
 
 
-// Delegate declarations
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryBlockSelectedDelegate, bool, Selected);
-
-
-
 /**
  * Simple widget used for displaying a small window with information about an inventory item, usually as part of a grid
  */
@@ -81,10 +75,11 @@ public:
 	FIntPoint GetGridCell() const { return GridCell; }
 
 
-	// Delegates
+	// Blueprint events
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=InventoryBlock)
-	FInventoryBlockSelectedDelegate InventoryBlockSelectedDelegate;
+	UFUNCTION(BlueprintImplementableEvent, Category=InventoryBlock, meta=(DisplayName="OnSelected"))
+	void Blueprint_OnSelected(bool bSelected);
+	
 
 	
 	// Editor properties

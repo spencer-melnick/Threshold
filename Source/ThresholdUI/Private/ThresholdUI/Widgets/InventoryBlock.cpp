@@ -100,7 +100,7 @@ FSelectableWidgetReference UInventoryBlock::TrySelect(const ESelectionDirection 
 		ParentGrid->SetDisplayBlock(this);
 	}
 
-	InventoryBlockSelectedDelegate.Broadcast(true);
+	Blueprint_OnSelected(true);
 	return FSelectableWidgetReference(this);
 }
 
@@ -126,7 +126,7 @@ FSelectableWidgetReference UInventoryBlock::GetParentWidget() const
 
 void UInventoryBlock::OnDeselected()
 {
-	InventoryBlockSelectedDelegate.Broadcast(false);
+	Blueprint_OnSelected(false);
 }
 
 

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "ThresholdUI/Widgets/PlayerMenu.h"
-#include "Blueprint/WidgetTree.h"
+#include "ThresholdUI/Widgets/InventoryMenu.h"
 
 
 
@@ -28,23 +28,7 @@ void UPlayerMenuWidget::NativeConstruct()
 
 void UPlayerMenuWidget::OnPlayerStateInitialized()
 {
-	if (!WidgetTree)
-	{
-		return;
-	}
-
-	TArray<UWidget*> ChildWidgets;
-	WidgetTree->GetAllWidgets(ChildWidgets);
-
-	for (UWidget* Widget : ChildWidgets)
-	{
-		IPlayerWidgetInterface* PlayerWidget = Cast<IPlayerWidgetInterface>(Widget);
-
-		if (PlayerWidget)
-		{
-			PlayerWidget->OnPlayerStateInitialized();
-		}
-	}
+	InventoryMenu->OnPlayerStateInitialized();
 }
 
 
@@ -56,6 +40,7 @@ void UPlayerMenuWidget::SetupInputComponent(UInputComponent* InInputComponent)
 	DECLARE_DELEGATE_OneParam(FMoveCursorDelegate, ESelectionDirection);
 	check(InInputComponent);
 
+	// Bind cursor movements to input actions
 	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorLeft"), EInputEvent::IE_Pressed, this,
 		&UPlayerMenuWidget::MoveCursor, ESelectionDirection::Left);
 	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorRight"), EInputEvent::IE_Pressed, this,
@@ -64,6 +49,13 @@ void UPlayerMenuWidget::SetupInputComponent(UInputComponent* InInputComponent)
         &UPlayerMenuWidget::MoveCursor, ESelectionDirection::Up);
 	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorDown"), EInputEvent::IE_Pressed, this,
         &UPlayerMenuWidget::MoveCursor, ESelectionDirection::Down);
+
+	
+	// Hook child widgets into this control
+	InventoryMenu->InitializeSelection(this);
+
+	// Try to select the initial widget
+	TrySelectWidget(InventoryMenu);
 }
 
 void UPlayerMenuWidget::MoveCursor(ESelectionDirection Direction)
