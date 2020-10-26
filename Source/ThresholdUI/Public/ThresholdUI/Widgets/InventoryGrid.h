@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "PlayerWidget.h"
+#include "ThresholdUI/Interfaces/PlayerWidget.h"
 #include "InventoryGrid.generated.h"
 
 
@@ -15,6 +15,12 @@ class UInventoryComponent;
 class UInventoryBlock;
 class UUniformGridPanel;
 class UUniformGridSlot;
+class UInventoryGrid;
+
+
+// Delegate declarations
+
+DECLARE_DELEGATE_OneParam(FInventoryMouseoverDelegate, UInventoryGrid*)
 
 
 

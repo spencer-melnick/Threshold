@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "PlayerWidget.h"
+#include "ThresholdUI/Interfaces/PlayerWidget.h"
 #include "PlayerMenu.generated.h"
 
 /**

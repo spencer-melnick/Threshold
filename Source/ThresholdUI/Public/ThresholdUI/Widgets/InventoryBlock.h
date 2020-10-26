@@ -17,6 +17,11 @@ class UInventoryComponent;
 struct FInventoryItem;
 
 
+// Delegate declarations
+
+DECLARE_DELEGATE(FInventoryBlockMouseover)
+
+
 
 /**
  * Simple widget used for displaying a small window with information about an inventory item, usually as part of a grid

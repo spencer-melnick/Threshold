@@ -21,5 +21,9 @@ class IPlayerWidgetInterface
 	GENERATED_BODY()
 
 public:
-	virtual void OnPlayerStateInitialized() = 0;
+	/**
+	 * Called whenever the player state is initialized, or after all the starting widgets are attached to the player HUD
+	 * (if the player state was created before the HUD)
+	 */
+	virtual void OnPlayerStateInitialized() { };
 };
