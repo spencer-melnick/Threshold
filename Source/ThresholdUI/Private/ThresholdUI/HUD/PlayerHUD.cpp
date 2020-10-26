@@ -44,10 +44,12 @@ void APlayerHUD::SetStatus(const EPlayerHUDStatus NewStatus)
 	switch (Status)
 	{
 		case EPlayerHUDStatus::WorldView:
+			DisableInput(PlayerOwner);
 			HideWidgetChecked(PlayerMenuWidget);
 			break;
 
 		case EPlayerHUDStatus::PlayerMenuActive:
+			EnableInput(PlayerOwner);
 			ShowWidgetChecked(PlayerMenuWidget);
 			break;
 	}
@@ -70,10 +72,23 @@ bool APlayerHUD::ShouldEnableCharacterControl() const
 
 void APlayerHUD::OnPlayerStateInitialized()
 {
+	// If the player state exists, the player controller should as well
+	check(PlayerOwner);
+
+	// By enabling input temporarily, we create an input component
+	EnableInput(PlayerOwner);
+	
 	if (PlayerMenuWidget)
 	{
+		// Notify our widget that the player state exists
 		PlayerMenuWidget->OnPlayerStateInitialized();
+
+		// Allow out player menu widget to bind input to our input component
+		PlayerMenuWidget->SetupInputComponent(InputComponent);
 	}
+
+	// Disable input for now
+	DisableInput(PlayerOwner);
 }
 
 

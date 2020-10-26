@@ -1,7 +1,10 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
+// ReSharper disable CppExpressionWithoutSideEffects
+
 #include "ThresholdUI/Widgets/InventoryGrid.h"
 #include "ThresholdUI/Widgets/InventoryBlock.h"
+#include "ThresholdUI/Blueprint/SelectionFunctionLibrary.h"
 #include "ThresholdUI.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
@@ -110,6 +113,126 @@ void UInventoryGrid::OnPlayerStateInitialized()
 
 
 
+// Navigation
+
+FIntPoint UInventoryGrid::GetAdjacentCell(const FIntPoint Cell, const ESelectionDirection Direction) const
+{
+	FIntPoint AdjacentCell = Cell + USelectionFunctionLibrary::GetUnitCoordinateFromDirection(Direction);
+	
+	if (!IsCellValid(AdjacentCell))
+	{
+		return FIntPoint(-1, -1);
+	}
+
+	return AdjacentCell;
+}
+
+UInventoryBlock* UInventoryGrid::GetBlockFromCell(FIntPoint Cell) const
+{
+	if (!IsCellValid(Cell))
+	{
+		return nullptr;
+	}
+
+	const int32 BlockIndex = Cell.Y * GridSize.X + Cell.X;
+
+	if (BlockIndex < 0 || BlockIndex >= SubBlocks.Num())
+	{
+		UE_LOG(LogThresholdUI, Warning, TEXT("UInventoryGrid::GetBlockFromCell failed on %s - Cell {%d %d} index %d "
+			"is out of range of grid size {%d, %d} and block count %d"),
+			*GetNameSafe(this), Cell.X, Cell.Y, BlockIndex, GridSize.X, GridSize.Y, SubBlocks.Num())
+		return nullptr;
+	}
+
+	return SubBlocks[BlockIndex];
+}
+
+void UInventoryGrid::SetSelectedCell(FIntPoint NewCell)
+{
+	if (!IsCellValid(NewCell))
+	{
+		return;
+	}
+
+	SelectedCell = NewCell;
+}
+
+void UInventoryGrid::SetDisplayBlock(UInventoryBlock* SelectedBlock)
+{
+	if (!SelectedBlock || SelectedBlock->GetParentGrid() != this || !IsCellValid(SelectedBlock->GetGridCell()))
+	{
+		return;
+	}
+
+	SetSelectedCell(SelectedBlock->GetGridCell());
+	InventoryGridSelectedDelegate.ExecuteIfBound(SelectedBlock->GetItemHandle());
+}
+
+
+bool UInventoryGrid::IsCellValid(FIntPoint Cell) const
+{
+	if (Cell.X < 0 || Cell.X >= GridSize.X || Cell.Y < 0 || Cell.Y >= GridSize.Y)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+
+// Selectable widget overrides
+
+FSelectableWidgetReference UInventoryGrid::TrySelect(const ESelectionDirection FromSelectionDirection)
+{
+	// Find the last selected cell
+	FIntPoint DefaultCell = SelectedCell;
+
+	// Pick the cell closest to the direction we were selected from
+	switch (FromSelectionDirection)
+	{
+		case ESelectionDirection::Up:
+			DefaultCell.Y = 0;
+			break;
+		
+		case ESelectionDirection::Down:
+			DefaultCell.Y = GridSize.Y - 1;
+			break;
+
+		case ESelectionDirection::Left:
+			DefaultCell.X = 0;
+			break;
+
+		case ESelectionDirection::Right:
+			DefaultCell.X = GridSize.X - 1;
+			break;
+
+		default:
+			break;
+	}
+
+	UInventoryBlock* DefaultBlock = GetBlockFromCell(DefaultCell);
+
+	if (!DefaultBlock)
+	{
+		return nullptr;
+	}
+
+	return DefaultBlock->TrySelect(FromSelectionDirection);
+}
+
+void UInventoryGrid::InitializeSelection(TScriptInterface<ISelectionController> Controller)
+{
+	SelectionController = Controller;
+
+	for (UInventoryBlock* InventoryBlock : SubBlocks)
+	{
+		// Try to initialize all of the sub block selection controllers if there are any
+		InventoryBlock->InitializeSelection(Controller);
+	}
+}
+
+
 
 // Helper functions
 
@@ -169,6 +292,10 @@ void UInventoryGrid::ConstructSubBlocks()
 			// Construct a new inventory block widget and track it
 			UInventoryBlock* InventoryBlock = CreateWidget<UInventoryBlock>(this, InventoryBlockClass);
 			SubBlocks.Add(InventoryBlock);
+
+			// Assign references to this and parent controllers
+			InventoryBlock->SetParentGrid(this, FIntPoint(Row, Column));
+			InventoryBlock->InitializeSelection(SelectionController);
 
 			// Add the block to the widget and track the slot
 			UUniformGridSlot* GridSlot = GridPanel->AddChildToUniformGrid(InventoryBlock, Row, Column);
