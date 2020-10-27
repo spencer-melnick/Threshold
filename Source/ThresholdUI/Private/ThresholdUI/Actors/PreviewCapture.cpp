@@ -99,6 +99,7 @@ void APreviewCapture::ClearPreviewActorClass(bool bCapture)
 {
 	StopLoading();
 	DetachPreviewActor();
+	PreviewActorClass = nullptr;
 
 	if (bCapture)
 	{

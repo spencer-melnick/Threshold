@@ -23,10 +23,19 @@ bool ISelectionController::TrySelectWidget(FSelectableWidgetReference Widget, ES
 	}
 
 	FSelectableWidgetReference CurrentWidget = GetSelectedWidgetInternal();
-	if (CurrentWidget && CurrentWidget != NewWidget)
+	if (CurrentWidget != NewWidget)
 	{
-		// Notify the previous widget that it was deselected
-		CurrentWidget->OnDeselected();
+		if (CurrentWidget)
+		{
+			// Notify the previous widget that it was deselected
+			CurrentWidget->OnDeselected();
+		}
+
+		if (NewWidget)
+		{
+			// Notify the new widget it was selected
+			NewWidget->OnSelected();	
+		}
 	}
 
 	SetSelectedWidgetInternal(NewWidget);

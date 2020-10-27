@@ -93,6 +93,10 @@ public:
 	 */
 	void SetDisplayBlock(UInventoryBlock* SelectedBlock);
 
+	FIntPoint GetSelectedCell() const { return SelectedCell; }
+
+	FInventoryArrayHandle GetSelectedItem() const;
+
 	/**
 	 * Checks if the cell is within the range of the grid size
 	 */

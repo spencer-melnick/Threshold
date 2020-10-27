@@ -64,6 +64,7 @@ public:
 	virtual FSelectableWidgetReference TrySelect(const ESelectionDirection FromSelectionDirection) override;
 	virtual FSelectableWidgetReference GetAdjacentWidget(const ESelectionDirection InSelectionDirection) const override;
 	virtual FSelectableWidgetReference GetParentWidget() const override;
+	virtual void OnSelected() override;
 	virtual void OnDeselected() override;
 	virtual void InitializeSelection(TScriptInterface<ISelectionController> Controller) override;
 
@@ -96,10 +97,9 @@ protected:
 	// Helper functions
 	
 	static FText GetStackText(FInventoryItem* InventoryItem);
-
 	void SetBrushTexture(TSoftObjectPtr<UTexture2D> Texture);
-	
 
+	
 private:
 
 	// Child widgets

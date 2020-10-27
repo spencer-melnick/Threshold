@@ -46,12 +46,14 @@ void APlayerHUD::SetStatus(const EPlayerHUDStatus NewStatus)
 		case EPlayerHUDStatus::WorldView:
 			DisableInput(PlayerOwner);
 			PlayerOwner->bShowMouseCursor = false;
+			PlayerOwner->bEnableMouseOverEvents = false;
 			HideWidgetChecked(PlayerMenuWidget);
 			break;
 
 		case EPlayerHUDStatus::PlayerMenuActive:
 			EnableInput(PlayerOwner);
 			PlayerOwner->bShowMouseCursor = true;
+			PlayerOwner->bEnableMouseOverEvents = true;
 			ShowWidgetChecked(PlayerMenuWidget);
 			break;
 	}

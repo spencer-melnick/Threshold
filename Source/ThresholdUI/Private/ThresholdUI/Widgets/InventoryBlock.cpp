@@ -95,12 +95,6 @@ void UInventoryBlock::ClearDisplay()
 
 FSelectableWidgetReference UInventoryBlock::TrySelect(const ESelectionDirection FromSelectionDirection)
 {
-	if (ParentGrid)
-	{
-		ParentGrid->SetDisplayBlock(this);
-	}
-
-	Blueprint_OnSelected(true);
 	return FSelectableWidgetReference(this);
 }
 
@@ -123,6 +117,17 @@ FSelectableWidgetReference UInventoryBlock::GetParentWidget() const
 
 	return FSelectableWidgetReference(ParentGrid);
 }
+
+void UInventoryBlock::OnSelected()
+{
+	if (ParentGrid)
+	{
+		ParentGrid->SetDisplayBlock(this);	
+	}
+	
+	Blueprint_OnSelected(true);
+}
+
 
 void UInventoryBlock::OnDeselected()
 {
@@ -162,4 +167,3 @@ void UInventoryBlock::SetBrushTexture(TSoftObjectPtr<UTexture2D> Texture)
 	ThumbnailDisplay->SetBrushFromSoftTexture(Texture);
 	ThumbnailDisplay->SetVisibility(ESlateVisibility::Visible);
 }
-

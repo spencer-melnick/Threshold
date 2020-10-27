@@ -30,7 +30,7 @@ class ISelectableWidget
 public:
 
 	/**
-	 * Called when this widget is selected by a pointer
+	 * Called when this widget is selected by a cursor
 	 * @param FromSelectionDirection - Direction that the selection came from (usually the widget that was previously
 	 * selected)
 	 * @return The widget that should be selected
@@ -52,6 +52,11 @@ public:
 	 * Called when this widget is activated, either via a click or controller
 	 */
 	virtual void OnSelectionActivated() { };
+
+	/**
+	 * Called when the widget is selected
+	 */
+	virtual void OnSelected() { };
 
 	/**
 	 * Called when the widget is no longer selected

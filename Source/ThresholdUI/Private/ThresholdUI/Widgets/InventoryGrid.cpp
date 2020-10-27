@@ -82,7 +82,8 @@ void UInventoryGrid::UpdateDisplay()
 
 	TArray<FInventoryArrayHandle> ItemHandles = InventoryComponent->GetArrayHandles();
 	int32 HandleIndex = 0;
-	
+
+	// Update all sub blocks
 	for (UInventoryBlock* InventoryBlock : SubBlocks)
 	{
 		if (HandleIndex >= ItemHandles.Num())
@@ -94,6 +95,9 @@ void UInventoryGrid::UpdateDisplay()
 			InventoryBlock->DisplayItem(ItemHandles[HandleIndex++]);
 		}
 	}
+
+	// Notify the parent that our selection has potentially changed (because the underlying item handle might have changed)
+	InventoryGridSelectedDelegate.ExecuteIfBound(GetSelectedItem());
 }
 
 
@@ -168,6 +172,17 @@ void UInventoryGrid::SetDisplayBlock(UInventoryBlock* SelectedBlock)
 	InventoryGridSelectedDelegate.ExecuteIfBound(SelectedBlock->GetItemHandle());
 }
 
+FInventoryArrayHandle UInventoryGrid::GetSelectedItem() const
+{
+	UInventoryBlock* InventoryBlock = GetBlockFromCell(SelectedCell);
+
+	if (!InventoryBlock)
+	{
+		return FInventoryArrayHandle();
+	}
+
+	return InventoryBlock->GetItemHandle();
+}
 
 bool UInventoryGrid::IsCellValid(FIntPoint Cell) const
 {
