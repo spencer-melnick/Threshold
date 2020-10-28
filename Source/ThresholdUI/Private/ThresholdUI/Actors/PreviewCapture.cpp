@@ -54,6 +54,11 @@ APreviewCapture::APreviewCapture()
 void APreviewCapture::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (bRotateActor && PreviewActor)
+	{
+		PreviewActor->AddActorLocalRotation(RotationSpeed * DeltaSeconds);
+	}
 }
 
 
@@ -99,6 +104,7 @@ void APreviewCapture::ClearPreviewActorClass(bool bCapture)
 {
 	StopLoading();
 	DetachPreviewActor();
+	PreviewActorClass = nullptr;
 
 	if (bCapture)
 	{

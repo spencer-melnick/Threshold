@@ -81,6 +81,16 @@ public:
 	static FName CaptureComponentName;
 
 
+
+	// Editor properties
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CaptureControls)
+	bool bRotateActor = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=CaptureControls)
+	FRotator RotationSpeed;
+
+
 protected:
 	
 	// Helper functions
