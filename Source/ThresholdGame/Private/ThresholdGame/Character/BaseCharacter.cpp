@@ -121,6 +121,12 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent,
 		FGameplayAbilityInputBinds("Confirm", "Cancel", "EAbilityInputType",
 			static_cast<int32>(EAbilityInputType::Cancel), static_cast<int32>(EAbilityInputType::Confirm)));
+
+	// Movement controls
+	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ABaseCharacter::MoveForward);
+	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ABaseCharacter::MoveRight);
+	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APawn::AddControllerYawInput);
 }
 
 void ABaseCharacter::PossessedBy(AController* NewController)
@@ -216,6 +222,27 @@ void ABaseCharacter::AttachTargetIndicator(AActor* TargetIndicator)
 	TargetIndicator->SetActorRelativeLocation(RelativeTargetLocation);
 }
 
+
+
+// Movement controls
+
+void ABaseCharacter::AddControlSpaceMovementInput(FVector ControlSpaceDirection, float Scale, bool bForce)
+{
+	const FRotator ControlRotation = GetControlRotation();
+	const FRotator ControlYaw = FRotator(0.f, ControlRotation.Yaw, 0.f);
+	const FVector WorldDirection = ControlYaw.RotateVector(ControlSpaceDirection);
+	AddMovementInput(WorldDirection, Scale, bForce);
+}
+
+void ABaseCharacter::MoveForward(float Scale)
+{
+	AddControlSpaceMovementInput(FVector::ForwardVector, Scale, false);
+}
+
+void ABaseCharacter::MoveRight(float Scale)
+{
+	AddControlSpaceMovementInput(FVector::RightVector, Scale, false);
+}
 
 
 

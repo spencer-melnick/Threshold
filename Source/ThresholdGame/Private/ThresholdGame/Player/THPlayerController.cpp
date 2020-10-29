@@ -60,15 +60,11 @@ void ATHPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	InputComponent->BindAxis("MoveForward", this, &ATHPlayerController::MoveForward);
-	InputComponent->BindAxis("MoveRight", this, &ATHPlayerController::MoveRight);
-
-	InputComponent->BindAxis("LookUp", this, &ATHPlayerController::LookUp);
-    InputComponent->BindAxis("Turn", this, &ATHPlayerController::Turn);
-
+	/*
 	InputComponent->BindAction("ToggleTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleTarget);
 	InputComponent->BindAction("NextTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::NextTarget);
 	InputComponent->BindAction("PreviousTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::PreviousTarget);
+	*/
 
 	InputComponent->BindAction("ToggleMenu", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleMenu);
 }
@@ -338,60 +334,7 @@ bool ATHPlayerController::GetCameraIsDirectlyControlled()
 
 
 
-
-
-
-// Movement 
-
-void ATHPlayerController::MoveForward(float Scale)
-{
-	ACharacter* PossessedCharacter = GetCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-
-	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	const FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
-	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
-}
-
-void ATHPlayerController::MoveRight(float Scale)
-{
-	ACharacter* PossessedCharacter = GetCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-	
-	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	const FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
-	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
-}
-
-
-
-
 // Camera controls
-
-void ATHPlayerController::LookUp(float Scale)
-{
-	if (GetCameraIsDirectlyControlled())
-	{
-		AddPitchInput(Scale);
-	}
-}
-
-
-void ATHPlayerController::Turn(float Scale)
-{
-	if (GetCameraIsDirectlyControlled())
-	{
-		AddYawInput(Scale);
-	}
-}
-
-
 
 void ATHPlayerController::ToggleTarget()
 {

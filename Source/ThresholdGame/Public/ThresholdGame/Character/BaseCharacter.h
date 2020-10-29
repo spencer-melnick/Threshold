@@ -24,6 +24,7 @@ class ABaseWeapon;
 
 
 
+
 /**
  * This is the custom base class for all characters used in the game!
  */
@@ -55,6 +56,17 @@ public:
 	virtual void AttachTargetIndicator(AActor* TargetIndicator) override;
 
 
+
+	// Movement controls
+
+	/**
+	 * Adds movement input relative to the pawn's control rotation (along the world plane)
+	 */
+	void AddControlSpaceMovementInput(FVector ControlSpaceDirection, float Scale, bool bForce = false);
+	void MoveForward(float Scale);
+	void MoveRight(float Scale);
+
+	
 
 	// Weapon controls
 

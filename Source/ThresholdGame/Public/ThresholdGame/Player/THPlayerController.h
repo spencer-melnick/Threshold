@@ -44,18 +44,9 @@ public:
 	virtual void OnRep_PlayerState() override;
 
 
-	
-	// Movement
-	
-	void MoveForward(float Scale);
-	void MoveRight(float Scale);
 
-
-	
 	// Camera controls
 	
-	void LookUp(float Scale);
-	void Turn(float Scale);
 	void ToggleTarget();
 	void SetTarget(TWeakInterfacePtr<ICombatant> NewTarget);
 	
