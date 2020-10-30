@@ -69,18 +69,6 @@ protected:
 	// Helper functions
 	
 	void CreateWidgets();
-
-	/*
-	 * Hides the specified widget, disabling input, and checking for invalid widgets
-	 * @param Widget - Widget to hide
-	 */
-	static void HideWidgetChecked(UUserWidget* Widget);
-
-	/*
-	 * Shows the specified widget, enabling input, and checking for invalid widgets
-	 * @param Widget - Widget to show
-	*/
-	static void ShowWidgetChecked(UUserWidget* Widget);
 	
 
 

@@ -4,7 +4,6 @@
 #include "ThresholdUI/Widgets/InventoryMenu.h"
 
 
-
 // UPlayerMenuWidget
 
 UPlayerMenuWidget::UPlayerMenuWidget(const FObjectInitializer& ObjectInitializer)
@@ -29,25 +28,29 @@ void UPlayerMenuWidget::NativeConstruct()
 void UPlayerMenuWidget::OnPlayerStateInitialized()
 {
 	InventoryMenu->OnPlayerStateInitialized();
+
+	InitializeInputComponent();
+	UnregisterInputComponent();
+	SetupInputComponent();
 }
 
 
 
 // Input binding
 
-void UPlayerMenuWidget::SetupInputComponent(UInputComponent* InInputComponent)
+void UPlayerMenuWidget::SetupInputComponent()
 {
 	DECLARE_DELEGATE_OneParam(FMoveCursorDelegate, ESelectionDirection);
-	check(InInputComponent);
+	check(InputComponent);
 
 	// Bind cursor movements to input actions
-	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorLeft"), EInputEvent::IE_Pressed, this,
+	InputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorLeft"), EInputEvent::IE_Pressed, this,
 		&UPlayerMenuWidget::MoveCursor, ESelectionDirection::Left);
-	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorRight"), EInputEvent::IE_Pressed, this,
+	InputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorRight"), EInputEvent::IE_Pressed, this,
         &UPlayerMenuWidget::MoveCursor, ESelectionDirection::Right);
-	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorUp"), EInputEvent::IE_Pressed, this,
+	InputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorUp"), EInputEvent::IE_Pressed, this,
         &UPlayerMenuWidget::MoveCursor, ESelectionDirection::Up);
-	InInputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorDown"), EInputEvent::IE_Pressed, this,
+	InputComponent->BindAction<FMoveCursorDelegate>(TEXT("CursorDown"), EInputEvent::IE_Pressed, this,
         &UPlayerMenuWidget::MoveCursor, ESelectionDirection::Down);
 
 	
@@ -58,8 +61,54 @@ void UPlayerMenuWidget::SetupInputComponent(UInputComponent* InInputComponent)
 	TrySelectWidget(InventoryMenu);
 }
 
+void UPlayerMenuWidget::EnableInput()
+{
+	APlayerController* OwningPlayer = GetOwningPlayer();
+	if (!OwningPlayer || !InputComponent)
+	{
+		return;
+	}
+
+	// Pop our input component to make sure it's only on the stack once
+	OwningPlayer->PopInputComponent(InputComponent);
+
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetHideCursorDuringCapture(false);
+	OwningPlayer->SetInputMode(InputMode);
+	OwningPlayer->bShowMouseCursor = true;
+	RegisterInputComponent();
+}
+
+void UPlayerMenuWidget::DisableInput()
+{
+	APlayerController* OwningPlayer = GetOwningPlayer();
+	if (!OwningPlayer || !InputComponent)
+	{
+		return;
+	}
+
+	UnregisterInputComponent();
+}
+
 void UPlayerMenuWidget::MoveCursor(ESelectionDirection Direction)
 {
 	MoveSelection(Direction);
+}
+
+
+
+// Widget controls
+
+void UPlayerMenuWidget::EnableWidget()
+{
+	SetVisibility(ESlateVisibility::Visible);
+	EnableInput();
+}
+
+void UPlayerMenuWidget::DisableWidget()
+{
+	SetVisibility(ESlateVisibility::Hidden);
+	DisableInput();
 }
 

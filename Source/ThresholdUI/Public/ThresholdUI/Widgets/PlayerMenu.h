@@ -42,8 +42,24 @@ public:
 
 	// Input binding
 
-	void SetupInputComponent(UInputComponent* InInputComponent);
+	void SetupInputComponent();
+	void EnableInput();
+	void DisableInput();
 	void MoveCursor(ESelectionDirection Direction);
+
+
+
+	// Widget controls
+
+	/**
+	 * Shows the widget and enables input
+	 */
+	void EnableWidget();
+
+	/**
+	 * Hides the widget and disables input
+	 */
+	void DisableWidget();
 
 
 protected:

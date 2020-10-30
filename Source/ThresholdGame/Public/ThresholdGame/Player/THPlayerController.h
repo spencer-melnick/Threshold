@@ -72,22 +72,21 @@ public:
 
 
 
+	// Input controls
+
+	void SetPawnInputEnabled(const bool bNewPawnInputEnabled);
+
+
+
 	// Accessors
 
-	ABaseCharacter* GetBaseCharacter() const
-	{
-		return Cast<ABaseCharacter>(GetCharacter());
-	}
+	ABaseCharacter* GetBaseCharacter() const { return Cast<ABaseCharacter>(GetCharacter()); }
 
-	ATHPlayerCameraManager* GetTHPlayerCameraManager() const
-	{
-		return Cast<ATHPlayerCameraManager>(PlayerCameraManager);
-	}
+	ATHPlayerCameraManager* GetTHPlayerCameraManager() const { return Cast<ATHPlayerCameraManager>(PlayerCameraManager); }
+	
+	TWeakInterfacePtr<IInteractiveObject> GetCurrentInteractiveObject() const {	return CurrentInteractiveObject; }
 
-	TWeakInterfacePtr<IInteractiveObject> GetCurrentInteractiveObject() const
-	{
-		return CurrentInteractiveObject;
-	}
+	bool IsPawnInputEnabled() const { return bPawnInputEnabled; }
 
 
 	
@@ -181,4 +180,10 @@ private:
 	// Interaction control
 
 	TWeakInterfacePtr<IInteractiveObject> CurrentInteractiveObject;
+
+
+
+	// Input control
+
+	bool bPawnInputEnabled = true;
 };

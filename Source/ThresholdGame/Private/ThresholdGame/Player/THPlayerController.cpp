@@ -54,6 +54,20 @@ void ATHPlayerController::BeginPlay()
 void ATHPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	// Try to set our new pawn's input status to our input status
+	if (!InPawn)
+	{
+		return;
+	}
+	if (bPawnInputEnabled)
+	{
+		InPawn->EnableInput(this);
+	}
+	else
+	{
+		InPawn->DisableInput(this);
+	}
 }
 
 void ATHPlayerController::SetupInputComponent()
@@ -432,6 +446,8 @@ void ATHPlayerController::ToggleMenu()
 			PlayerHUD->SetStatus(EPlayerHUDStatus::WorldView);
 			break;
 	}
+
+	SetPawnInputEnabled(PlayerHUD->ShouldEnableCharacterControl());
 }
 
 void ATHPlayerController::InitializePlayerStateUI()
@@ -463,6 +479,38 @@ void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
 	THCameraManager->ApplyHitShake(Direction, Amplitude, HitShakeDuration, HitShakeCurve);
 }
 
+
+
+// Input controls
+
+void ATHPlayerController::SetPawnInputEnabled(const bool bNewPawnInputEnabled)
+{
+	if (bNewPawnInputEnabled == bPawnInputEnabled)
+	{
+		return;
+	}
+
+	bPawnInputEnabled = bNewPawnInputEnabled;
+	
+	APawn* ControlledPawn = GetPawn();
+	if (bPawnInputEnabled)
+	{
+		if (ControlledPawn)
+		{
+			ControlledPawn->EnableInput(this);
+		}
+
+		SetInputMode(FInputModeGameOnly());
+		bShowMouseCursor = false;
+	}
+	else
+	{
+		if (ControlledPawn)
+		{
+			ControlledPawn->DisableInput(this);
+		}
+	}
+}
 
 
 
