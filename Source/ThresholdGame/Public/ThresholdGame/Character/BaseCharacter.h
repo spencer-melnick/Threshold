@@ -60,9 +60,9 @@ public:
 	// Movement controls
 
 	/**
-	 * Adds movement input relative to the pawn's control rotation (along the world plane)
+	 * Adds movement input relative to the controller's view rotation (along the world plane)
 	 */
-	void AddControlSpaceMovementInput(FVector ControlSpaceDirection, float Scale, bool bForce = false);
+	void AddViewSpaceMovementInput(FVector ViewSpaceDirection, float Scale, bool bForce = false);
 	void MoveForward(float Scale);
 	void MoveRight(float Scale);
 

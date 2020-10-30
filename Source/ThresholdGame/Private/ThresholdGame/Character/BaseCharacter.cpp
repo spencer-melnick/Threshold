@@ -226,22 +226,30 @@ void ABaseCharacter::AttachTargetIndicator(AActor* TargetIndicator)
 
 // Movement controls
 
-void ABaseCharacter::AddControlSpaceMovementInput(FVector ControlSpaceDirection, float Scale, bool bForce)
-{
-	const FRotator ControlRotation = GetControlRotation();
-	const FRotator ControlYaw = FRotator(0.f, ControlRotation.Yaw, 0.f);
-	const FVector WorldDirection = ControlYaw.RotateVector(ControlSpaceDirection);
+void ABaseCharacter::AddViewSpaceMovementInput(FVector ViewSpaceDirection, float Scale, bool bForce)
+{	
+	if (!Controller)
+	{
+		return;
+	}
+
+	FVector ViewLocation;
+	FRotator ViewRotation;
+	Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
+	
+	const FRotator ViewYaw = FRotator(0.f, ViewRotation.Yaw, 0.f);
+	const FVector WorldDirection = ViewYaw.RotateVector(ViewSpaceDirection);
 	AddMovementInput(WorldDirection, Scale, bForce);
 }
 
 void ABaseCharacter::MoveForward(float Scale)
 {
-	AddControlSpaceMovementInput(FVector::ForwardVector, Scale, false);
+	AddViewSpaceMovementInput(FVector::ForwardVector, Scale, false);
 }
 
 void ABaseCharacter::MoveRight(float Scale)
 {
-	AddControlSpaceMovementInput(FVector::RightVector, Scale, false);
+	AddViewSpaceMovementInput(FVector::RightVector, Scale, false);
 }
 
 
