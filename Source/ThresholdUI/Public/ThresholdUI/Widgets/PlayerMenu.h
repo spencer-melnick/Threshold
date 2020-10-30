@@ -49,6 +49,12 @@ public:
 
 
 
+	// Widget overrides
+
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
+
+
 	// Widget controls
 
 	/**
@@ -60,6 +66,12 @@ public:
 	 * Hides the widget and disables input
 	 */
 	void DisableWidget();
+
+
+	
+	// Accessors
+
+	bool IsInputEnabled() const { return bInputEnabled; }
 
 
 protected:
@@ -82,4 +94,9 @@ private:
 
 	UPROPERTY(meta=(BindWidget))
 	UInventoryMenu* InventoryMenu;
+
+
+	// Input control
+
+	bool bInputEnabled = false;
 };

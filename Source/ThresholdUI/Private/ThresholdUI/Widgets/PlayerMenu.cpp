@@ -63,31 +63,35 @@ void UPlayerMenuWidget::SetupInputComponent()
 
 void UPlayerMenuWidget::EnableInput()
 {
+	if (bInputEnabled)
+	{
+		return;
+	}
+	bInputEnabled = true;
+	
 	APlayerController* OwningPlayer = GetOwningPlayer();
 	if (!OwningPlayer || !InputComponent)
 	{
 		return;
 	}
 
-	// Pop our input component to make sure it's only on the stack once
-	OwningPlayer->PopInputComponent(InputComponent);
+	// Unregister our input component to make sure it's only on the stack once
+	UnregisterInputComponent();
+	RegisterInputComponent();
 
 	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputMode.SetHideCursorDuringCapture(false);
 	OwningPlayer->SetInputMode(InputMode);
-	OwningPlayer->bShowMouseCursor = true;
-	RegisterInputComponent();
 }
 
 void UPlayerMenuWidget::DisableInput()
 {
-	APlayerController* OwningPlayer = GetOwningPlayer();
-	if (!OwningPlayer || !InputComponent)
+	if (!bInputEnabled)
 	{
 		return;
 	}
-
+	bInputEnabled = false;
 	UnregisterInputComponent();
 }
 
@@ -95,6 +99,33 @@ void UPlayerMenuWidget::MoveCursor(ESelectionDirection Direction)
 {
 	MoveSelection(Direction);
 }
+
+
+
+// Widget overrides
+
+FReply UPlayerMenuWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	FReply Reply = Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+
+	if (bInputEnabled && !InMouseEvent.GetCursorDelta().IsNearlyZero())
+	{
+		APlayerController* Controller = GetOwningPlayer();
+		if (Controller && !Controller->bShowMouseCursor)
+		{
+			Controller->bShowMouseCursor = true;
+		}
+		
+		if (!Reply.IsEventHandled())
+		{
+			// If the BP event didn't handle the event, then we need to let UMG know that we did
+			return FReply::Handled();
+		}	
+	}
+
+	return Reply;
+}
+
 
 
 
