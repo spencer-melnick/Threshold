@@ -58,7 +58,7 @@ void UPlayerMenuWidget::SetupInputComponent()
 	InventoryMenu->InitializeSelection(this);
 
 	// Try to select the initial widget
-	TrySelectWidget(InventoryMenu);
+	ISelectionController::TrySelectWidget(InventoryMenu);
 }
 
 void UPlayerMenuWidget::EnableInput()
@@ -83,6 +83,7 @@ void UPlayerMenuWidget::EnableInput()
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputMode.SetHideCursorDuringCapture(false);
 	OwningPlayer->SetInputMode(InputMode);
+	SnapCursorToViewCenter();
 }
 
 void UPlayerMenuWidget::DisableInput()
@@ -98,6 +99,12 @@ void UPlayerMenuWidget::DisableInput()
 void UPlayerMenuWidget::MoveCursor(ESelectionDirection Direction)
 {
 	MoveSelection(Direction);
+
+	APlayerController* Controller = GetOwningPlayer();
+	if (Controller && Controller->bShowMouseCursor)
+	{
+		Controller->bShowMouseCursor = false;
+	}
 }
 
 
@@ -141,5 +148,44 @@ void UPlayerMenuWidget::DisableWidget()
 {
 	SetVisibility(ESlateVisibility::Hidden);
 	DisableInput();
+}
+
+
+
+// Selection controller overrides
+
+bool UPlayerMenuWidget::TrySelectWidget(FSelectableWidgetReference Widget, ESelectionDirection FromSelectionDirection)
+{
+	
+	if (FromSelectionDirection == ESelectionDirection::None)
+	{
+		// Selection direction none is caused by mouse selection
+		APlayerController* Controller = GetOwningPlayer();
+		if (!Controller || !Controller->bShowMouseCursor)
+		{
+			// Skip if we're trying to select using a mouse but the cursor isn't visible yet
+			return false;
+		}
+	}
+
+	return ISelectionController::TrySelectWidget(Widget, FromSelectionDirection);
+}
+
+
+
+
+// Helper functions
+
+void UPlayerMenuWidget::SnapCursorToViewCenter()
+{
+	APlayerController* Controller = GetOwningPlayer();
+	if (!Controller)
+	{
+		return;
+	}
+
+	FIntPoint ViewportSize;
+	Controller->GetViewportSize(ViewportSize.X, ViewportSize.Y);
+	Controller->SetMouseLocation(ViewportSize.X / 2, ViewportSize.Y / 2);
 }
 

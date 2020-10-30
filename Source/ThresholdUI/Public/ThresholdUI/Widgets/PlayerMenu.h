@@ -74,12 +74,22 @@ public:
 	bool IsInputEnabled() const { return bInputEnabled; }
 
 
+	// Selection controller overrides
+
+	virtual bool TrySelectWidget(FSelectableWidgetReference Widget, ESelectionDirection FromSelectionDirection) override;
+
+
 protected:
 
 	// Selection controller overrides
 	
 	virtual FSelectableWidgetReference* GetSelectedWidgetPointer() override { return &SelectedWidget; }
 	virtual const FSelectableWidgetReference* GetSelectedWidgetPointer() const override { return &SelectedWidget; }
+
+
+	// Helper functions
+
+	void SnapCursorToViewCenter();
 
 
 private:
