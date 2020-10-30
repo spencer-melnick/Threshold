@@ -54,21 +54,31 @@ void ATHPlayerController::BeginPlay()
 void ATHPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	// Try to set our new pawn's input status to our input status
+	if (!InPawn)
+	{
+		return;
+	}
+	if (bPawnInputEnabled)
+	{
+		InPawn->EnableInput(this);
+	}
+	else
+	{
+		InPawn->DisableInput(this);
+	}
 }
 
 void ATHPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	InputComponent->BindAxis("MoveForward", this, &ATHPlayerController::MoveForward);
-	InputComponent->BindAxis("MoveRight", this, &ATHPlayerController::MoveRight);
-
-	InputComponent->BindAxis("LookUp", this, &ATHPlayerController::LookUp);
-    InputComponent->BindAxis("Turn", this, &ATHPlayerController::Turn);
-
+	/*
 	InputComponent->BindAction("ToggleTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleTarget);
 	InputComponent->BindAction("NextTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::NextTarget);
 	InputComponent->BindAction("PreviousTarget", EInputEvent::IE_Pressed, this, &ATHPlayerController::PreviousTarget);
+	*/
 
 	InputComponent->BindAction("ToggleMenu", EInputEvent::IE_Pressed, this, &ATHPlayerController::ToggleMenu);
 }
@@ -338,60 +348,7 @@ bool ATHPlayerController::GetCameraIsDirectlyControlled()
 
 
 
-
-
-
-// Movement 
-
-void ATHPlayerController::MoveForward(float Scale)
-{
-	ACharacter* PossessedCharacter = GetCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-
-	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	const FVector MovementBasis = MovementRotator.RotateVector(FVector::ForwardVector);
-	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
-}
-
-void ATHPlayerController::MoveRight(float Scale)
-{
-	ACharacter* PossessedCharacter = GetCharacter();
-	if (PossessedCharacter == nullptr)
-	{
-		return;
-	}
-	
-	const FRotator MovementRotator(0.f, GetControlRotation().Yaw, 0.f);
-	const FVector MovementBasis = MovementRotator.RotateVector(FVector::RightVector);
-	PossessedCharacter->AddMovementInput(MovementBasis * Scale);
-}
-
-
-
-
 // Camera controls
-
-void ATHPlayerController::LookUp(float Scale)
-{
-	if (GetCameraIsDirectlyControlled())
-	{
-		AddPitchInput(Scale);
-	}
-}
-
-
-void ATHPlayerController::Turn(float Scale)
-{
-	if (GetCameraIsDirectlyControlled())
-	{
-		AddYawInput(Scale);
-	}
-}
-
-
 
 void ATHPlayerController::ToggleTarget()
 {
@@ -489,6 +446,8 @@ void ATHPlayerController::ToggleMenu()
 			PlayerHUD->SetStatus(EPlayerHUDStatus::WorldView);
 			break;
 	}
+
+	SetPawnInputEnabled(PlayerHUD->ShouldEnableCharacterControl());
 }
 
 void ATHPlayerController::InitializePlayerStateUI()
@@ -520,6 +479,38 @@ void ATHPlayerController::ApplyHitShake(FVector Direction, float Amplitude)
 	THCameraManager->ApplyHitShake(Direction, Amplitude, HitShakeDuration, HitShakeCurve);
 }
 
+
+
+// Input controls
+
+void ATHPlayerController::SetPawnInputEnabled(const bool bNewPawnInputEnabled)
+{
+	if (bNewPawnInputEnabled == bPawnInputEnabled)
+	{
+		return;
+	}
+
+	bPawnInputEnabled = bNewPawnInputEnabled;
+	
+	APawn* ControlledPawn = GetPawn();
+	if (bPawnInputEnabled)
+	{
+		if (ControlledPawn)
+		{
+			ControlledPawn->EnableInput(this);
+		}
+
+		SetInputMode(FInputModeGameOnly());
+		bShowMouseCursor = false;
+	}
+	else
+	{
+		if (ControlledPawn)
+		{
+			ControlledPawn->DisableInput(this);
+		}
+	}
+}
 
 
 

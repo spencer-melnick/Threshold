@@ -42,8 +42,41 @@ public:
 
 	// Input binding
 
-	void SetupInputComponent(UInputComponent* InInputComponent);
+	void SetupInputComponent();
+	void EnableInput();
+	void DisableInput();
 	void MoveCursor(ESelectionDirection Direction);
+
+
+
+	// Widget overrides
+
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
+
+
+	// Widget controls
+
+	/**
+	 * Shows the widget and enables input
+	 */
+	void EnableWidget();
+
+	/**
+	 * Hides the widget and disables input
+	 */
+	void DisableWidget();
+
+
+	
+	// Accessors
+
+	bool IsInputEnabled() const { return bInputEnabled; }
+
+
+	// Selection controller overrides
+
+	virtual bool TrySelectWidget(FSelectableWidgetReference Widget, ESelectionDirection FromSelectionDirection) override;
 
 
 protected:
@@ -52,6 +85,11 @@ protected:
 	
 	virtual FSelectableWidgetReference* GetSelectedWidgetPointer() override { return &SelectedWidget; }
 	virtual const FSelectableWidgetReference* GetSelectedWidgetPointer() const override { return &SelectedWidget; }
+
+
+	// Helper functions
+
+	void SnapCursorToViewCenter();
 
 
 private:
@@ -66,4 +104,9 @@ private:
 
 	UPROPERTY(meta=(BindWidget))
 	UInventoryMenu* InventoryMenu;
+
+
+	// Input control
+
+	bool bInputEnabled = false;
 };

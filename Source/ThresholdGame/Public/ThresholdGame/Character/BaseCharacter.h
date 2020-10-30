@@ -24,6 +24,7 @@ class ABaseWeapon;
 
 
 
+
 /**
  * This is the custom base class for all characters used in the game!
  */
@@ -55,6 +56,17 @@ public:
 	virtual void AttachTargetIndicator(AActor* TargetIndicator) override;
 
 
+
+	// Movement controls
+
+	/**
+	 * Adds movement input relative to the controller's view rotation (along the world plane)
+	 */
+	void AddViewSpaceMovementInput(FVector ViewSpaceDirection, float Scale, bool bForce = false);
+	void MoveForward(float Scale);
+	void MoveRight(float Scale);
+
+	
 
 	// Weapon controls
 

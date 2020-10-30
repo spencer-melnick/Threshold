@@ -39,22 +39,21 @@ void APlayerHUD::BeginPlay()
 
 void APlayerHUD::SetStatus(const EPlayerHUDStatus NewStatus)
 {
+	if (!PlayerOwner)
+	{
+		return;
+	}
+	
 	Status = NewStatus;
 
 	switch (Status)
 	{
 		case EPlayerHUDStatus::WorldView:
-			DisableInput(PlayerOwner);
-			PlayerOwner->bShowMouseCursor = false;
-			PlayerOwner->bEnableMouseOverEvents = false;
-			HideWidgetChecked(PlayerMenuWidget);
+			PlayerMenuWidget->DisableWidget();
 			break;
 
 		case EPlayerHUDStatus::PlayerMenuActive:
-			EnableInput(PlayerOwner);
-			PlayerOwner->bShowMouseCursor = true;
-			PlayerOwner->bEnableMouseOverEvents = true;
-			ShowWidgetChecked(PlayerMenuWidget);
+			PlayerMenuWidget->EnableWidget();
 			break;
 	}
 }
@@ -86,9 +85,6 @@ void APlayerHUD::OnPlayerStateInitialized()
 	{
 		// Notify our widget that the player state exists
 		PlayerMenuWidget->OnPlayerStateInitialized();
-
-		// Allow out player menu widget to bind input to our input component
-		PlayerMenuWidget->SetupInputComponent(InputComponent);
 	}
 
 	// Disable input for now
@@ -121,24 +117,4 @@ void APlayerHUD::CreateWidgets()
 	PlayerMenuWidget->AddToViewport();
 
 	UE_LOG(LogThresholdUI, Display, TEXT("APlayerHUD %s created starting widgets"), *GetNameSafe(this))
-}
-
-void APlayerHUD::HideWidgetChecked(UUserWidget* Widget)
-{
-	if (!Widget)
-	{
-		return;
-	}
-
-	Widget->SetVisibility(ESlateVisibility::Collapsed);
-}
-
-void APlayerHUD::ShowWidgetChecked(UUserWidget* Widget)
-{
-	if (!Widget)
-	{
-		return;
-	}
-
-	Widget->SetVisibility(ESlateVisibility::Visible);
 }
