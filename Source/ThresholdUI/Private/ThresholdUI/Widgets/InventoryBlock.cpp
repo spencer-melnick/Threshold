@@ -52,13 +52,6 @@ void UInventoryBlock::NativeOnMouseEnter(const FGeometry& InGeometry, const FPoi
 
 void UInventoryBlock::DisplayItem(FInventoryArrayHandle InItemHandle)
 {
-	#if WITH_EDITOR
-		if (!StackDisplay || !ThumbnailDisplay)
-		{
-			return;
-		}
-	#endif
-	
 	ItemHandle = InItemHandle;
 	FInventoryItem* InventoryItem = ItemHandle.Get();
 
@@ -68,8 +61,26 @@ void UInventoryBlock::DisplayItem(FInventoryArrayHandle InItemHandle)
 		return;
 	}
 
-	StackDisplay->SetText(GetStackText(InventoryItem));
-	SetBrushTexture(InventoryItem->GetThumbnailImage());
+	DisplayItem(*InventoryItem);
+}
+
+void UInventoryBlock::DisplayItem(FInventoryItem& InItem)
+{
+	#if WITH_EDITOR
+		if (!StackDisplay || !ThumbnailDisplay)
+		{
+			return;
+		}
+	#endif
+	
+	if (!InItem.IsValid())
+	{
+		ClearDisplay();
+		return;
+	}
+
+	StackDisplay->SetText(GetStackText(&InItem));
+	SetBrushTexture(InItem.GetThumbnailImage());
 }
 
 void UInventoryBlock::ClearDisplay()

@@ -7,6 +7,12 @@
 
 
 
+// Forward declarations
+
+struct FInventoryItem;
+
+
+
 /**
 * Enum describing status of player HUD
 */
@@ -58,4 +64,9 @@ public:
 	 * Called whenever the player state is replicated to the client, or created on the server
 	 */
 	virtual void OnPlayerStateInitialized() = 0;
+
+	/**
+	 * Tells the HUD to show a notification that the local player picked up an item
+	 */
+	virtual void ShowItemPickupNotification(FInventoryItem& Item) = 0;
 };

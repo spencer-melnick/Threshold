@@ -11,6 +11,7 @@
 // Forward declarations
 
 class UPlayerMenuWidget;
+class UGameOverlay;
  
  
  
@@ -32,7 +33,7 @@ public:
 
 
 
-	// Accessors
+	// HUD control overrides
 
 	/**
 	 * Sets the player HUD status, hiding or showing any HUD widgets as necessary
@@ -42,18 +43,8 @@ public:
 	virtual void SetStatus(const EPlayerHUDStatus NewStatus) override;
 
 	virtual EPlayerHUDStatus GetStatus() const override { return Status; }
-
-	/**
-	 * Used to check whether or not the player should have control over their character, based on the HUD status.
-	 * Useful for disabling character control when the menu is active
-	 * @return True if the player should be able to control their character, false otherwise
-	 */
 	virtual bool ShouldEnableCharacterControl() const override;
-
-
-
-	// Initialization
-
+	virtual void ShowItemPickupNotification(FInventoryItem& Item) override;
 	virtual void OnPlayerStateInitialized() override;
 
 
@@ -63,12 +54,24 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Widgets")
 	TSubclassOf<UPlayerMenuWidget> PlayerMenuClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Widgets")
+	TSubclassOf<UGameOverlay> GameOverlayClass;
+
 
 protected:
 
 	// Helper functions
 	
 	void CreateWidgets();
+
+	/**
+	 * Creates a widget from the specified class and assigns it to the variable, displaying error messages if anything
+	 * fails
+	 * @param WidgetClass - Class of the widget to create
+	 * @param WidgetVariable - Variable to store the create widget at
+	 */
+	template <typename WidgetType>
+	void CreateWidgetFromClassChecked(TSubclassOf<WidgetType> WidgetClass, WidgetType*& WidgetVariable);
 	
 
 
@@ -77,6 +80,9 @@ private:
 
 	UPROPERTY()
 	UPlayerMenuWidget* PlayerMenuWidget;
+
+	UPROPERTY()
+	UGameOverlay* GameOverlay;
 
 
 

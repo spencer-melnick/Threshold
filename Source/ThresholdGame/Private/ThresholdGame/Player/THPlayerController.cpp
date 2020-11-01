@@ -3,7 +3,6 @@
 // ReSharper disable CppMemberFunctionMayBeConst
 
 #include "ThresholdGame/Player/THPlayerController.h"
-#include "GameFramework/HUD.h"
 #include "ThresholdGame/Abilities/THAbilitySystemComponent.h"
 #include "ThresholdGame/Character/THCharacter.h"
 #include "ThresholdGame/Effects/Camera/THPlayerCameraManager.h"
@@ -11,7 +10,10 @@
 #include "ThresholdGame/Global/Subsystems/InteractionSubsystem.h"
 #include "ThresholdGame/World/InteractiveObject.h"
 #include "ThresholdGame/Player/HUDControl.h"
+#include "ThresholdGame.h"
+#include "GameFramework/HUD.h"
 #include "EngineUtils.h"
+#include "Inventory/InventoryItem.h"
 
 
 
@@ -216,6 +218,24 @@ void ATHPlayerController::ToggleMenu()
 
 	SetPawnInputEnabled(PlayerHUD->ShouldEnableCharacterControl());
 }
+
+void ATHPlayerController::ClientShowItemPickupNotification_Implementation(FInventoryItem Item)
+{
+	if (!Item.IsValid())
+	{
+		UE_LOG(LogThresholdGame, Error, TEXT("ATHPlayerController::ClientShowItemPickupNotification failed on %s - invalid item"),
+			*GetNameSafe(this))
+		return;
+	}
+
+	IHUDControl* PlayerHUD = GetHUD<IHUDControl>();
+	if (!PlayerHUD)
+	{
+		return;
+	}
+	PlayerHUD->ShowItemPickupNotification(Item);
+}
+
 
 void ATHPlayerController::InitializePlayerStateUI()
 {

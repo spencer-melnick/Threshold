@@ -7,6 +7,7 @@
 #include "UObject/WeakInterfacePtr.h"
 #include "ThresholdGame/Character/BaseCharacter.h"
 #include "ThresholdGame/Effects/Camera/THPlayerCameraManager.h"
+#include "Inventory/InventoryItem.h"
 #include "THPlayerController.generated.h"
 
 
@@ -15,6 +16,7 @@
 
 class ICombatant;
 class IInteractiveObject;
+struct FInventoryItem;
 
 
 
@@ -48,6 +50,9 @@ public:
 	// HUD controls
 
 	void ToggleMenu();
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowItemPickupNotification(FInventoryItem Item);
 
 
 
