@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "ThresholdUI/Widgets/NotificationWidget.h"
 #include "PickupNotification.generated.h"
 
 
@@ -20,7 +20,7 @@ class URichTextBlock;
  * Widget that shows a notification when the player picks up an item
  */
 UCLASS()
-class UPickupNotification : public UUserWidget
+class UPickupNotification : public UNotificationWidget
 {
 	GENERATED_BODY()
 
@@ -28,13 +28,8 @@ public:
 	
 	// Display controls
 
-	void ShowItemPickupNotification(FInventoryItem& Item);
-
-
-	// Blueprint functions
-
-	UFUNCTION(BlueprintImplementableEvent, Category=PickupNotification, meta=(DisplayName="OnItemPickupNotification"))
-	void BP_OnItemPickupNotification();
+	// Updates the text and thumbnail to show the details of a specific item
+	void SetDisplayedItem(FInventoryItem& Item);
 
 	
 	// Editor properties

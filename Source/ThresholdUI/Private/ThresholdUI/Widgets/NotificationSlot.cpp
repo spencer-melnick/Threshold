@@ -14,8 +14,9 @@
 #if WITH_EDITOR
 void UNotificationSlot::SynchronizeProperties()
 {
-	CHECK_WIDGET_STATEMENT(OverlaySlot)
+	Super::SynchronizeProperties();
 	
+	CHECK_WIDGET_STATEMENT(OverlaySlot)
 	const UWorld* World = GetWorld();
 
 	if (World && !World->IsGameWorld())

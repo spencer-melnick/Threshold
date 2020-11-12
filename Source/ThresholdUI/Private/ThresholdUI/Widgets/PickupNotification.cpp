@@ -10,7 +10,7 @@
 
 // Display controls
 
-void UPickupNotification::ShowItemPickupNotification(FInventoryItem& Item)
+void UPickupNotification::SetDisplayedItem(FInventoryItem& Item)
 {
 	#if WITH_EDITOR
 		if (!ItemDisplay || !TextDisplay)
@@ -30,8 +30,6 @@ void UPickupNotification::ShowItemPickupNotification(FInventoryItem& Item)
 		ItemDisplay->DisplayItem(Item);
 		TextDisplay->SetText(FText::Format(NotificationText, {{TEXT("ItemName"), Item.GetName()}}));
 	}
-
-	BP_OnItemPickupNotification();
 }
 
 

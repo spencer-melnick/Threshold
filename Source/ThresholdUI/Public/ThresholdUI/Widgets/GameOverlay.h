@@ -11,6 +11,7 @@
 // Forward declarations
 
 struct FInventoryItem;
+class UNotificationSlot;
 class UPickupNotification;
 
 
@@ -31,12 +32,17 @@ public:
 	void ShowItemPickupNotification(FInventoryItem& Item);
 
 
+	// Editor properties
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=SubWidgets)
+	TSubclassOf<UPickupNotification> PickupNotificationClass;
+	
 
 private:
 
 	// Child widgets
 
 	UPROPERTY(meta=(BindWidget));
-	UPickupNotification* PickupDisplay;
+	UNotificationSlot* PickupNotificationSlot;
 	
 };

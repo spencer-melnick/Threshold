@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "ThresholdUI/Widgets/GameOverlay.h"
+#include "ThresholdUI/Widgets/NotificationSlot.h"
 #include "ThresholdUI/Widgets/PickupNotification.h"
+#include "ThresholdUI.h"
 #include "Inventory/InventoryItem.h"
 
 
@@ -10,13 +12,17 @@
 
 void UGameOverlay::ShowItemPickupNotification(FInventoryItem& Item)
 {
-	#if WITH_EDITOR
-		if (!PickupDisplay)
-		{
-			return;
-		}
-	#endif
+	CHECK_WIDGET_STATEMENT(PickupNotificationSlot)
 
-	PickupDisplay->ShowItemPickupNotification(Item);
+	if (!PickupNotificationClass)
+	{
+		UE_LOG(LogThresholdUI, Error, TEXT("GameOverlay::ShowItemPickupNotification failed on %s - no valid pickup notification class"),
+			*GetNameSafe(this))
+		return;
+	}
+
+	UPickupNotification* NewPickupNotification = CreateWidget<UPickupNotification>(PickupNotificationSlot, PickupNotificationClass);
+	NewPickupNotification->SetDisplayedItem(Item);
+	PickupNotificationSlot->AddChildNotification(NewPickupNotification);
 }
 
