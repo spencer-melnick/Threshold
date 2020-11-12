@@ -4,6 +4,7 @@
 #include "ThresholdUI/Widgets/NotificationWidget.h"
 #include "ThresholdUI.h"
 #include "Components/Overlay.h"
+#include "Components/OverlaySlot.h"
 
 
 
@@ -16,7 +17,7 @@ void UNotificationSlot::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
 	
-	CHECK_WIDGET_STATEMENT(OverlaySlot)
+	CHECK_WIDGET_STATEMENT(OverlayWidget)
 	const UWorld* World = GetWorld();
 
 	if (World && !World->IsGameWorld())
@@ -24,14 +25,16 @@ void UNotificationSlot::SynchronizeProperties()
 		// Add a preview widget if this isn't the game world
 		if (PreviewWidget)
 		{
-			OverlaySlot->RemoveChild(PreviewWidget);
+			OverlayWidget->RemoveChild(PreviewWidget);
 		}
 		if (PreviewWidgetClass)
 		{
 			PreviewWidget = CreateWidget<UNotificationWidget>(this, PreviewWidgetClass);
 			if (PreviewWidget)
 			{
-				OverlaySlot->AddChildToOverlay(PreviewWidget);
+				UOverlaySlot* PreviewSlot = OverlayWidget->AddChildToOverlay(PreviewWidget);
+				PreviewSlot->SetHorizontalAlignment(HorizontalAlignment);
+				PreviewSlot->SetVerticalAlignment(VerticalAlignment);
 			}
 		}
 	}
@@ -44,7 +47,7 @@ void UNotificationSlot::SynchronizeProperties()
 
 void UNotificationSlot::AddChildNotification(UNotificationWidget* Widget)
 {
-	CHECK_WIDGET_STATEMENT(OverlaySlot)
+	CHECK_WIDGET_STATEMENT(OverlayWidget)
 	
 	if (!Widget)
 	{
@@ -69,7 +72,7 @@ void UNotificationSlot::EndChildNotification(UNotificationWidget* Widget)
 
 void UNotificationSlot::RemoveChildNotification(UNotificationWidget* Widget)
 {
-	CHECK_WIDGET_STATEMENT(OverlaySlot)
+	CHECK_WIDGET_STATEMENT(OverlayWidget)
 	
 	if (!Widget)
 	{
@@ -84,13 +87,13 @@ void UNotificationSlot::RemoveChildNotification(UNotificationWidget* Widget)
 	QueuedNotificationWidgets.Remove(Widget);
 	if (ActiveNotificationWidgets.Remove(Widget) > 0)
 	{
-		OverlaySlot->RemoveChild(Widget);
+		OverlayWidget->RemoveChild(Widget);
 	}
 }
 
 void UNotificationSlot::CheckNextNotification()
 {
-	CHECK_WIDGET_STATEMENT(OverlaySlot)
+	CHECK_WIDGET_STATEMENT(OverlayWidget)
 	
 	if (!BlockingNotificationWidget && QueuedNotificationWidgets.Num() >= 1)
 	{
@@ -98,7 +101,11 @@ void UNotificationSlot::CheckNextNotification()
 		QueuedNotificationWidgets.RemoveAt(0);
 		ActiveNotificationWidgets.Add(BlockingNotificationWidget);
 		BlockingNotificationWidget->ParentSlot = this;
-		OverlaySlot->AddChildToOverlay(BlockingNotificationWidget);
+
+		UOverlaySlot* NewOverlaySlot = OverlayWidget->AddChildToOverlay(BlockingNotificationWidget);
+		NewOverlaySlot->SetHorizontalAlignment(HorizontalAlignment);
+		NewOverlaySlot->SetVerticalAlignment(VerticalAlignment);
+		
 		BlockingNotificationWidget->OnAddedToParentSlot();
 	}
 }

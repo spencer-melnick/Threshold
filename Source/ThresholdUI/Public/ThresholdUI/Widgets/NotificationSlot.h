@@ -11,6 +11,7 @@
 // Forward declarations
 
 class UOverlay;
+class UOverlaySlot;
 class UNotificationWidget;
 
 
@@ -56,6 +57,12 @@ public:
 		TSubclassOf<UNotificationWidget> PreviewWidgetClass;
 	#endif
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=NotificationSlot)
+	TEnumAsByte<EHorizontalAlignment> HorizontalAlignment = HAlign_Fill;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=NotificationSlot)
+	TEnumAsByte<EVerticalAlignment> VerticalAlignment = VAlign_Fill;
+
 
 protected:
 	
@@ -68,7 +75,7 @@ private:
 	// Bound widgets
 
 	UPROPERTY(meta=(BindWidget))
-	UOverlay* OverlaySlot;
+	UOverlay* OverlayWidget;
 
 	#if WITH_EDITOR
 		UPROPERTY()
