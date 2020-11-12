@@ -7,6 +7,7 @@
 #include "UObject/WeakInterfacePtr.h"
 #include "ThresholdGame/Character/BaseCharacter.h"
 #include "ThresholdGame/Effects/Camera/THPlayerCameraManager.h"
+#include "Inventory/InventoryItem.h"
 #include "THPlayerController.generated.h"
 
 
@@ -15,6 +16,7 @@
 
 class ICombatant;
 class IInteractiveObject;
+struct FInventoryItem;
 
 
 
@@ -45,24 +47,12 @@ public:
 
 
 
-	// Camera controls
-	
-	void ToggleTarget();
-	void SetTarget(TWeakInterfacePtr<ICombatant> NewTarget);
-	
-	void SetTarget(ICombatant* NewTarget)
-	{
-		SetTarget(TWeakInterfacePtr<ICombatant>(*NewTarget));
-	}
-	
-	void NextTarget();
-	void PreviousTarget();
-
-
-
 	// HUD controls
 
 	void ToggleMenu();
+
+	UFUNCTION(Client, Reliable)
+	void ClientShowItemPickupNotification(FInventoryItem Item);
 
 
 
@@ -81,34 +71,17 @@ public:
 	// Accessors
 
 	ABaseCharacter* GetBaseCharacter() const { return Cast<ABaseCharacter>(GetCharacter()); }
-
 	ATHPlayerCameraManager* GetTHPlayerCameraManager() const { return Cast<ATHPlayerCameraManager>(PlayerCameraManager); }
-	
-	TWeakInterfacePtr<IInteractiveObject> GetCurrentInteractiveObject() const {	return CurrentInteractiveObject; }
-
 	bool IsPawnInputEnabled() const { return bPawnInputEnabled; }
+	TWeakInterfacePtr<IInteractiveObject> GetCurrentInteractiveObject() const { return CurrentInteractiveObject; }
 
 
 	
 	// Public properties
 
-	// The rotational offset of the camera relative to facing directly
-	// at the target
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Targeting")
-	FRotator LockonOffsetRotation;
-	
-	// How fast the camera can rotate towards a locked on target
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Targeting")
-	float LockonRotationSpeed = 500.f;
-
 	// The maximum distance for a valid lockon target
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Targeting")
-	float MaxTargetDistance = 500.f;
-
-	// The actor class for the target indicator
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Targeting")
-	TSubclassOf<AActor> TargetIndicatorClass;
-	
+	float MaxTargetDistance = 500.f;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Effects")
 	class UCurveFloat* HitShakeCurve = nullptr;
@@ -123,28 +96,11 @@ public:
 	// Actor class for interaction indicator
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Interaction")
 	TSubclassOf<AActor> InteractionIndicatorClass;
-
-
-	
-	// Holds information about potential lockon targets
-	struct FTarget
-	{
-		TWeakInterfacePtr<ICombatant> Combatant;
-		FVector2D ScreenPosition;
-		float Distance;
-
-		bool operator==(const FTarget& OtherTarget) const;
-	};
 	
 	
 
 protected:
 	// Helper functions
-	
-	TArray<FTarget> GetLockonTargets();
-	TArray<FTarget> GetSortedLockonTargets();
-	TArray<FTarget> GetSortedLockonTargets(int32& CurrentTargetIndex);
-	void RotateTowardsTarget(float DeltaTime);
 
 	void CheckInteractiveObjects();
 	void SetCurrentInteractiveObject(TWeakInterfacePtr<IInteractiveObject> NewObject);
@@ -155,25 +111,12 @@ protected:
 	void InitializePlayerStateUI();
 
 
-	
-	// Virtual functions
-	
-	virtual bool GetCameraIsDirectlyControlled();
 
 private:
 	// Spawned actors
-	
-	UPROPERTY()
-	AActor* TargetIndicatorActor = nullptr;
 
 	UPROPERTY()
 	AActor* InteractionIndicatorActor = nullptr;
-
-
-	
-	// Camera control members
-
-	TWeakInterfacePtr<ICombatant> LockonTarget;
 
 
 

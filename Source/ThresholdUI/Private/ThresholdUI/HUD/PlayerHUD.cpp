@@ -1,9 +1,10 @@
 ﻿// Copyright (c) 2020 Spencer Melnick
 
 #include "ThresholdUI/HUD/PlayerHUD.h"
-#include "Blueprint/UserWidget.h"
-#include "ThresholdUI.h"
 #include "ThresholdUI/Widgets/PlayerMenu.h"
+#include "ThresholdUI/Widgets/GameOverlay.h"
+#include "ThresholdUI.h"
+#include "Blueprint/UserWidget.h"
 
 
 // APlayerHUD
@@ -69,6 +70,16 @@ bool APlayerHUD::ShouldEnableCharacterControl() const
 	}
 }
 
+void APlayerHUD::ShowItemPickupNotification(FInventoryItem& Item)
+{
+	if (!GameOverlay)
+	{
+		return;
+	}
+
+	GameOverlay->ShowItemPickupNotification(Item);
+}
+
 
 
 // Initialization
@@ -98,23 +109,28 @@ void APlayerHUD::OnPlayerStateInitialized()
 
 void APlayerHUD::CreateWidgets()
 {
-	if (!PlayerMenuClass)
-	{
-		UE_LOG(LogThresholdUI, Error, TEXT("APlayerHUD::CreateWidgets() failed on %s - invalid player menu class"),
-			*GetNameSafe(this))
-		return;
-	}
-
-	PlayerMenuWidget = CreateWidget<UPlayerMenuWidget>(GetOwningPlayerController(), PlayerMenuClass);
-
-	if (!PlayerMenuWidget)
-	{
-		UE_LOG(LogThresholdUI, Error, TEXT("APlayerHUD::CreateWidgets() failed on %s - failed to create widget of type %s"),
-            *GetNameSafe(this), *GetNameSafe(PlayerMenuClass))
-		return;
-	}
-
-	PlayerMenuWidget->AddToViewport();
+	CreateWidgetFromClassChecked(GameOverlayClass, GameOverlay);
+	CreateWidgetFromClassChecked(PlayerMenuClass, PlayerMenuWidget);
 
 	UE_LOG(LogThresholdUI, Display, TEXT("APlayerHUD %s created starting widgets"), *GetNameSafe(this))
 }
+
+template <typename WidgetType>
+void APlayerHUD::CreateWidgetFromClassChecked(TSubclassOf<WidgetType> WidgetClass, WidgetType*& WidgetVariable)
+{
+	if (!WidgetClass)
+	{
+		UE_LOG(LogThresholdUI, Error, TEXT("APlayerHUD::CreateWidgets() failed on %s - invalid %s class"),
+            *GetNameSafe(this), *GetNameSafe(WidgetType::StaticClass()))
+		return;
+	}
+	WidgetVariable = CreateWidget<WidgetType>(GetOwningPlayerController(), WidgetClass);
+	if (!WidgetVariable)
+	{
+		UE_LOG(LogThresholdUI, Error, TEXT("APlayerHUD::CreateWidgets() failed on %s - failed to create widget of type %s"),
+            *GetNameSafe(this), *GetNameSafe(WidgetClass))
+		return;
+	}
+	WidgetVariable->AddToViewport();
+}
+

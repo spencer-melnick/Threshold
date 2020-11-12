@@ -45,6 +45,12 @@ public:
 	void DisplayItem(FInventoryArrayHandle InItemHandle);
 
 	/**
+	 * Displays a specific item in an inventory
+	 * @param InItem - Pointer to the item to be displayed - will clear display if invalid
+	*/
+	void DisplayItem(FInventoryItem& InItem);
+
+	/**
 	 * Clears the item display and item handle
 	 */
 	void ClearDisplay();
