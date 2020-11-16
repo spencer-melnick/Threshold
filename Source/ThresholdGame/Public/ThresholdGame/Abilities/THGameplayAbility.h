@@ -19,13 +19,12 @@ public:
 
 
 	// Engine overrides
-	
-	virtual bool CanActivateAbility(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayTagContainer* SourceTags = nullptr,
-		const FGameplayTagContainer* TargetTags = nullptr,
-		FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+
+	virtual bool DoesAbilitySatisfyTagRequirements(
+		const UAbilitySystemComponent& AbilitySystemComponent,
+		const FGameplayTagContainer* SourceTags,
+		const FGameplayTagContainer* TargetTags,
+		FGameplayTagContainer* OptionalRelevantTags) const override;
 
 
 	// Input buffering code
