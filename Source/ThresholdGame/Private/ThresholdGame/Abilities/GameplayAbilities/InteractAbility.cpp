@@ -81,12 +81,12 @@ bool UInteractAbility::CanActivateAbility(
 	const FGameplayTagContainer* TargetTags,
 	FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	if (!ActorInfo || !Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
 		return false;
 	}
 
-	if (IsLocallyControlled())
+	if (ActorInfo->IsLocallyControlled())
 	{
 		// For owner check if there is a target object before triggering interaction
 		return GetTargetObject(ActorInfo).IsValid();
