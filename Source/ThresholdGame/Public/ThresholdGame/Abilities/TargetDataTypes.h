@@ -123,6 +123,14 @@ struct THRESHOLDGAME_API FSingleObjectTargetData : public FGameplayAbilityTarget
 {
 	GENERATED_BODY()
 
+	FSingleObjectTargetData() :
+		Object(nullptr)
+	{};
+
+	FSingleObjectTargetData(TWeakObjectPtr<UObject> Object) :
+		Object(Object)
+	{};
+
 	UPROPERTY()
 	TWeakObjectPtr<UObject> Object;
 

@@ -30,10 +30,7 @@ void UInteractAbility::ActivateAbility(
 		return;
 	}
 
-	const UTHAbilitySystemComponent* AbilitySystemComponent =
-        Cast<UTHAbilitySystemComponent>(ActorInfo->AbilitySystemComponent);
-
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AbilitySystemComponent)
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
@@ -60,11 +57,7 @@ void UInteractAbility::ActivateAbility(
 		if (IsPredictingClient())
 		{
 			// Send target object data on the predicting client
-			FSingleObjectTargetData* ObjectData = new FSingleObjectTargetData();
-			ObjectData->Object = TargetObject.GetObject();
-			FGameplayAbilityTargetDataHandle TargetDataHandle;
-			TargetDataHandle.Add(ObjectData);
-			SendTargetDataToServer(TargetDataHandle);
+			SendTargetDataToServer(new FSingleObjectTargetData(TargetObject.GetObject()));
 		}
 		else
 		{
@@ -119,11 +112,9 @@ void UInteractAbility::OnClientDataReceived(const FGameplayAbilityTargetDataHand
 			UE_LOG(LogThresholdGame, Warning, TEXT("UInteractAbility received a target object out of range from %s"),
 				*GetNameSafe(CurrentActorInfo->PlayerController.Get()));
 		}
-
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 		return;
 	}
-
 	// Trigger the interaction
 	TriggerInteraction(InteractiveObject);
 }
@@ -131,25 +122,18 @@ void UInteractAbility::OnClientDataReceived(const FGameplayAbilityTargetDataHand
 TWeakInterfacePtr<IInteractiveObject> UInteractAbility::GetTargetObject(const FGameplayAbilityActorInfo* ActorInfo) const
 {
 	// Try to get the current object from the player controller
-	const ATHPlayerController* PlayerController = Cast<ATHPlayerController>(ActorInfo->PlayerController);
-	
+	const ATHPlayerController* PlayerController = UAbilityFunctionLibrary::GetPlayerControllerFromActorInfo<ATHPlayerController>(CurrentActorInfo);
 	if (PlayerController)
 	{			
 		return PlayerController->GetCurrentInteractiveObject();
 	}
-
 	return TWeakInterfacePtr<IInteractiveObject>();
 }
 
 bool UInteractAbility::CheckInteractionRange(const TWeakInterfacePtr<IInteractiveObject>& InteractiveObject) const
 {
-	if (!CurrentActorInfo)
-	{
-		return false;
-	}
-	
-	const ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(CurrentActorInfo->AvatarActor);
-	const ATHPlayerController* PlayerController = Cast<ATHPlayerController>(CurrentActorInfo->PlayerController);
+	const ABaseCharacter* BaseCharacter = UAbilityFunctionLibrary::GetCharacterFromActorInfo<ABaseCharacter>(CurrentActorInfo);
+	const ATHPlayerController* PlayerController = UAbilityFunctionLibrary::GetPlayerControllerFromActorInfo<ATHPlayerController>(CurrentActorInfo);
 
 	if (!BaseCharacter || !PlayerController)
 	{
@@ -168,7 +152,7 @@ bool UInteractAbility::CheckInteractionRange(const TWeakInterfacePtr<IInteractiv
 
 void UInteractAbility::TriggerInteraction(TWeakInterfacePtr<IInteractiveObject> Object)
 {
-	ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(CurrentActorInfo->AvatarActor);
+	ABaseCharacter* BaseCharacter = UAbilityFunctionLibrary::GetCharacterFromActorInfo<ABaseCharacter>(CurrentActorInfo);
 
 	if (!Object.IsValid() || !Object->CanInteract(BaseCharacter))
 	{

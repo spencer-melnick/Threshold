@@ -62,4 +62,15 @@ public:
 
 		return Cast<T>(ActorInfo->AvatarActor.Get());
 	}
+
+	template<typename T = APlayerController>
+	static T* GetPlayerControllerFromActorInfo(const FGameplayAbilityActorInfo* ActorInfo)
+	{
+		if (!ActorInfo || !ActorInfo->PlayerController.IsValid())
+		{
+			return nullptr;
+		}
+
+		return Cast<T>(ActorInfo->PlayerController.Get());
+	}
 };
