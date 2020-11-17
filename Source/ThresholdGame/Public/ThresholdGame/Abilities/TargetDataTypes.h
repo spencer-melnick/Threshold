@@ -20,6 +20,10 @@ struct THRESHOLDGAME_API FAbilityDirectionalData : public FGameplayAbilityTarget
 		Direction(ForceInitToZero)
 	{};
 
+	FAbilityDirectionalData(const FVector Direction) :
+		Direction(Direction)
+	{};
+
 	virtual ~FAbilityDirectionalData() {};
 
 	UPROPERTY()
@@ -118,6 +122,14 @@ USTRUCT()
 struct THRESHOLDGAME_API FSingleObjectTargetData : public FGameplayAbilityTargetData
 {
 	GENERATED_BODY()
+
+	FSingleObjectTargetData() :
+		Object(nullptr)
+	{};
+
+	FSingleObjectTargetData(TWeakObjectPtr<UObject> Object) :
+		Object(Object)
+	{};
 
 	UPROPERTY()
 	TWeakObjectPtr<UObject> Object;

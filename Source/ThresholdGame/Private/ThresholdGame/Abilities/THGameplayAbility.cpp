@@ -3,8 +3,8 @@
 #include "ThresholdGame/Abilities/THGameplayAbility.h"
 #include "ThresholdGame/Abilities/THAbilitySystemComponent.h"
 #include "ThresholdGame/Character/Animation/AnimNotifyState_LooseTag.h"
+#include "ThresholdGame.h"
 #include "AbilitySystemGlobals.h"
-
 
 
 UTHGameplayAbility::UTHGameplayAbility()

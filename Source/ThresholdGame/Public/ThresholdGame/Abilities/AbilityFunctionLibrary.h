@@ -24,6 +24,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Ability")
 	static FGameplayCueParameters CreateGameplayCue(AActor* Instigator, AActor* EffectCauser, AActor* Target);
 
+	/**
+	 * Converts target data from a target data handle to a specific type of target data. Only works if the target
+	 * data handle only has one piece of target data.
+	 * @return Casted target data on success, nullptr on failure
+	 */
 	template<typename T>
 	static const T* ConvertTargetData(const FGameplayAbilityTargetDataHandle& Data)
 	{
@@ -45,5 +50,27 @@ public:
 		}
 	
 		return static_cast<const T*>(TargetData);
+	}
+
+	template<typename T = ACharacter>
+	static T* GetCharacterFromActorInfo(const FGameplayAbilityActorInfo* ActorInfo)
+	{
+		if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
+		{
+			return nullptr;
+		}
+
+		return Cast<T>(ActorInfo->AvatarActor.Get());
+	}
+
+	template<typename T = APlayerController>
+	static T* GetPlayerControllerFromActorInfo(const FGameplayAbilityActorInfo* ActorInfo)
+	{
+		if (!ActorInfo || !ActorInfo->PlayerController.IsValid())
+		{
+			return nullptr;
+		}
+
+		return Cast<T>(ActorInfo->PlayerController.Get());
 	}
 };

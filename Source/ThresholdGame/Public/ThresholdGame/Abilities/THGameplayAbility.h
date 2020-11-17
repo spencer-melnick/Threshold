@@ -47,5 +47,7 @@ public:
 	EAbilityInputType DefaultInputBinding = EAbilityInputType::None;
 
 protected:
+
+	UFUNCTION(BlueprintCallable, Category="Gameplay Ability|Threshold")
 	void SendTargetDataToServer(const FGameplayAbilityTargetDataHandle& TargetData);
 };
