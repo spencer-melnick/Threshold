@@ -49,7 +49,7 @@ void UCharacterDodge::ActivateAbility(
 		return;
 	}
 
-	if (IsLocallyControlled() || IsPredictingClient())
+	if (IsLocallyControlled())
 	{
 		// Try to grab our input data
 		const TSharedPtr<FDodgeInputData> InputData =
@@ -64,19 +64,16 @@ void UCharacterDodge::ActivateAbility(
 		if (IsPredictingClient())
 		{
 			// Send the directional data to the server
-			FAbilityDirectionalData* DirectionalData = new FAbilityDirectionalData();
-			DirectionalData->Direction = InputData->DodgeVector;
-			FGameplayAbilityTargetDataHandle TargetDataHandle;
-			TargetDataHandle.Add(DirectionalData);
-			SendTargetDataToServer(TargetDataHandle);
+			SendTargetDataToServer(new FAbilityDirectionalData(InputData->DodgeVector));
 		}
 	
-		// Apply the locally simulated motion
+		// Apply the local motion - if this is the listen server, this is our authoritative move
+		// If we're predicting, the server will just validate for us, no need to worry
 		ApplyDodgeMotionTask(InputData->DodgeVector);
 	}
-	else
+	else if (IsForRemoteClient())
 	{
-		// Otherwise wait for the directional data from the client
+		// Wait for the directional data from the client
 		UAT_ServerWaitForClientTargetData* WaitTask =
 			UAT_ServerWaitForClientTargetData::ServerWaitForClientTargetData(this, NAME_None, true);
 		WaitTask->ValidData.AddDynamic(this, &UCharacterDodge::OnClientDataReceived);
@@ -105,12 +102,7 @@ bool UCharacterDodge::CanActivateAbility(
 TSharedPtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const FGameplayAbilitySpecHandle SpecHandle,
 	const FGameplayAbilityActorInfo* ActorInfo)
 {
-	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
-	{
-		return nullptr;
-	}
-
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor);
+	ACharacter* Character = UAbilityFunctionLibrary::GetCharacterFromActorInfo(ActorInfo);
 	if (!Character)
 	{
 		return nullptr;
@@ -130,7 +122,7 @@ TSharedPtr<FBufferedAbilityInputData> UCharacterDodge::GenerateInputData(const F
 		InputData->DodgeVector = LastMovementVector.GetSafeNormal();
 	}
 
-	return MoveTemp(InputData);
+	return InputData;
 }
 
 

@@ -20,6 +20,10 @@ struct THRESHOLDGAME_API FAbilityDirectionalData : public FGameplayAbilityTarget
 		Direction(ForceInitToZero)
 	{};
 
+	FAbilityDirectionalData(const FVector Direction) :
+		Direction(Direction)
+	{};
+
 	virtual ~FAbilityDirectionalData() {};
 
 	UPROPERTY()
