@@ -31,14 +31,23 @@ void UHitSlowdown::ActivateAbility(
 
 	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AbilitySystemComponent)
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AbilitySystemComponent || !ActorInfo)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
+	UAnimMontage* ActiveMontage = AbilitySystemComponent->GetCurrentMontage();
+	UAnimInstance* AnimInstance = ActorInfo->GetAnimInstance();
+	float StartTime = -1.f;
+
+	if (CurrentMontage && AnimInstance)
+	{
+		StartTime = AnimInstance->Montage_GetPosition(ActiveMontage);
+	}
+
 	UAT_ApplySlowdownCurve* SlowdownTask = UAT_ApplySlowdownCurve::ApplySlowdownCurve(
-		this, NAME_None, AbilitySystemComponent->GetCurrentMontage(), SlowdownCurve, Duration);
+		this, NAME_None, ActiveMontage, SlowdownCurve, Duration, StartTime);
 	SlowdownTask->OnEnd.AddDynamic(this, &UHitSlowdown::OnSlowdownEnded);
 	SlowdownTask->ReadyForActivation();
 }
