@@ -3,11 +3,12 @@
 #pragma once
 
 #include "ThresholdGame/Abilities/Tasks/AbilityTask_ApplyRootMotionPositionCurve.h"
+#include "ThresholdGame/Abilities/Motion/THMotionSources.h"
+#include "ThresholdGame.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "ThresholdGame/Abilities/Motion/THMotionSources.h"
 
 UAbilityTask_ApplyRootMotionPositionCurve* UAbilityTask_ApplyRootMotionPositionCurve::ApplyRootMotionPositionCurve(
     UGameplayAbility* OwningAbility,

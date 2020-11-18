@@ -67,7 +67,7 @@ bool UWeaponAttack::CanActivateAbility(
 
 void UWeaponAttack::OnAnimationFinished(FGameplayTag EventTag, FGameplayEventData EventData)
 {
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
 }
 
 void UWeaponAttack::OnEventReceived(FGameplayTag EventTag, FGameplayEventData EventData)

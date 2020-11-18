@@ -28,12 +28,19 @@ class THRESHOLDGAME_API UAT_ApplySlowdownCurve : public UAbilityTask
 public:
 	UAT_ApplySlowdownCurve();
 
-	static UAT_ApplySlowdownCurve* ApplySlowdownCurve(UGameplayAbility* OwningAbility, FName TaskInstanceName, UCurveFloat* SlowdownCurve, float Duration);
+	static UAT_ApplySlowdownCurve* ApplySlowdownCurve(
+		UGameplayAbility* OwningAbility,
+		FName TaskInstanceName,
+		UAnimMontage* Montage,
+		UCurveFloat* SlowdownCurve,
+		float Duration,
+		float StartTime = -1.f);
 
 	
 	// Ability task overrides
 
-	virtual void Activate() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void InitSimulatedTask(UGameplayTasksComponent& InGameplayTasksComponent) override;
 	virtual void TickTask(float DeltaTime) override;
 	virtual void PreDestroyFromReplication() override;
 	virtual void OnDestroy(bool bInOwnerFinished) override;
@@ -45,9 +52,20 @@ public:
 
 
 protected:
-	UPROPERTY()
+
+	void SharedInitAndApply();
+
+	UPROPERTY(Replicated)
+	UAnimMontage* Montage;
+	
+	UPROPERTY(Replicated)
 	UCurveFloat* SlowdownCurve;
+
+	UPROPERTY(Replicated)
 	float Duration;
+
+	UPROPERTY(Replicated)
+	float StartTime;
 
 
 private:
@@ -55,4 +73,7 @@ private:
 	
 	float ElapsedTime = 0.f;
 	bool bIsFinished = true;
+
+	UPROPERTY()
+	UAnimInstance* AnimInstance;
 };

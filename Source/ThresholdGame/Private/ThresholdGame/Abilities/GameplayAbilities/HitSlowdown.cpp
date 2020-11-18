@@ -2,6 +2,7 @@
 
 #include "ThresholdGame/Abilities/GameplayAbilities/HitSlowdown.h"
 #include "ThresholdGame/Abilities/Tasks/AT_ApplySlowdownCurve.h"
+#include "AbilitySystemComponent.h"
 
 
 // UHitSlowdown
@@ -28,13 +29,16 @@ void UHitSlowdown::ActivateAbility(
 		return;
 	}
 
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
+
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !AbilitySystemComponent)
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
 
-	UAT_ApplySlowdownCurve* SlowdownTask = UAT_ApplySlowdownCurve::ApplySlowdownCurve(this, NAME_None, SlowdownCurve, Duration);
+	UAT_ApplySlowdownCurve* SlowdownTask = UAT_ApplySlowdownCurve::ApplySlowdownCurve(
+		this, NAME_None, AbilitySystemComponent->GetCurrentMontage(), SlowdownCurve, Duration);
 	SlowdownTask->OnEnd.AddDynamic(this, &UHitSlowdown::OnSlowdownEnded);
 	SlowdownTask->ReadyForActivation();
 }
